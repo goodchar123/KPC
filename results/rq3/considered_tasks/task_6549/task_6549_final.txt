@@ -1,0 +1,57 @@
+
+Sure, here's the updated code snippet that includes error handling for both the `substring` and `split` methods:
+
+```java
+import java.time.Period;
+import java.util.regex.PatternSyntaxException;
+
+public class PeriodFromString {
+    public static Period getPeriodFromString(String periodString) {
+        int years = 0;
+        int months = 0;
+        int days = 0;
+
+        // Check if the period string starts with "P"
+        if (periodString.startsWith("P")) {
+            // Split the period string into separate parts
+            String[] parts;
+            try {
+                parts = periodString.substring(1).split("[YM]");
+            } catch (IndexOutOfBoundsException e) {
+                throw new IllegalArgumentException("Invalid period string format", e);
+            } catch (PatternSyntaxException e) {
+                throw new IllegalArgumentException("Invalid regular expression syntax", e);
+            }
+
+            // Loop through the parts and extract the values
+            for (String part : parts) {
+                int endIndex = part.length() - 1;
+                int value;
+                try {
+                    value = Integer.parseInt(part.substring(0, endIndex));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid integer value in period string", e);
+                }
+
+                if (part.endsWith("Y")) {
+                    years = value;
+                } else if (part.endsWith("M")) {
+                    months = value;
+                } else if (part.endsWith("D")) {
+                    days = value;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid period string format");
+        }
+
+        // Create and return the period object
+        return Period.of(years, months, days);
+    }
+}
+```
+
+This updated code includes error handling for both the `substring` and `split` methods. If the `substring` method is called with a negative `beginIndex` or a `beginIndex` that is larger than the length of the string, an `IndexOutOfBoundsException` will be thrown. To handle this, we can catch the `IndexOutOfBoundsException` and re-throw it as an `IllegalArgumentException` with a helpful error message.
+
+Similarly, if the regular expression used in the `split` method has invalid syntax, a `PatternSyntaxException` will be thrown. To handle this, we can catch the `PatternSyntaxException` and re-throw it as an `IllegalArgumentException` with a helpful error message.
+------------------------------------------------------

@@ -1,0 +1,23 @@
+
+Sure, here's an updated version of the Java method that checks if the current thread is allowed to modify the thread for `java.lang.Thread.interrupt()`, and throws a `SecurityException` if it's not allowed:
+
+```
+public void acquireReadLock() throws SecurityException {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPermission(new RuntimePermission("modifyThread"));
+    }
+    try {
+        lock.readLock().lockInterruptibly();
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+}
+```
+
+This updated method first checks if a `SecurityManager` is installed using `System.getSecurityManager()`. If a `SecurityManager` is installed, it checks if the current thread has the `modifyThread` permission using `securityManager.checkPermission(new RuntimePermission("modifyThread"))`. If the permission is not granted, a `SecurityException` is thrown.
+
+If the permission is granted, the method proceeds to acquire the read lock using `lock.readLock().lockInterruptibly()`, and handles the `InterruptedException` as before.
+
+Note that the `modifyThread` permission is required to modify any thread, including the current thread. So if the current thread doesn't have this permission, it won't be able to interrupt itself.
+------------------------------------------------------

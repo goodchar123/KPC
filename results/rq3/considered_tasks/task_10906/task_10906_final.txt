@@ -1,0 +1,57 @@
+
+Here's the updated Java method that includes the additional error checks you requested:
+
+```java
+import java.net.*;
+
+public class MulticastReceiver {
+    public static void joinMulticastGroup(String groupAddress, String sourceAddress) throws SecurityException, NullPointerException, IllegalArgumentException, IOException, UnknownHostException, SocketException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkConnect(groupAddress);
+            sm.checkConnect(sourceAddress);
+            sm.checkMulticast(InetAddress.getByName(groupAddress));
+        }
+        
+        if (groupAddress == null || sourceAddress == null) {
+            throw new NullPointerException("Group address and source address cannot be null");
+        }
+        
+        try {
+            InetAddress group = InetAddress.getByName(groupAddress);
+            InetAddress source = InetAddress.getByName(sourceAddress);
+            NetworkInterface ni = NetworkInterface.getByName("eth0"); // replace with appropriate interface name
+            
+            MulticastSocket socket = new MulticastSocket(1234); // replace with appropriate port number
+            socket.joinGroup(new InetSocketAddress(group, 1234), ni);
+            socket.joinGroup(new InetSocketAddress(source, 1234), ni);
+            
+            byte[] buffer = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            
+            while (true) {
+                socket.receive(packet);
+                String message = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Received message: " + message);
+            }
+        } catch (SecurityException se) {
+            throw se;
+        } catch (NullPointerException npe) {
+            throw npe;
+        } catch (IllegalArgumentException iae) {
+            throw iae;
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (UnknownHostException uhe) {
+            throw uhe;
+        } catch (SocketException se) {
+            throw se;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This updated method includes additional error checks for `UnknownHostException` and `SocketException` when calling `InetAddress.getByName` and `NetworkInterface.getByName`, respectively. It also rethrows any exceptions that are caught with the appropriate exception type.
+------------------------------------------------------

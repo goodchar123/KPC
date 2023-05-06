@@ -1,0 +1,36 @@
+
+Here's an updated version of the Java method that includes the requested checks:
+
+```java
+import javax.sound.sampled.*;
+
+public Set<TargetDataLine> getOpenTargetLines(Mixer mixer) throws IllegalArgumentException, SecurityException {
+    Set<TargetDataLine> openLines = new HashSet<>();
+    Line.Info[] targetLineInfo = mixer.getTargetLineInfo();
+    for (Line.Info info : targetLineInfo) {
+        try {
+            Line line = mixer.getLine(info);
+            if (line instanceof TargetDataLine && line.isOpen()) {
+                openLines.add((TargetDataLine) line);
+            }
+        } catch (LineUnavailableException e) {
+            // handle exception
+            if (e instanceof IllegalArgumentException) {
+                throw (IllegalArgumentException) e;
+            } else if (e instanceof SecurityException) {
+                throw (SecurityException) e;
+            }
+        }
+    }
+    return openLines;
+}
+```
+
+This updated method includes two checks:
+
+1. If the `getLine()` method throws an `IllegalArgumentException`, it is re-thrown as an `IllegalArgumentException` to indicate that the mixer does not support any lines matching the provided `Line.Info` description.
+
+2. If the `getLine()` method throws a `SecurityException`, it is re-thrown as a `SecurityException` to indicate that a matching line is not available due to security restrictions.
+
+These checks are implemented using `instanceof` to determine the type of the caught exception and then re-throwing it with the appropriate type.
+------------------------------------------------------

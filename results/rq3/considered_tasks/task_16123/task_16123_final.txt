@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the `getZoneRules` method that checks for both invalid format and invalid region ID:
+
+```java
+import java.time.ZoneId;
+import java.time.zone.ZoneRules;
+import java.time.zone.ZoneRulesProvider;
+
+public class ZoneRulesExample {
+
+    public static ZoneRules getZoneRules(String zoneId) {
+        try {
+            ZoneId zone = ZoneId.of(zoneId);
+            if (!ZoneId.getAvailableZoneIds().contains(zoneId)) {
+                throw new ZoneRulesException("Invalid zone ID: " + zoneId);
+            }
+            ZoneRulesProvider provider = ZoneRulesProvider.getProvider(zone);
+            return provider.getRules(zone);
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Invalid zone ID format: " + zoneId);
+        }
+    }
+
+    public static void main(String[] args) {
+        String zoneId = "America/New_York";
+        try {
+            ZoneRules rules = getZoneRules(zoneId);
+            System.out.println("Zone ID: " + zoneId);
+            System.out.println("Standard Offset: " + rules.getStandardOffset(java.time.Instant.now()));
+            System.out.println("Daylight Savings Offset: " + rules.getDaylightSavings(java.time.Instant.now()));
+        } catch (ZoneRulesException | DateTimeException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+```
+
+This version of the method first tries to create a `ZoneId` object from the input `zoneId`. If the format of the input is invalid, it throws a `DateTimeException` with an error message. If the format is valid, it checks if the zone ID is a valid region ID by checking if it is contained in the list of available zone IDs. If it is not valid, it throws a `ZoneRulesException` with an error message. If it is valid, it gets the `ZoneRulesProvider` for that zone and uses it to get the `ZoneRules` object.
+
+In the `main` method, we use this method to get the `ZoneRules` object for the "America/New_York" zone ID and print out the standard and daylight savings offsets for the current time. If the zone ID is invalid due to either format or region ID, we catch the appropriate exception and print out the error message.
+------------------------------------------------------

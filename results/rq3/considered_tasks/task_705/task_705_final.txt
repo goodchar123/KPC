@@ -1,0 +1,29 @@
+
+Thank you for bringing these issues to my attention. Here's the updated Java method that includes the error checking and exception handling for the scenarios you mentioned:
+
+```java
+public void insertInterceptor(ConnectorServer connectorServer, ObjectName objectName, Object interceptor) throws Exception {
+    MBeanServer mbeanServer = connectorServer.getMBeanServer();
+    MBeanServerInterceptor defaultInterceptor = MBeanServerInvocationHandler.newProxyInstance(mbeanServer, 
+        MBeanServerInterceptor.class, MBeanServerDelegate.DELEGATE_NAME, false);
+    MBeanServerInterceptor customInterceptor = new CustomMBeanServerInterceptor(defaultInterceptor, interceptor);
+    ObjectName delegateName = new ObjectName("JMImplementation:type=MBeanServerDelegate");
+    try {
+        mbeanServer.unregisterMBean(delegateName);
+    } catch (InstanceNotFoundException e) {
+        // The MBean is not registered in the MBean server
+        throw e;
+    } catch (IllegalArgumentException e) {
+        // The object name in parameter is null or the MBean being unregistered is the MBeanServerDelegate MBean
+        throw new RuntimeOperationsException(e);
+    } catch (RuntimeException e) {
+        // The postDeregister method of the MBean throws a RuntimeException
+        throw new RuntimeMBeanException(e);
+    } catch (Error e) {
+        // The postDeregister method of the MBean throws an Error
+        throw new RuntimeErrorException(new Error("Error while unregistering MBean", e));
+    }
+    try {
+        mbeanServer.registerMBean(customInterceptor, delegateName);
+    } catch
+------------------------------------------------------

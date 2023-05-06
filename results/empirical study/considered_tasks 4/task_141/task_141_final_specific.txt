@@ -1,0 +1,70 @@
+Please pay attention to SecurityException, IllegalArgumentException.
+Sure, here's an updated version of the Java method that handles `SecurityException` and `IllegalArgumentException`:
+
+```java
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Arc2D;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class PieChart extends JPanel {
+    private double[] values;
+    private String[] labels;
+    private Color[] colors;
+
+    public PieChart(double[] values, String[] labels, Color[] colors) throws IllegalArgumentException {
+        if (values.length != labels.length || values.length != colors.length) {
+            throw new IllegalArgumentException("Values, labels, and colors arrays must have the same length");
+        }
+        this.values = values;
+        this.labels = labels;
+        this.colors = colors;
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        double total = 0.0;
+        for (double value : values) {
+            total += value;
+        }
+
+        double startAngle = 0.0;
+        for (int i = 0; i < values.length; i++) {
+            double arcAngle = values[i] / total * 360.0;
+            g2d.setColor(colors[i]);
+            g2d.fill(new Arc2D.Double(0, 0, getWidth(), getHeight(), startAngle, arcAngle, Arc2D.PIE));
+            startAngle += arcAngle;
+        }
+    }
+
+    public static void main(String[] args) {
+        double[] values = { 20.0, 30.0, 10.0, 40.0 };
+        String[] labels = { "A", "B", "C", "D" };
+        Color[] colors = { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW };
+
+        try {
+            PieChart chart = new PieChart(values, labels, colors);
+            chart.setPreferredSize(new Dimension(400, 400));
+
+            JFrame frame = new JFrame("Pie Chart");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.getContentPane().add(chart);
+            frame.pack();
+            frame.setVisible(true);
+        } catch (SecurityException e) {
+            System.err.println("SecurityException: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("IllegalArgumentException: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated version of the `PieChart` class throws an `IllegalArgumentException` if the `values`, `labels`, and `colors` arrays have different lengths. The `main` method catches both `SecurityException` and `IllegalArgumentException` and prints an error message to the console. This helps to prevent security vulnerabilities and handle invalid input.
+------------------------------------------------------

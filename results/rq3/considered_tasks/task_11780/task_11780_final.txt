@@ -1,0 +1,21 @@
+
+You are correct, it is important to check if the specified `Class` parameter is `null` before calling the `isAssignableFrom` method. Here's the updated implementation of the `getDynamicConstantDescriptor` method that includes this check:
+
+```java
+public static <T> ConstantDesc getDynamicConstantDescriptor(BootstrapMethodHandle bootstrap) throws Throwable {
+    MethodType type = bootstrap.type();
+    if (type.parameterCount() != 0) {
+        throw new IllegalArgumentException("Bootstrap method must have no arguments");
+    }
+    Class<?> returnType = type.returnType();
+    MethodHandle constant = bootstrap.invoke();
+    Class<?> constantType = constant.type().returnType();
+    if (returnType == null || !returnType.isAssignableFrom(constantType)) {
+        throw new IllegalArgumentException("Bootstrap method must return a value compatible with its return type");
+    }
+    return new ConstantDesc(DEFAULT_NAME, returnType, constant);
+}
+```
+
+This updated implementation checks if the `returnType` is `null` before calling the `isAssignableFrom` method. If `returnType` is `null`, a `NullPointerException` is thrown.
+------------------------------------------------------

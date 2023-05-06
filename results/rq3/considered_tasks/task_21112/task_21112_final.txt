@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+public static List<String> getArrayContents(Array array) throws SQLException {
+    List<String> contents = new ArrayList<>();
+    ResultSet rs = null;
+    try {
+        rs = array.getResultSet();
+        while (rs.next()) {
+            contents.add(rs.getString(2)); // assuming the array contains strings
+        }
+    } catch (SQLException e) {
+        if (rs != null) {
+            rs.close();
+        }
+        throw e;
+    } catch (UnsupportedOperationException e) {
+        if (rs != null) {
+            rs.close();
+        }
+        throw new SQLFeatureNotSupportedException(e.getMessage());
+    } finally {
+        if (rs != null) {
+            rs.close();
+        }
+    }
+    return contents;
+}
+```
+
+This updated method includes try-catch blocks to handle the various exceptions that can occur when accessing the array and iterating over the ResultSet. Specifically:
+
+- If an SQLException occurs while calling `getResultSet()`, the method closes the ResultSet (if it was opened) and re-throws the exception.
+- If an UnsupportedOperationException occurs while calling `getResultSet()`, the method closes the ResultSet (if it was opened) and throws a new SQLFeatureNotSupportedException with the original exception's message.
+- If an SQLException occurs while iterating over the ResultSet (i.e. calling `next()` or `getString()`), the method closes the ResultSet (if it was opened) and re-throws the exception.
+
+Note that the ResultSet is closed in all cases, whether an exception occurs or not, to ensure proper resource management.
+------------------------------------------------------

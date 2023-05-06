@@ -1,0 +1,47 @@
+
+Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+import java.util.concurrent.*;
+
+public class ThreadPoolExample {
+    public static void main(String[] args) {
+        int corePoolSize = 5;
+        int maxPoolSize = 10;
+        long keepAliveTime = 5000;
+        ThreadFactory threadFactory = Executors.defaultThreadFactory();
+        ExecutorService executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
+        
+        try {
+            // Use the executor to submit tasks to the thread pool
+            Runnable task = null; // Replace with actual task
+            if (task == null) {
+                throw new NullPointerException("Task cannot be null");
+            }
+            if (!executor.isShutdown()) {
+                executor.submit(task);
+            } else {
+                throw new RejectedExecutionException("Task cannot be scheduled for execution");
+            }
+        } catch (RejectedExecutionException | NullPointerException e) {
+            e.printStackTrace();
+        }
+        
+        try {
+            // Shutdown the executor when it's no longer needed
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPermission(new RuntimePermission("modifyThread"));
+            }
+            executor.shutdown();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+In this updated version, we first define a `Runnable` task and then check if it's null before submitting it to the executor. If the task is null, we throw a `NullPointerException`. If the executor is already shut down, we throw a `RejectedExecutionException`.
+
+When shutting down the executor, we first check if a security manager exists and if it does, we check if it has permission to modify threads. If the security manager denies access, we throw a `SecurityException`.
+------------------------------------------------------

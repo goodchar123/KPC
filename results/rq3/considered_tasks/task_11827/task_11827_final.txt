@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that checks if the `ZipFile` object can be closed and throws an `Exception` if it cannot:
+
+```java
+public static ZipEntry getZipEntry(String zipFileName, String entryName) throws Exception {
+    ZipEntry entry = null;
+    ZipFile zipFile = null;
+    try {
+        zipFile = new ZipFile(zipFileName);
+        if (zipFile.isOpen()) {
+            entry = zipFile.getEntry(entryName);
+        } else {
+            throw new IllegalStateException("Zip file has been closed");
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        if (zipFile != null) {
+            try {
+                zipFile.close();
+            } catch (IOException e) {
+                throw new Exception("Failed to close ZipFile", e);
+            }
+        } else {
+            throw new Exception("ZipFile is null");
+        }
+    }
+    return entry;
+}
+```
+
+This version of the method creates a `ZipFile` object outside of the `try-with-resources` statement so that it can be checked for closure in the `finally` block. If the `ZipFile` object is not null, the `close` method is called to close the resource. If the `close` method throws an `IOException`, an `Exception` is thrown with an appropriate message. If the `ZipFile` object is null, an `Exception` is thrown with a message indicating that the resource is null.
+------------------------------------------------------

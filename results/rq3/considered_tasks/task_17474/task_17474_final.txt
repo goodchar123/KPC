@@ -1,0 +1,58 @@
+
+Here's the updated Java method that checks for all the mentioned exceptions and throws the appropriate exceptions:
+
+```java
+public void rollbackToSavepoint(Savepoint savepoint) throws SQLException {
+    Connection conn = null;
+    Savepoint currentSavepoint = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        if (conn.getAutoCommit()) {
+            throw new SQLException("Connection is in auto-commit mode");
+        }
+        conn.setAutoCommit(false);
+        currentSavepoint = conn.setSavepoint();
+        // Perform some database operations here
+        // ...
+        // Rollback to the given savepoint
+        if (!conn.supportsSavepoints()) {
+            throw new SQLFeatureNotSupportedException("Savepoints not supported");
+        }
+        conn.rollback(savepoint);
+        conn.commit();
+    } catch (SQLException e) {
+        if (conn != null) {
+            try {
+                conn.rollback(currentSavepoint);
+                conn.commit();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        e.printStackTrace();
+        throw e;
+    } catch (UnsupportedOperationException e) {
+        e.printStackTrace();
+        throw new SQLFeatureNotSupportedException("Method not supported", e);
+    } finally {
+        if (conn != null) {
+            try {
+                if (conn.isClosed()) {
+                    throw new SQLException("Connection is closed");
+                }
+                conn.commit();
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+    }
+}
+```
+
+In this updated method, we check for all the mentioned exceptions and throw the appropriate exceptions. We also check if the JDBC driver supports savepoints and rollback to a savepoint. Finally, we close the connection and check for any exceptions that may occur during the closing process.
+------------------------------------------------------

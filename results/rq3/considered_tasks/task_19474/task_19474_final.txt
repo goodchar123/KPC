@@ -1,0 +1,65 @@
+
+Thank you for pointing that out. Here's an updated version of the Java method that checks for possible XAExceptions and throws them if necessary:
+
+```
+import javax.transaction.xa.*;
+
+public void commitTransaction(Xid xid) throws XAException {
+    // Create a new XAResource object
+    XAResource xaResource = new MyXAResource();
+
+    // Create a new Xid object
+    Xid[] xids = new Xid[1];
+    xids[0] = xid;
+
+    // Begin the transaction
+    int flags = XAResource.TMNOFLAGS;
+    try {
+        xaResource.start(xid, flags);
+    } catch (XAException e) {
+        // Check for possible exceptions
+        if (e.errorCode == XAException.XA_RBROLLBACK ||
+            e.errorCode == XAException.XA_RBTIMEOUT ||
+            e.errorCode == XAException.XA_RBDEADLOCK ||
+            e.errorCode == XAException.XA_RBOTHER ||
+            e.errorCode == XAException.XAER_RMERR ||
+            e.errorCode == XAException.XAER_RMFAIL ||
+            e.errorCode == XAException.XAER_DUPID ||
+            e.errorCode == XAException.XAER_OUTSIDE ||
+            e.errorCode == XAException.XAER_NOTA ||
+            e.errorCode == XAException.XAER_INVAL ||
+            e.errorCode == XAException.XAER_PROTO) {
+            throw e;
+        }
+    }
+
+    // Commit the transaction
+    boolean onePhase = true;
+    try {
+        xaResource.end(xid, flags);
+        xaResource.commit(xid, onePhase);
+    } catch (XAException e) {
+        // Check for possible exceptions
+        if (e.errorCode == XAException.XA_HEURHAZ ||
+            e.errorCode == XAException.XA_HEURCOM ||
+            e.errorCode == XAException.XA_HEURRB ||
+            e.errorCode == XAException.XA_HEURMIX ||
+            e.errorCode == XAException.XAER_RMERR ||
+            e.errorCode == XAException.XAER_RMFAIL ||
+            e.errorCode == XAException.XAER_NOTA ||
+            e.errorCode == XAException.XAER_INVAL ||
+            e.errorCode == XAException.XAER_PROTO ||
+            (onePhase && (e.errorCode == XAException.XA_RBROLLBACK ||
+                          e.errorCode == XAException.XA_RBTIMEOUT ||
+                          e.errorCode == XAException.XA_RBDEADLOCK ||
+                          e.errorCode == XAException.XA_RBOTHER))) {
+            throw e;
+        }
+    }
+}
+```
+
+In this updated version, we added try-catch blocks to catch possible XAExceptions that may occur during the `start`, `end`, and `commit` methods. We then check the error code of the caught exception and throw it if it matches any of the possible XAExceptions.
+
+This ensures that any errors that occur during the transaction are properly handled and reported.
+------------------------------------------------------

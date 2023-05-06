@@ -1,0 +1,31 @@
+
+Here's the updated Java method that checks for the security manager and throws `SecurityException` or `UnsupportedOperationException` if necessary:
+
+```java
+public static long getThreadHeapMemoryUsage(long threadId) {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPermission(new ManagementPermission("monitor"));
+    }
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    boolean lockedMonitors = threadMXBean.isObjectMonitorUsageSupported() && threadMXBean.isSynchronizerUsageSupported();
+    boolean lockedSynchronizers = threadMXBean.isSynchronizerUsageSupported();
+    if (lockedMonitors || lockedSynchronizers) {
+        throw new UnsupportedOperationException("Monitoring of object monitor usage or ownable synchronizer usage is not supported");
+    }
+    long[] threadIds = {threadId};
+    ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadIds, true, true);
+    if (threadInfos.length == 0) {
+        return -1;
+    }
+    MemoryUsage heapMemoryUsage = threadMXBean.getThreadAllocatedBytes(threadId);
+    return heapMemoryUsage == null ? -1 : heapMemoryUsage.getUsed();
+}
+```
+
+This method first checks if a security manager is present and if so, checks if the caller has the `ManagementPermission("monitor")`. If not, it throws a `SecurityException`.
+
+Next, it checks if monitoring of object monitor usage or ownable synchronizer usage is supported by the Java virtual machine. If not, it throws an `UnsupportedOperationException`.
+
+Finally, it proceeds with getting the thread information and heap memory usage as before.
+------------------------------------------------------

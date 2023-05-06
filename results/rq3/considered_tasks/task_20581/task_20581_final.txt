@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the Java method that includes the error checking and exception handling you requested:
+
+```java
+public int getIntegerParamValue(PreparedStatement statement, int paramIndex) throws SQLException {
+    try {
+        statement.setInt(paramIndex, 123); // set the parameter value to 123
+        ResultSet resultSet = statement.executeQuery();
+        int intValue = 0;
+        if (resultSet.next()) {
+            intValue = resultSet.getInt(paramIndex);
+        }
+        return intValue;
+    } catch (SQLException e) {
+        if (e.getMessage().contains("parameterIndex does not correspond to a parameter marker")) {
+            throw new SQLException("Invalid parameter index", e);
+        } else if (e.getMessage().contains("closed PreparedStatement")) {
+            throw new SQLException("PreparedStatement is closed", e);
+        } else if (e.getMessage().contains("SQL statement does not return a ResultSet object")) {
+            throw new SQLException("Query does not return a ResultSet", e);
+        } else if (e.getMessage().contains("timeout value that was specified by the setQueryTimeout method has been exceeded")) {
+            throw new SQLTimeoutException("Query timeout exceeded", e);
+        } else {
+            throw e;
+        }
+    } finally {
+        try {
+            if (statement != null) {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            // ignore
+        }
+    }
+}
+```
+
+In this updated version, we use a try-catch block to catch any `SQLException` that might be thrown by the `setInt` or `executeQuery` methods. We then check the error message of the exception to determine the specific error that occurred, and throw a new `SQLException` or `SQLTimeoutException` with a more descriptive error message. If the error message does not match any of the expected patterns, we simply re-throw the original exception.
+
+We also include a `finally` block to ensure that the `PreparedStatement` object is closed, even if an exception is thrown.
+------------------------------------------------------

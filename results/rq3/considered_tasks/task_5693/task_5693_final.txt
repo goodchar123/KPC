@@ -1,0 +1,37 @@
+
+Sure, here's the updated Java method that checks for security manager:
+
+```java
+import java.io.InputStream;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class ResourceReader {
+    public static InputStream getResourceAsStream(String resourceName) {
+        if (resourceName == null) {
+            throw new NullPointerException("Resource name cannot be null");
+        }
+        ClassLoader classLoader = ResourceReader.class.getClassLoader();
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            ClassLoader callerClassLoader = AccessController.doPrivileged(
+                new PrivilegedAction<ClassLoader>() {
+                    public ClassLoader run() {
+                        return getClass().getClassLoader();
+                    }
+                }
+            );
+            if (callerClassLoader != null && !callerClassLoader.equals(classLoader) &&
+                !callerClassLoader.isAncestor(classLoader) &&
+                !callerClassLoader.hasPermission(new RuntimePermission("getClassLoader"))) {
+                throw new SecurityException("Caller does not have permission to access class loader");
+            }
+        }
+        InputStream inputStream = classLoader.getResourceAsStream(resourceName);
+        return inputStream;
+    }
+}
+```
+
+This updated method first checks if a security manager is present using the `System.getSecurityManager()` method. If a security manager is present, it gets the caller's class loader using the `AccessController.doPrivileged()` method to run a `PrivilegedAction` that returns the class loader of the calling class. It then checks if the caller's class loader is not `null` and is not the same as or an ancestor of the class loader for the `ResourceReader` class, and if the caller does not have the `Runtime
+------------------------------------------------------

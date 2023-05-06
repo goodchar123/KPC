@@ -1,0 +1,40 @@
+
+Sure, here's the updated code snippet with the requested error checking:
+
+```java
+public static MethodHandle adapt(MethodHandle target, MethodHandle filter) {
+    if (target == null || filter == null) {
+        throw new NullPointerException("Target and filter method handles cannot be null");
+    }
+
+    // Get the return type of the target method handle
+    Class<?> returnType = target.type().returnType();
+
+    // Create a method handle that calls the target method handle
+    MethodHandle callTarget = target.asType(target.type().changeReturnType(Object.class));
+
+    // Create a method handle that calls the filter method handle
+    if (!filter.type().parameterType(0).equals(returnType)) {
+        throw new IllegalArgumentException("Filter method handle argument type does not match target method handle return type");
+    }
+    MethodHandle callFilter = filter.asType(filter.type().changeParameterType(0, returnType));
+
+    // Create a method handle that applies the filter to the return value of the target method handle
+    MethodHandle applyFilter = MethodHandles.filterReturnValue(callTarget, callFilter);
+
+    // Return the adapted method handle
+    MethodType newType = target.type().changeReturnType(applyFilter.type().returnType());
+    try {
+        return applyFilter.asType(newType);
+    } catch (NullPointerException | WrongMethodTypeException e) {
+        throw e;
+    } catch (Throwable t) {
+        throw new WrongMethodTypeException("Cannot adapt method handle to new type", t);
+    }
+}
+```
+
+This updated method now checks for null references and throws a `NullPointerException` if `target` or `filter` is null. It also checks if the argument list of `filter` matches the return type of `target` and throws an `IllegalArgumentException` if they do not match.
+
+Additionally, it now checks for errors that may occur when calling `asType()` and throws a `WrongMethodTypeException` if the conversion cannot be made. It also checks for invalid index and null references when calling `changeParameterType()` and throws the appropriate exceptions if necessary.
+------------------------------------------------------

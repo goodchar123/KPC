@@ -1,0 +1,54 @@
+Please write a java method that Writes a namespace to the output stream If the prefix argument to this method is the empty string, "xmlns", or null this method will delegate to writeDefaultNamespace
+Here's a possible implementation of the method:
+
+```java
+public void writeNamespace(String prefix, String namespaceURI) throws XMLStreamException {
+    if (prefix == null || prefix.isEmpty() || prefix.equals("xmlns")) {
+        writeDefaultNamespace(namespaceURI);
+    } else {
+        writer.writeNamespace(prefix, namespaceURI);
+    }
+}
+```
+
+This method checks if the prefix is null, empty, or equals "xmlns". If so, it delegates to the writeDefaultNamespace method, which writes the default namespace declaration. Otherwise, it calls the writeNamespace method of the underlying XMLStreamWriter object to write a namespace declaration with the given prefix and namespace URI. Note that this method assumes that the XMLStreamWriter object is already initialized and available as the "writer" field.
+------------------------------------------------------
+Please check if the current state does not allow Namespace writing for javax.xml.stream.XMLStreamWriter.writeNamespace(java.lang.String,java.lang.String) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the current state does not allow Namespace writing for javax.xml.stream.XMLStreamWriter.writeDefaultNamespace(java.lang.String) in the code snippet you provided, otherwise throw IllegalStateException.
+Sure, here's an updated implementation that checks the current state of the XMLStreamWriter before writing a namespace declaration:
+
+```java
+public void writeNamespace(String prefix, String namespaceURI) throws XMLStreamException {
+    if (prefix == null || prefix.isEmpty() || prefix.equals("xmlns")) {
+        if (writer.getNamespaceContext().getPrefix(namespaceURI) == null) {
+            writer.writeDefaultNamespace(namespaceURI);
+        } else {
+            throw new IllegalStateException("Namespace URI " + namespaceURI + " is already bound to prefix " + writer.getNamespaceContext().getPrefix(namespaceURI));
+        }
+    } else {
+        checkState();
+        writer.writeNamespace(prefix, namespaceURI);
+    }
+}
+
+public void writeDefaultNamespace(String namespaceURI) throws XMLStreamException {
+    if (writer.getNamespaceContext().getDefaultNamespaceURI() == null) {
+        checkState();
+        writer.writeDefaultNamespace(namespaceURI);
+    } else {
+        throw new IllegalStateException("Default namespace URI is already bound to " + writer.getNamespaceContext().getDefaultNamespaceURI());
+    }
+}
+
+private void checkState() throws XMLStreamException {
+    int eventType = writer.getEventType();
+    if (eventType != XMLStreamConstants.START_ELEMENT && eventType != XMLStreamConstants.NAMESPACE) {
+        throw new IllegalStateException("Namespace writing not allowed in current state: " + eventType);
+    }
+}
+```
+
+This implementation first checks if the prefix is null, empty, or equals "xmlns". If so, it checks if the namespace URI is already bound to a prefix in the current namespace context. If not, it calls the writeDefaultNamespace method of the underlying XMLStreamWriter object to write a default namespace declaration. Otherwise, it throws an IllegalStateException with a message indicating the conflict.
+
+If the prefix is not null, empty, or equals "xmlns", the method calls the checkState method to verify that the current state of the XMLStreamWriter allows namespace writing. If so, it calls the writeNamespace method of the underlying XMLStreamWriter object to write a namespace declaration with the given prefix and namespace URI. Otherwise, it throws an IllegalStateException with a message indicating the current state.
+------------------------------------------------------

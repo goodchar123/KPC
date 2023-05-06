@@ -1,0 +1,267 @@
+Please write a java method that Unregisters an MBean from the MBean server.
+Sure, here's an example Java method that unregisters an MBean from the MBean server:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws Exception {
+        if (mbs.isRegistered(mbeanName)) {
+            mbs.unregisterMBean(mbeanName);
+            System.out.println("MBean unregistered successfully.");
+        } else {
+            System.out.println("MBean not found in the MBean server.");
+        }
+    }
+}
+```
+
+This method takes two parameters: the MBeanServer instance and the ObjectName of the MBean to be unregistered. It first checks if the MBean is registered in the MBean server using the `isRegistered()` method. If the MBean is registered, it is unregistered using the `unregisterMBean()` method. If the MBean is not found in the MBean server, a message is printed to the console.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check If the postDeregister (MBeanRegistration interface) method of the MBean throws a RuntimeException, the unregisterMBean method will throw a RuntimeMBeanException, although the MBean unregistration succeeded. In such a case, the MBean will be actually unregistered even though the unregisterMBean method threw an exception.  Note that RuntimeMBeanException can also be thrown by preDeregister, in which case the MBean will remain registered. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeMBeanException.
+Please check If the postDeregister (MBeanRegistration interface) method of the MBean throws an Error, the unregisterMBean method will throw a RuntimeErrorException, although the MBean unregistration succeeded. In such a case, the MBean will be actually unregistered even though the unregisterMBean method threw an exception.  Note that RuntimeMBeanException can also be thrown by preDeregister, in which case the MBean will remain registered. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeErrorException.
+Please check The MBean specified is not registered in the MBean server. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw InstanceNotFoundException.
+Please check The preDeregister ((MBeanRegistration interface) method of the MBean has thrown an exception. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw MBeanRegistrationException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        if (mbeanName == null) {
+            throw new IllegalArgumentException("The object name in parameter is null.");
+        }
+        if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+            throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+        }
+        if (!mbs.isRegistered(mbeanName)) {
+            throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+        }
+        try {
+            mbs.unregisterMBean(mbeanName);
+        } catch (MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws an `IllegalArgumentException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+
+Finally, the `MBeanRegistrationException` is thrown if the `preDeregister()` method of the MBean throws an exception.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check The MBean specified is not registered in the MBean server. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw InstanceNotFoundException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws a `RuntimeOperationsException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `IllegalArgumentException`, `InstanceNotFoundException`, `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown as the appropriate exception type. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws a `RuntimeOperationsException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `IllegalArgumentException`, `InstanceNotFoundException`, `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown as the appropriate exception type. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws a `RuntimeOperationsException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `IllegalArgumentException`, `InstanceNotFoundException`, `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown as the appropriate exception type. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws a `RuntimeOperationsException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `IllegalArgumentException`, `InstanceNotFoundException`, `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown as the appropriate exception type. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the null object name parameter and the MBeanServerDelegate MBean, and throws a `RuntimeOperationsException` if either of these conditions are met. It also checks if the MBean is registered in the MBean server and throws an `InstanceNotFoundException` if it is not.
+
+The `unregisterMBean()` method is now wrapped in a try-catch block that catches `IllegalArgumentException`, `InstanceNotFoundException`, `MBeanRegistrationException`, `RuntimeMBeanException`, and `RuntimeErrorException` exceptions. If any of these exceptions are caught, they are re-thrown as the appropriate exception type. If any other exception is caught, a new `MBeanRegistrationException` is thrown with the original exception as the cause.
+------------------------------------------------------
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServer.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the MBean you are when trying to unregister is the MBeanServerDelegate MBean. for javax.management.MBeanServer.unregisterMBean(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregisterExample {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        try {
+            if (mbeanName == null) {
+                throw new IllegalArgumentException("The object name in parameter is null.");
+            }
+            if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+                throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+            }
+            if (!mbs.isRegistered(mbeanName)) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+            }
+            mbs.unregisterMBean(mbeanName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Error occurred during MBean unregistration.");
+        } catch (InstanceNotFoundException | MBeanRegistrationException | RuntimeMBeanException |
+------------------------------------------------------

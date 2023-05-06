@@ -1,0 +1,41 @@
+
+Here's an updated implementation of the `readDoubles` method that includes all the requested checks:
+
+```java
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+
+public class DoubleReader {
+    
+    public static void readDoubles(InputStream in, double[] d, int off, int len, boolean bigEndian) throws IOException {
+        Objects.requireNonNull(in, "Input stream cannot be null");
+        Objects.requireNonNull(d, "Array of doubles cannot be null");
+        if (off < 0 || len < 0 || off + len > d.length) {
+            throw new IndexOutOfBoundsException("Invalid offset or length");
+        }
+        DataInputStream dis = new DataInputStream(in);
+        if (bigEndian) {
+            for (int i = 0; i < len; i++) {
+                if (dis.available() < 8) {
+                    throw new EOFException("End of stream reached before reading eight bytes");
+                }
+                d[off + i] = dis.readDouble();
+            }
+        } else {
+            byte[] buffer = new byte[8];
+            for (int i = 0; i < len; i++) {
+                if (dis.available() < 8) {
+                    throw new EOFException("End of stream reached before reading eight bytes");
+                }
+                dis.readFully(buffer);
+                long bits = ((long) buffer[0] << 56) |
+                            ((long) (buffer[1] & 255) << 48) |
+                            ((long) (buffer[2] & 255) << 40) |
+                            ((long) (buffer[3] & 255) << 32) |
+                            ((long) (buffer[4] & 255) << 24) |
+                            ((buffer[5] & 255) << 16) |
+                            ((buffer[
+------------------------------------------------------

@@ -1,0 +1,27 @@
+
+Sure, here's an updated version of the `addRoleInfo` method that checks for a query timeout and attempts to cancel the statement if the timeout has been exceeded:
+
+```
+public void addRoleInfo(String roleName, String roleDescription, int queryTimeout) throws SQLException {
+    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password")) {
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO roles (name, description) VALUES (?, ?)");
+        stmt.setString(1, roleName);
+        stmt.setString(2, roleDescription);
+        stmt.setQueryTimeout(queryTimeout);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Attempt to cancel the statement if the timeout has been exceeded
+            stmt.cancel();
+        }
+        throw e;
+    }
+}
+```
+
+This version of the method takes an additional parameter `queryTimeout` which specifies the maximum number of seconds that the statement should be allowed to run before timing out. The `setQueryTimeout` method is called on the `PreparedStatement` object to set the timeout value.
+
+The method then uses a try-with-resources block to automatically close the `Connection` object when the block is exited. Inside the block, the `PreparedStatement` is executed using the `executeUpdate` method.
+
+If a `SQLException` is thrown, the method checks if it is an instance of `SQLTimeoutException`. If it is, the method attempts to cancel the statement using the `cancel` method on the `PreparedStatement` object. The exception is then re-thrown to the calling code.
+------------------------------------------------------

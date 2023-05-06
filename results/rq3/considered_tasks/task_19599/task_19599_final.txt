@@ -1,0 +1,49 @@
+
+Here's an updated version of the `findMethodsByName` method that checks for the security manager and throws a `SecurityException` if access to the package of the current class is denied:
+
+```java
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MethodFinder {
+    public static List<Method> findMethodsByName(Class<?> clazz, String methodName) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            ClassLoader callerClassLoader = MethodFinder.class.getClassLoader();
+            ClassLoader currentClassLoader = clazz.getClassLoader();
+            if (currentClassLoader != callerClassLoader && !isAncestor(currentClassLoader, callerClassLoader)) {
+                sm.checkPackageAccess(clazz.getPackage().getName());
+            }
+        }
+        List<Method> methods = AccessController.doPrivileged((PrivilegedAction<List<Method>>) () -> {
+            List<Method> result = new ArrayList<>();
+            for (Method method : clazz.getMethods()) {
+                if (method.getName().equals(methodName)) {
+                    result.add(method);
+                }
+            }
+            return result;
+        });
+        return methods;
+    }
+
+    private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+        ClassLoader current = descendant;
+        while (current != null) {
+            if (current == ancestor) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+}
+```
+
+This updated version first checks if a security manager is present. If it is, it gets the class loader of the current class and the caller's class loader, and checks if they are the same or if the caller's class loader is an ancestor of the current class loader. If not, it calls `checkPackageAccess` on the package of the current class to see if access is allowed.
+
+The method then uses `AccessController.doPrivileged` to run the code that gets the methods in the class, since this code may require elevated privileges. Finally, it returns the list of matching methods.
+------------------------------------------------------

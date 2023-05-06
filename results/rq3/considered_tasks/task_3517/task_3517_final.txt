@@ -1,0 +1,46 @@
+
+Sure, here's an updated version of the `isFeatureEnabled` method that includes the requested input validation:
+
+```java
+public boolean isFeatureEnabled(String featureFlagName) throws SQLException, IOException {
+    // Validate input
+    if (featureFlagName == null) {
+        throw new NullPointerException("Feature flag name cannot be null");
+    }
+    
+    // Retrieve the value of the feature flag from a configuration file or database
+    boolean isEnabled = false; // default value
+    
+    // Example implementation using a configuration file
+    Properties props = new Properties();
+    try (FileInputStream inStream = new FileInputStream("config.properties")) {
+        props.load(inStream);
+        String value = props.getProperty(featureFlagName);
+        if (value != null) {
+            // Validate value
+            try {
+                isEnabled = Boolean.parseBoolean(value);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Malformed Unicode escape sequence in feature flag value");
+            }
+        }
+    } catch (IOException e) {
+        throw new IOException("Error occurred when reading from input stream", e);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Input stream cannot be null");
+    }
+    
+    // Example implementation using a database
+    try {
+        DriverManager.setLoginTimeout(10); // set login timeout to 10 seconds
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "user", "password")) {
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT isEnabled FROM feature_flags WHERE name = ?")) {
+                stmt.setString(1, featureFlagName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String value = rs.getString("isEnabled");
+                        if (value != null) {
+                            // Validate value
+                            try {
+                                isEnabled = Boolean
+------------------------------------------------------

@@ -1,0 +1,48 @@
+
+Sure, here's the updated Java method that checks if the pattern is invalid for `DateTimeFormatterBuilder.appendPattern()` and throws an `IllegalArgumentException` in that case:
+
+```java
+import java.time.chrono.Chronology;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.util.Locale;
+
+public class ChronologyHelper {
+    public static Chronology getChronologyFromLocale(Locale locale) {
+        Chronology chronology = null;
+        try {
+            chronology = Chronology.ofLocale(locale);
+        } catch (IllegalArgumentException e) {
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                    .toFormatter()
+                    .withResolverStyle(ResolverStyle.STRICT)
+                    .withLocale(Locale.ENGLISH);
+            throw new DateTimeException("Cannot find calendar for " + locale.getDisplayName() +
+                    ". Please use a valid calendar such as " + formatter.format(Chronology.getAvailableChronologies().get(0).dateNow()), e);
+        }
+        return chronology;
+    }
+
+    public static String formatDateTime(Chronology chronology, String pattern, Locale locale) {
+        String formattedDateTime = null;
+        try {
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                    .appendPattern(pattern)
+                    .toFormatter()
+                    .withChronology(chronology)
+                    .withLocale(locale);
+            formattedDateTime = formatter.format(chronology.dateNow());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid pattern: " + pattern, e);
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Unable to create the date", e);
+        }
+        return formattedDateTime;
+    }
+}
+```
+
+This method now checks for an `IllegalArgumentException` that is thrown when the pattern is invalid for `DateTimeFormatterBuilder.appendPattern()`. It then throws a new `IllegalArgumentException` with a message that includes the invalid pattern and the original exception.
+------------------------------------------------------

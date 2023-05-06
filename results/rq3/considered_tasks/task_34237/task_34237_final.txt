@@ -1,0 +1,36 @@
+
+Sure, here's the updated Java method that includes checks for both resource and security restrictions when opening a MIDI device:
+
+```java
+import javax.sound.midi.*;
+
+public class MidiTransmitterHelper {
+    
+    public static MidiTransmitter getMidiTransmitter() throws MidiUnavailableException {
+        MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+        for (MidiDevice.Info info : infos) {
+            MidiDevice device = MidiSystem.getMidiDevice(info);
+            if (device instanceof MidiDevice.Transmitter) {
+                return ((MidiDevice.Transmitter) device).getTransmitter();
+            }
+        }
+        try {
+            return MidiSystem.getTransmitter();
+        } catch (MidiUnavailableException e) {
+            throw new MidiUnavailableException("Default transmitter not available due to resource restrictions or no device providing transmitters installed in the system.");
+        }
+    }
+    
+    public static MidiDevice getMidiDevice(MidiDevice.Info info) throws MidiUnavailableException, IllegalArgumentException, NullPointerException, SecurityException {
+        if (info == null) {
+            throw new NullPointerException("MidiDevice.Info object cannot be null.");
+        }
+        MidiDevice device;
+        try {
+            device = MidiSystem.getMidiDevice(info);
+        } catch (MidiUnavailableException e) {
+            throw new MidiUnavailableException("Requested device not available due to resource restrictions.");
+        }
+        if (device == null) {
+            throw new IllegalArgumentException("MidiDevice.Info
+------------------------------------------------------

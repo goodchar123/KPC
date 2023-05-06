@@ -1,0 +1,37 @@
+
+Sure, here's the updated code snippet that checks for database access errors and unsupported methods:
+
+```java
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLInput;
+
+public RowId readRowId(SQLInput stream) throws SQLException {
+    try {
+        if (!stream.isLast()) {
+            throw new SQLException("Cannot read partial data from stream");
+        }
+        byte[] bytes = stream.readBytes();
+        if (bytes == null) {
+            throw new SQLException("Null value in stream");
+        }
+        return stream.getConnection().createRowId(new String(bytes));
+    } catch (UnsupportedOperationException e) {
+        throw new SQLFeatureNotSupportedException("Method not supported", e);
+    } catch (SQLException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error reading ROWID from stream", e);
+    }
+}
+```
+
+This updated method first checks if the stream is at the end using the `isLast()` method. If it is not at the end, it throws an SQLException with an appropriate message.
+
+Next, it reads the byte array from the stream using the `readBytes()` method. If the byte array is null, it throws an SQLException with an appropriate message.
+
+If the JDBC driver does not support the `readBytes()` method, it throws a SQLFeatureNotSupportedException with an appropriate message.
+
+If any other exception occurs while reading the ROWID from the stream, it throws an SQLException with an appropriate message and the original exception as the cause.
+------------------------------------------------------

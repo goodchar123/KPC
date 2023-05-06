@@ -1,0 +1,29 @@
+
+Sure, here's the updated Java method that checks for the conditions you mentioned:
+
+```java
+public void setRowSetParameter(InputStream inputStream, int parameterIndex, RowSet rowSet) throws SQLException {
+    try {
+        rowSet.getCommand().setBinaryStream(parameterIndex, inputStream);
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support this method", e);
+        } else if (e.getErrorCode() == 17041) {
+            throw new SQLException("Parameter index out of range", e);
+        } else if (e.getErrorCode() == 0 || e.getErrorCode() == 17009) {
+            throw new SQLException("Database access error", e);
+        } else if (e.getErrorCode() == 0 || e.getErrorCode() == 17024) {
+            throw new SQLException("Method called on closed PreparedStatement", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method catches the `SQLException` thrown by the `setBinaryStream` method and checks for the conditions you mentioned. 
+
+If the JDBC driver does not support the method, it throws a `SQLFeatureNotSupportedException` with the original exception as the cause. If the parameter index is out of range, it throws a `SQLException` with the original exception as the cause. If there is a database access error or the method is called on a closed `PreparedStatement`, it throws a `SQLException` with the original exception as the cause. 
+
+If none of these conditions are met, it simply rethrows the original `SQLException`.
+------------------------------------------------------

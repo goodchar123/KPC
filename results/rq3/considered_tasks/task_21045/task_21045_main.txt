@@ -1,0 +1,55 @@
+Please write a java method that Retrieves a description of a table's optimal set of columns that uniquely identifies a row.
+Here's a Java method that retrieves a description of a table's optimal set of columns that uniquely identifies a row:
+
+```java
+public String getUniqueColumns(Connection conn, String tableName) throws SQLException {
+    String uniqueColumns = "";
+    DatabaseMetaData metaData = conn.getMetaData();
+    ResultSet rs = metaData.getPrimaryKeys(null, null, tableName);
+    while (rs.next()) {
+        String columnName = rs.getString("COLUMN_NAME");
+        uniqueColumns += columnName + ", ";
+    }
+    if (uniqueColumns.length() > 0) {
+        uniqueColumns = uniqueColumns.substring(0, uniqueColumns.length() - 2);
+    }
+    return uniqueColumns;
+}
+```
+
+This method takes a `Connection` object and the name of a table as parameters. It uses the `DatabaseMetaData` object to retrieve information about the primary key columns of the table. It then loops through the `ResultSet` to build a string containing the names of the primary key columns separated by commas. Finally, it removes the trailing comma and space from the string and returns it.
+------------------------------------------------------
+Please check if a database access error occurs or this method is called on a closed connection for java.sql.Connection.getMetaData() in the code snippet you provided, otherwise throw SQLException.
+Please check if a database access error occurs or this method is         called on a closed result set for java.sql.ResultSet.next() in the code snippet you provided, otherwise throw SQLException.
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+public String getUniqueColumns(Connection conn, String tableName) throws SQLException {
+    String uniqueColumns = "";
+    DatabaseMetaData metaData = null;
+    ResultSet rs = null;
+    try {
+        metaData = conn.getMetaData();
+        rs = metaData.getPrimaryKeys(null, null, tableName);
+        while (rs.next()) {
+            String columnName = rs.getString("COLUMN_NAME");
+            uniqueColumns += columnName + ", ";
+        }
+        if (uniqueColumns.length() > 0) {
+            uniqueColumns = uniqueColumns.substring(0, uniqueColumns.length() - 2);
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error or closed connection/result set", e);
+    } finally {
+        if (rs != null) {
+            rs.close();
+        }
+    }
+    return uniqueColumns;
+}
+```
+
+In this updated code, we have added a try-catch block to catch any `SQLException` that may occur while accessing the database or working with the result set. If an exception is caught, we throw a new `SQLException` with a custom message and the original exception as the cause.
+
+We have also added a `finally` block to close the result set if it is not null. This ensures that the result set is always closed, even if an exception occurs.
+------------------------------------------------------

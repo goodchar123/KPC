@@ -1,0 +1,46 @@
+
+Sure, here's an updated version of the `isFeatureEnabled` method that includes the requested input validation:
+
+```java
+public boolean isFeatureEnabled(String featureFlagName, InputStream inStream) {
+    if (inStream == null) {
+        throw new NullPointerException("Input stream cannot be null");
+    }
+    
+    // Retrieve the value of the feature flag from a configuration file or database
+    boolean isEnabled = false; // default value
+    
+    Properties props = new Properties();
+    try {
+        props.load(inStream);
+        String value = props.getProperty(featureFlagName);
+        if (value != null) {
+            // Check for malformed Unicode escape sequence
+            for (int i = 0; i < value.length(); i++) {
+                char c = value.charAt(i);
+                if (c == '\\') {
+                    if (i + 5 < value.length() && value.charAt(i + 1) == 'u') {
+                        try {
+                            Integer.parseInt(value.substring(i + 2, i + 6), 16);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("Malformed Unicode escape sequence in feature flag value");
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Malformed escape sequence in feature flag value");
+                    }
+                }
+            }
+            isEnabled = Boolean.parseBoolean(value);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    
+    return isEnabled;
+}
+```
+
+This updated method now takes an additional `inStream` parameter, which is the input stream containing the configuration file data. It first checks if the input stream is null and throws a `NullPointerException` if it is. It then loads the properties from the input stream and retrieves the value of the specified feature flag. 
+
+Before parsing the value as a boolean, the method checks for any malformed escape sequences, including Unicode escape sequences. If a malformed escape sequence is found, the method throws an `IllegalArgumentException`.
+------------------------------------------------------

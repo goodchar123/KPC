@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the method that includes the security checks and exception handling:
+
+```java
+import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
+import java.util.Set;
+
+public Set<ModuleReference> getAllModules() throws SecurityException, FindException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("accessSystemModules"));
+    }
+
+    ModuleFinder finder = ModuleFinder.ofSystem();
+    try {
+        return finder.findAll();
+    } catch (SecurityException e) {
+        throw e;
+    } catch (Throwable t) {
+        throw new FindException("Error finding modules", t);
+    }
+}
+```
+
+This updated method first checks if there is a security manager in place and if so, checks for the `accessSystemModules` permission before attempting to access the system modules using `ModuleFinder.ofSystem()`. If the permission is denied, a `SecurityException` is thrown.
+
+Next, the method attempts to find all modules using `ModuleFinder.findAll()`. If an error occurs during this process, a `FindException` is thrown with the original exception as the cause. If a `SecurityException` is thrown during the `findAll()` call, it is re-thrown as is.
+------------------------------------------------------

@@ -1,0 +1,35 @@
+
+Thank you for bringing these additional error cases to my attention. Here's an updated version of the Java method that includes the error handling for `System.arraycopy()`:
+
+```java
+public static ICC_Profile createProfileFromInputStream(InputStream inputStream) throws IOException {
+    byte[] profileData;
+    try {
+        profileData = inputStream.readAllBytes();
+    } catch (IOException e) {
+        throw new IOException("Error reading input stream", e);
+    } catch (OutOfMemoryError e) {
+        throw new OutOfMemoryError("Unable to allocate memory for input stream data");
+    }
+    byte[] profileDataCopy = new byte[profileData.length];
+    try {
+        System.arraycopy(profileData, 0, profileDataCopy, 0, profileData.length);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds");
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("An element in the source array could not be stored into the destination array because of a type mismatch");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Either source or destination array is null");
+    }
+    try {
+        return ICC_Profile.getInstance(profileDataCopy);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid ICC profile data", e);
+    }
+}
+```
+
+This updated method first reads all the bytes from the input stream using `readAllBytes()`, and then creates a copy of the byte array using `System.arraycopy()`. If an error occurs during the copying process, it throws an appropriate exception with a message indicating the error.
+
+Next, it tries to create an `ICC_Profile` object from the copied byte array using `getInstance()`. If the byte array does not contain valid ICC profile data, it throws an `IllegalArgumentException` with a message indicating the error.
+------------------------------------------------------

@@ -1,0 +1,37 @@
+
+Here is an updated version of the Java method that checks for security and support for the `ProcessHandle` methods:
+
+```
+public int compareProcessHandles(ProcessHandle ph1, ProcessHandle ph2) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("manageProcess"));
+    }
+    
+    if (!ProcessHandle.current().supportsNormalTermination()) {
+        throw new UnsupportedOperationException("current() method not supported");
+    }
+    
+    if (!ph1.supportsNormalTermination() || !ph2.supportsNormalTermination()) {
+        throw new UnsupportedOperationException("pid() method not supported");
+    }
+    
+    long pid1 = ph1.pid();
+    long pid2 = ph2.pid();
+    
+    if (pid1 < pid2) {
+        return -1;
+    } else if (pid1 > pid2) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+```
+
+This updated method first checks if a security manager is installed and denies the `RuntimePermission("manageProcess")` permission for the `ProcessHandle.current()` method. If the permission is denied, the method throws a `SecurityException`.
+
+Next, the method checks if the `current()` method is supported by the `ProcessHandle` implementation using the `supportsNormalTermination()` method of the current process handle. If the method is not supported, the method throws an `UnsupportedOperationException`.
+
+Finally, the method checks if the `pid()` method is supported by both `ProcessHandle` objects using the `supportsNormalTermination()` method. If the method is not supported for either object, the method throws an `UnsupportedOperationException`. If all checks pass, the method proceeds with the comparison of the two `ProcessHandle` objects as before.
+------------------------------------------------------

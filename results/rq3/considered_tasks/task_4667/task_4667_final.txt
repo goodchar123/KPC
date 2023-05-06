@@ -1,0 +1,54 @@
+
+Sure, here's the updated Java method that includes the requested checks and exceptions:
+
+```java
+import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
+import java.lang.module.ModuleDescriptor;
+import java.lang.module.Module;
+
+public class ModuleModifier {
+    public static boolean canModifyModule(String moduleName, String packageName) {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkPermission(new RuntimePermission("modifyModule"));
+        }
+        
+        ModuleFinder finder = ModuleFinder.ofSystem();
+        if (finder == null) {
+            throw new SecurityException("Access to system module finder is denied by the security manager.");
+        }
+        
+        ModuleReference moduleRef = finder.find(moduleName);
+        if (moduleRef == null) {
+            throw new FindException("Error finding module: " + moduleName);
+        }
+        
+        ModuleDescriptor descriptor = moduleRef.descriptor();
+        if (!descriptor.isOpen()) {
+            throw new SecurityException("Access to module " + moduleName + " is denied by the security manager.");
+        }
+        
+        try {
+            Module module = ModuleLayer.boot().findModule(moduleName).orElse(null);
+            if (module == null) {
+                throw new FindException("Error finding module: " + moduleName);
+            }
+            if (packageName == null || (module.isNamed() && module.getDescriptor().packages().stream().noneMatch(p -> p.getName().equals(packageName)))) {
+                throw new IllegalArgumentException("Package " + packageName + " is not a package in module " + moduleName);
+            }
+            module.addExports(packageName, Module.class);
+            return true;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+This updated method includes the following checks and exceptions:
+
+- `Module.addExports()` is checked for `null` or if the package is not in the module, and an `IllegalArgumentException` is thrown if either condition is true.
+------------------------------------------------------

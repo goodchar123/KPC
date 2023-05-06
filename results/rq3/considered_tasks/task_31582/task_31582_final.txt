@@ -1,0 +1,40 @@
+
+Sure, here's the modified code that checks for an `IOException` when writing to the output stream:
+
+```java
+public void writeBits(int bits, int numBits) throws IOException {
+    int bitOffset = currentBitOffset % 8;
+    int byteOffset = currentBitOffset / 8;
+    int remainingBits = numBits;
+    int mask = 1 << (numBits - 1);
+
+    while (remainingBits > 0) {
+        if (bitOffset == 0) {
+            currentByte = 0;
+        }
+
+        if ((bits & mask) != 0) {
+            currentByte |= (1 << (7 - bitOffset));
+        }
+
+        bitOffset++;
+        remainingBits--;
+        mask >>= 1;
+
+        if (bitOffset == 8) {
+            try {
+                outputStream.write(currentByte);
+            } catch (IOException e) {
+                throw new IOException("Error writing to output stream", e);
+            }
+            byteOffset++;
+            bitOffset = 0;
+        }
+    }
+
+    currentBitOffset = byteOffset * 8 + bitOffset;
+}
+```
+
+In this modified code, we've added a try-catch block
+------------------------------------------------------

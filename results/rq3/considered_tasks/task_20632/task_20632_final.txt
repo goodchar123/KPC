@@ -1,0 +1,35 @@
+
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public short getSmallIntParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    statement.setShort(parameterIndex, (short) 123); // set a sample value for the parameter
+    ResultSet resultSet = null;
+    try {
+        resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return resultSet.getShort(1); // retrieve the value of the parameter as a short
+        } else {
+            throw new SQLException("No result found");
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            statement.cancel(); // attempt to cancel the currently running statement
+        }
+        throw e; // re-throw the exception
+    } finally {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                // ignore exception
+            }
+        }
+    }
+}
+```
+
+This updated method includes a `try-catch-finally` block to handle potential exceptions. If a `SQLException` occurs during the execution of the query, the method checks if it is a `SQLTimeoutException`. If it is, the method attempts to cancel the currently running statement using the `cancel` method of the `PreparedStatement` object. The method then re-throws the exception.
+
+The `finally` block ensures that the `ResultSet` object is closed, even if an exception occurs. If the `ResultSet` object is not `null`, the `close` method is called on it. If a `SQLException` occurs during the `close` method call, it is ignored.
+------------------------------------------------------

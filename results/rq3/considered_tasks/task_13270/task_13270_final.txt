@@ -1,0 +1,53 @@
+
+Sure, here's the updated Java method that checks for linkage errors and initialization errors when attempting to load the class using `Class.forName()`:
+
+```java
+public static AnnotatedType getEnclosingType(AnnotatedType type) {
+    if (type instanceof AnnotatedParameterizedType) {
+        AnnotatedParameterizedType parameterizedType = (AnnotatedParameterizedType) type;
+        AnnotatedType enclosingType = parameterizedType.getAnnotatedOwnerType();
+        if (enclosingType != null) {
+            try {
+                Class<?> enclosingClass = Class.forName(enclosingType.getType().getTypeName());
+                return enclosingType;
+            } catch (ClassNotFoundException e) {
+                throw new TypeNotPresentException(enclosingType.getType().getTypeName(), e);
+            } catch (TypeNotPresentException e) {
+                throw e;
+            } catch (LinkageError e) {
+                throw e;
+            } catch (ExceptionInInitializerError e) {
+                throw e;
+            } catch (Exception e) {
+                throw new MalformedParameterizedTypeException();
+            }
+        }
+    } else if (type instanceof AnnotatedArrayType) {
+        AnnotatedArrayType arrayType = (AnnotatedArrayType) type;
+        AnnotatedType enclosingType = arrayType.getAnnotatedGenericComponentType();
+        if (enclosingType != null) {
+            return enclosingType;
+        }
+    } else if (type instanceof AnnotatedTypeVariable) {
+        AnnotatedTypeVariable typeVariable = (AnnotatedTypeVariable) type;
+        AnnotatedType[] bounds = typeVariable.getAnnotatedBounds();
+        if (bounds.length > 0) {
+            return getEnclosingType(bounds[0]);
+        }
+    } else if (type instanceof AnnotatedWildcardType) {
+        AnnotatedWildcardType wildcardType = (AnnotatedWildcardType) type;
+        AnnotatedType[] bounds = wildcardType.getAnnotatedLowerBounds();
+        if (bounds.length > 0) {
+            return getEnclosingType(bounds[0]);
+        }
+        bounds = wildcardType.getAnnotatedUpperBounds();
+        if (bounds.length > 0) {
+            return getEnclosingType(bounds[0]);
+        }
+    }
+    return null;
+}
+```
+
+This updated method checks for linkage errors and initialization errors when attempting to load the class using `Class.forName()`. If a `LinkageError` occurs, it is thrown. If an `ExceptionInInitializerError` occurs, it is thrown. If the owner type refers to a non-existent class or interface declaration, a `TypeNotPresentException` is thrown. If the owner type refers to a parameterized type that cannot be instantiated for any reason, a `MalformedParameterizedTypeException` is thrown. If the owner type is null or not a parameterized type, it skips the check and returns null.
+------------------------------------------------------

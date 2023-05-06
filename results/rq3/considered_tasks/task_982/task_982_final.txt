@@ -1,0 +1,61 @@
+
+Sure, here's the updated code snippet that includes the requested exception handling for `CompositeData.get` method:
+
+```java
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import java.io.IOException;
+
+public int getMBeanCount(MBeanServerConnection mbsc, String roleName) throws Exception {
+    ObjectName roleObjName = new ObjectName("JMImplementation:type=MBeanServerDelegate");
+    String[] params = {roleName};
+    String[] signature = {String.class.getName()};
+    TabularData td;
+    try {
+        td = (TabularData) mbsc.invoke(roleObjName, "getMBeansFromRole", params, signature);
+    } catch (InstanceNotFoundException e) {
+        throw e;
+    } catch (MBeanException e) {
+        throw e;
+    } catch (ReflectionException e) {
+        throw e;
+    } catch (IOException e) {
+        throw e;
+    }
+    int count = 0;
+    for (Object value : td.values()) {
+        CompositeData cd;
+        try {
+            cd = (CompositeData) value;
+            ObjectName objName = (ObjectName) cd.get("ObjectName");
+            if (objName == null) {
+                throw new IllegalArgumentException("Object name is null");
+            }
+            boolean isRegistered;
+            try {
+                isRegistered = mbsc.isRegistered(objName);
+            } catch (RuntimeOperationsException e) {
+                throw e;
+            } catch (IOException e) {
+                throw e;
+            }
+            if (isRegistered) {
+                count++;
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (InvalidKeyException e) {
+            throw e;
+        }
+    }
+    return count;
+}
+```
+
+In this updated code snippet, we've added try-catch blocks to handle the `IllegalArgumentException` and `InvalidKeyException` that can be thrown by the `get` method of `CompositeData`.
+
+If the key is null or empty, we throw an `IllegalArgumentException` with a message "Object name is null". If the key is not an existing item name for the `CompositeData` instance, we throw an `InvalidKeyException`.
+
+If any of these exceptions are thrown, we simply re-throw them to the calling method.
+------------------------------------------------------

@@ -1,0 +1,36 @@
+
+Here's the updated Java method that includes the requested checks and exceptions:
+
+```java
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+
+public static long[] getCpuTimeForThreads(long[] ids) {
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    if (!threadMXBean.isThreadCpuTimeSupported()) {
+        throw new UnsupportedOperationException("CPU time measurement is not supported by this JVM");
+    }
+    if (!threadMXBean.isThreadCpuTimeEnabled()) {
+        throw new UnsupportedOperationException("CPU time measurement is not enabled by this JVM");
+    }
+    long[] cpuTimes = new long[ids.length];
+    for (int i = 0; i < ids.length; i++) {
+        long id = ids[i];
+        if (id <= 0) {
+            throw new IllegalArgumentException("Thread ID must be greater than 0");
+        }
+        cpuTimes[i] = threadMXBean.getThreadCpuTime(id);
+        if (cpuTimes[i] == -1) {
+            throw new UnsupportedOperationException("CPU time measurement is not supported for thread with ID " + id);
+        }
+    }
+    return cpuTimes;
+}
+```
+
+This updated method first checks if the JVM supports CPU time measurement using `isThreadCpuTimeSupported()`. If it does not, it throws an `UnsupportedOperationException`. It then checks if CPU time measurement is enabled using `isThreadCpuTimeEnabled()`. If it is not, it throws an `UnsupportedOperationException`.
+
+Next, it checks if the thread ID is greater than 0. If it is not, it throws an `IllegalArgumentException`.
+
+Finally, it gets the CPU time for each thread and stores it in the `cpuTimes` array. If the CPU time is -1, it means that CPU time measurement is not supported for that thread, so it throws an `UnsupportedOperationException`. The method then returns the `cpuTimes` array.
+------------------------------------------------------

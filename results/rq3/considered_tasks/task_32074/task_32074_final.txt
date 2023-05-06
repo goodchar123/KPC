@@ -1,0 +1,49 @@
+
+Sure, here's the updated Java method that includes the requested error checking:
+
+```java
+public void prepareWriter() {
+    // Get the image writer
+    String formatName = "png";
+    ImageWriter writer = null;
+    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(formatName);
+    if (writers.hasNext()) {
+        writer = writers.next();
+    } else {
+        throw new IllegalArgumentException("No writer found for format: " + formatName);
+    }
+
+    // Create an ImageWriteParam object
+    ImageWriteParam writeParam = writer.getDefaultWriteParam();
+
+    // Set the compression mode to MODE_EXPLICIT
+    if (writeParam.isCompressionSupported()) {
+        writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+    } else {
+        throw new UnsupportedOperationException("Compression not supported by writer");
+    }
+
+    // Set the compression quality to 1.0 (highest quality)
+    if (writeParam.getCompressionMode() == ImageWriteParam.MODE_EXPLICIT) {
+        writeParam.setCompressionQuality(1.0f);
+    } else {
+        throw new IllegalStateException("Compression mode must be MODE_EXPLICIT");
+    }
+
+    // Set the output type to TYPE_BYTE_GRAY
+    if (writeParam.getCompressionTypes() != null && writeParam.getCompressionType() == null) {
+        writeParam.setDestinationType(new ImageTypeSpecifier(PixelType.TYPE_BYTE_GRAY, ColorSpace.getInstance(ColorSpace.CS_GRAY), ColorModel.getRGBdefault().getComponentSize(), false, false));
+    } else {
+        throw new IllegalStateException("Legal compression types must be non-null and current compression type must be null");
+    }
+
+    // Set the output stream to null (we'll set it later)
+    writer.setOutput(null);
+
+    // Set the write parameters
+    writer.setWriteParam(writeParam);
+}
+```
+
+This method now checks for various error conditions and throws the appropriate exceptions if any of them are encountered.
+------------------------------------------------------

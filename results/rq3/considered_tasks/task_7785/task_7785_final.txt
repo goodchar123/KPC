@@ -1,0 +1,19 @@
+
+Here's the updated Java method that checks for the security manager and throws a `SecurityException` if access to the package of the declaring class is denied:
+
+```java
+public Class<?> getDeclaringClass(Class<?> clazz) throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        ClassLoader callerLoader = getClass().getClassLoader();
+        ClassLoader declaringLoader = clazz.getDeclaringClass().getClassLoader();
+        if (declaringLoader != null && !declaringLoader.isAncestorOf(callerLoader)) {
+            sm.checkPackageAccess(clazz.getDeclaringClass().getPackage().getName());
+        }
+    }
+    return clazz.getDeclaringClass();
+}
+```
+
+This method first checks if a security manager is present. If so, it gets the class loader of the caller and the class loader of the declaring class. If the declaring class has a class loader and it is not an ancestor of the caller's class loader, then it calls `s.checkPackageAccess()` to check if access to the package of the declaring class is allowed. If access is denied, a `SecurityException` is thrown. Otherwise, the method returns the `Class` object representing the class in which it was declared.
+------------------------------------------------------

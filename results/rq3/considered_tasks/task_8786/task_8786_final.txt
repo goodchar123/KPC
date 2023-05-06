@@ -1,0 +1,20 @@
+
+Sure, here's an updated version of the method that checks if the current thread is allowed to modify the target thread's interrupt status before calling `Thread.interrupt()`. If the current thread is not allowed to modify the target thread, a `SecurityException` is thrown:
+
+```
+public boolean acquireSemaphore(Semaphore semaphore, long timeout) throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkAccess(Thread.currentThread());
+    }
+    try {
+        return semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return false;
+    }
+}
+```
+
+This updated method first checks if a `SecurityManager` is installed and if so, calls its `checkAccess()` method to determine if the current thread is allowed to modify the target thread's interrupt status. If the current thread is not allowed to modify the target thread, a `SecurityException` is thrown. Otherwise, the method proceeds with trying to acquire a permit from the semaphore as before.
+------------------------------------------------------

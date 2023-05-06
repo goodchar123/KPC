@@ -1,0 +1,32 @@
+
+Here's an updated version of the Java method that includes error handling for the cases you mentioned:
+
+```java
+public static void reportDTDeclarationStart(XMLStreamReader reader) throws XMLStreamException, NoSuchElementException {
+    while (reader.hasNext()) {
+        try {
+            int event = reader.next();
+            if (event == XMLStreamConstants.DTD) {
+                System.out.println("Start of DTD declarations");
+                break;
+            }
+        } catch (XMLStreamException e) {
+            if (e.getMessage().contains("detecting the next state")) {
+                throw new XMLStreamException("Fatal error detecting the next state", e);
+            } else if (e.getMessage().contains("processing the underlying XML source")) {
+                throw new XMLStreamException("Error processing the underlying XML source", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+    if (!reader.hasNext()) {
+        throw new NoSuchElementException("No more events in the XML stream");
+    }
+}
+```
+
+This updated method includes a `try-catch` block around the call to `reader.next()` to handle potential `XMLStreamException` errors. If the error message contains "detecting the next state", it throws a new `XMLStreamException` with a more specific error message. If the error message contains "processing the underlying XML source", it throws a new `XMLStreamException` with a more specific error message. Otherwise, it re-throws the original `XMLStreamException`.
+
+Additionally, after the `while` loop, the method checks if there are no more events in the XML stream using `reader.hasNext()`. If there are no more events, it throws a new `NoSuchElementException` with an appropriate error message.
+------------------------------------------------------

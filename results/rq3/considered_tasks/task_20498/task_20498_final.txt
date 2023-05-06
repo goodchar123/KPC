@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the method that includes all the requested checks:
+
+```java
+public void setReaderParameter(PreparedStatement statement, int parameterIndex, Reader reader) throws SQLException {
+    if (statement.isClosed()) {
+        throw new SQLException("Cannot set parameter on a closed PreparedStatement");
+    }
+    ParameterMetaData parameterMetaData = null;
+    try {
+        parameterMetaData = statement.getParameterMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter metadata", e);
+    }
+    int parameterCount = 0;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter count", e);
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index");
+    }
+    if (statement.isWrapperFor(OraclePreparedStatement.class)) {
+        // Oracle JDBC driver does not support setCharacterStream method for PreparedStatement
+        throw new SQLFeatureNotSupportedException("setCharacterStream method not supported by Oracle JDBC driver");
+    } else {
+        statement.setCharacterStream(parameterIndex, reader);
+    }
+}
+```
+
+This updated method first checks if the `PreparedStatement` object is closed. If it is, it throws a `SQLException` with an appropriate error message.
+
+Next, it tries to get the `ParameterMetaData` object from the `PreparedStatement` object using the `getParameterMetaData` method. If a `SQLException` is thrown, it re-throws it with an appropriate error message.
+
+Then, it tries to get the parameter count using the `getParameterCount` method on the `ParameterMetaData` object. If a `SQLException` is thrown, it re-throws it with an appropriate error message.
+
+Next, it checks if the `parameterIndex` is valid based on the parameter count. If it is not, it throws a `SQLException` with an appropriate error message.
+
+Then, it checks if the JDBC driver supports the `setCharacterStream` method for `PreparedStatement` objects. If it does not, it throws a `SQLFeatureNotSupportedException` with an appropriate error message.
+
+If all the checks pass, the method calls the `setCharacterStream` method on the `PreparedStatement` object with the specified `parameterIndex` and `reader` objects as arguments.
+------------------------------------------------------

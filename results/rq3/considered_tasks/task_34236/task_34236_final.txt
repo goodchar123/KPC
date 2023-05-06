@@ -1,0 +1,48 @@
+
+Sure, here's the updated code snippet that checks for both security and resource restrictions when opening the MIDI device and throws the appropriate exceptions:
+
+```java
+import javax.sound.midi.*;
+
+public class MidiReceiverExample {
+    public static void main(String[] args) {
+        try {
+            // Get the default MIDI device
+            MidiDevice device = MidiSystem.getDefaultDevice();
+
+            // Check for security and resource restrictions when opening the device
+            if (!device.isOpen() && device instanceof MidiDevice.Info) {
+                MidiDevice.Info info = (MidiDevice.Info) device;
+                if (MidiSystem.isMidiDeviceSupported(info)) {
+                    try {
+                        device.open();
+                    } catch (SecurityException e) {
+                        throw new SecurityException("Cannot open MIDI device due to security restrictions", e);
+                    } catch (ResourceUnavailableException e) {
+                        throw new MidiUnavailableException("Cannot open MIDI device due to resource restrictions", e);
+                    }
+                }
+            }
+
+            // Get the MIDI receiver from the device
+            Receiver receiver = null;
+            try {
+                receiver = device.getReceiver();
+            } catch (ResourceUnavailableException e) {
+                throw new MidiUnavailableException("Cannot get MIDI receiver due to resource restrictions", e);
+            }
+
+            // Do something with the receiver...
+
+            // Close the receiver and device
+            receiver.close();
+            device.close();
+        } catch (MidiUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This code checks for both security and resource restrictions when opening the MIDI device and throws the appropriate exceptions if necessary. Note that we added a `catch` block for `ResourceUnavailableException` when opening the device and also updated the `catch` block for `MidiUnavailableException` when getting the receiver to include the cause of the exception.
+------------------------------------------------------

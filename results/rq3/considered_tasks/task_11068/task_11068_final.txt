@@ -1,0 +1,45 @@
+
+Sure, here's the updated code snippet that checks for the conditions you mentioned and throws the appropriate exceptions:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+
+public class ChannelPositionSetter {
+    public static void setPosition(String filePath, long position) throws IOException {
+        RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+        FileChannel channel = file.getChannel();
+        try {
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+            if (position < 0) {
+                throw new IllegalArgumentException("Position cannot be negative");
+            }
+            channel.position(position);
+        } catch (ClosedChannelException e) {
+            throw new ClosedChannelException("Channel is closed: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid position: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IOException("Error setting position: " + e.getMessage());
+        } finally {
+            channel.close();
+            file.close();
+        }
+    }
+}
+```
+
+In this updated version, we've added a try-catch block around the `channel.position(position)` call to catch any exceptions that might occur. 
+
+First, we check if the channel is open using the `isOpen()` method. If it's not open, we throw a `ClosedChannelException`. 
+
+Next, we check if the position is negative. If it is, we throw an `IllegalArgumentException`.
+
+Finally, we catch any other `IOException` that might occur and throw a new `IOException` with a message indicating that there was an error setting the position.
+
+In the `finally` block, we close the channel and file objects to ensure that they are properly closed even if an exception is thrown.
+------------------------------------------------------

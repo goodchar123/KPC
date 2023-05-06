@@ -1,0 +1,50 @@
+
+Here is the updated code snippet that includes the requested exception handling:
+
+```
+import javax.management.ListenerNotFoundException;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
+import javax.management.modelmbean.ModelMBeanNotificationBroadcaster;
+
+public class MyModelMBeanNotificationBroadcaster extends NotificationBroadcasterSupport implements ModelMBeanNotificationBroadcaster {
+
+    @Override
+    public void addNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener cannot be null");
+        }
+        super.addNotificationListener(listener, filter, handback);
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener) throws ListenerNotFoundException {
+        if (!super.getNotificationListeners().contains(listener)) {
+            throw new ListenerNotFoundException("Listener is not registered with the MBean");
+        }
+        super.removeNotificationListener(listener);
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws ListenerNotFoundException {
+        if (!super.getNotificationListeners(filter, handback).contains(listener)) {
+            throw new ListenerNotFoundException("Listener is not registered with the MBean, or it is not registered with the given filter and handback");
+        }
+        super.removeNotificationListener(listener, filter, handback);
+    }
+
+    @Override
+    public void sendNotification(Notification notification) {
+        super.sendNotification(notification);
+    }
+}
+```
+
+In the `addNotificationListener` method, an `IllegalArgumentException` is thrown if the listener is null.
+
+In the `removeNotificationListener` method, a `ListenerNotFoundException` is thrown if the listener is not registered with the MBean.
+
+In the `removeNotificationListener` method with filter and handback parameters, a `ListenerNotFoundException` is thrown if the listener is not registered with the MBean, or if it is not registered with the given filter and handback.
+------------------------------------------------------

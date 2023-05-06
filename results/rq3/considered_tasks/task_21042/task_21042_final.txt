@@ -1,0 +1,64 @@
+
+Sure, here's the updated code snippet that checks for a database access error or a closed connection when calling `getMetaData()` method and throws a `SQLException` in those cases. It also checks for a database access error or a closed result set when calling `next()` method and throws a `SQLException` in those cases:
+
+```java
+import java.sql.*;
+
+public class TableColumnsDescription {
+   public static void main(String[] args) {
+      Connection conn = null;
+      try {
+         // Connect to the database
+         conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+
+         // Check for database access error or closed connection
+         if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+         }
+
+         // Get metadata
+         DatabaseMetaData dbmd = conn.getMetaData();
+
+         // Check for database access error or closed connection
+         if (dbmd == null) {
+            throw new SQLException("Database metadata is null");
+         }
+
+         // Get columns description
+         ResultSet rs = dbmd.getColumns(null, null, "mytable", null);
+
+         // Check for database access error or closed result set
+         if (rs == null) {
+            throw new SQLException("Result set is null");
+         }
+
+         // Print columns description
+         while (rs.next()) {
+            String columnName = rs.getString("COLUMN_NAME");
+            String dataType = rs.getString("TYPE_NAME");
+            int columnSize = rs.getInt("COLUMN_SIZE");
+
+            // Check for database access error or closed result set
+            if (rs.isClosed()) {
+               throw new SQLException("Result set is closed");
+            }
+
+            System.out.println(columnName + " " + dataType + "(" + columnSize + ")");
+         }
+      } catch (SQLException e) {
+         e.printStackTrace();
+      } finally {
+         try {
+            if (conn != null) {
+               conn.close();
+            }
+         } catch (SQLException e) {
+            e.printStackTrace();
+         }
+      }
+   }
+}
+```
+
+In this updated code, we first check if the connection is closed using the `isClosed()` method. If it is closed, we throw a `SQLException` with a message "Connection is closed". Similarly, we check if the database metadata is null and throw a `SQLException` with a message "Database metadata is null" if it is null. We also check if the result set is null and throw a `SQLException` with a message "Result set is null" if it is null. Finally, we check if the result set is closed using the `isClosed()` method before printing the columns description. If it is closed, we throw a `SQLException` with a message "Result set is closed".
+------------------------------------------------------

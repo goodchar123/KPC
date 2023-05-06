@@ -1,0 +1,32 @@
+
+I apologize for the oversight in my previous response. Here's the updated code snippet that checks for database access errors and closed connections when calling `getMetaData()`:
+
+```java
+public boolean supportsHoldableResultSetOnRollback(Connection conn) throws SQLException {
+    if (conn.isClosed()) {
+        throw new SQLException("Connection is closed");
+    }
+    
+    DatabaseMetaData metaData = null;
+    try {
+        metaData = conn.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Failed to retrieve database metadata", e);
+    }
+    
+    if (!metaData.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT)) {
+        throw new SQLException("Database does not support holdable result sets on rollback");
+    }
+    
+    return true;
+}
+```
+
+This updated method first checks if the connection is closed using the `isClosed()` method. If the connection is closed, it throws a `SQLException` with an appropriate error message.
+
+Next, it retrieves the `DatabaseMetaData` object using the `getMetaData()` method on the connection. If an exception is thrown, it catches the exception and re-throws it as a `SQLException` with an appropriate error message.
+
+Finally, it checks if the database supports holdable result sets on rollback using the `supportsResultSetHoldability()` method on the metadata object. If the database does not support this feature, it throws a `SQLException` with an appropriate error message.
+
+If all checks pass, the method returns `true`.
+------------------------------------------------------

@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the Java method that includes the requested checks:
+
+```java
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.AccessControlException;
+import java.security.Permission;
+
+public class DirectoryHelper {
+    public static DirectoryStream<Path> openDirectory(Path directory) throws IOException {
+        if (!Files.isDirectory(directory)) {
+            throw new NotDirectoryException(directory.toString());
+        }
+        
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            try {
+                securityManager.checkRead(directory.toString());
+            } catch (AccessControlException e) {
+                throw new SecurityException(e);
+            }
+        }
+        
+        return Files.newDirectoryStream(directory);
+    }
+}
+```
+
+This updated method first checks if the specified `Path` object represents a directory using the `Files.isDirectory()` method. If it does not, a `NotDirectoryException` is thrown.
+
+Next, if a `SecurityManager` is installed, the `checkRead()` method is called to check if the current security context has permission to read the directory. If the check fails, a `SecurityException` is thrown.
+
+Finally, if both checks pass, the method returns a `DirectoryStream<Path>` object that can be used to iterate over the entries in the directory.
+------------------------------------------------------

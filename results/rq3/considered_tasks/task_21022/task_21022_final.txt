@@ -1,0 +1,43 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+public int getMaxRowSize(Connection conn, String tableName) throws SQLException {
+    int maxRowSize = 0;
+    ResultSet rs = null;
+    try {
+        DatabaseMetaData metaData = conn.getMetaData();
+        rs = metaData.getColumns(null, null, tableName, null);
+        while (rs.next()) {
+            int columnSize = rs.getInt("COLUMN_SIZE");
+            if (columnSize == 0) {
+                throw new SQLException("Invalid column size for column " + rs.getString("COLUMN_NAME"));
+            }
+            maxRowSize += columnSize;
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error accessing database: " + e.getMessage());
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing result set: " + e.getMessage());
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing connection: " + e.getMessage());
+            }
+        }
+    }
+    return maxRowSize;
+}
+```
+
+This updated method uses a `try-catch` block to catch any `SQLException` that may occur while getting the `DatabaseMetaData` object or accessing the column size. If an exception is caught, the method throws a new `SQLException` with a custom error message.
+
+The method also uses a `finally` block to ensure that the `ResultSet` and `Connection` objects are closed properly, even if an exception is thrown. If the `ResultSet` or `Connection` object is not `null`, the `close()` method is called on it, and any `SQLException` that may occur is caught and re-thrown with a custom error message.
+------------------------------------------------------

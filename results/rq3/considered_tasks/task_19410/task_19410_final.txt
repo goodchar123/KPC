@@ -1,0 +1,106 @@
+
+Sure, here's an updated version of the Java method that includes the requested checks and exceptions:
+
+```java
+import javax.smartcardio.*;
+
+public class CardChannelOpener {
+    
+    public static CardChannel openChannel(Card card) throws CardException {
+        SecurityManager sm = System.getSecurityManager();
+        
+        // Check if a SecurityManager exists and the caller does not have the required permission for getBasicChannel()
+        if (sm != null) {
+            sm.checkPermission(new CardPermission(card, "getBasicChannel"));
+        }
+        
+        // Check if the card object has been disposed of via the disconnect() method
+        if (card.isDisposed()) {
+            throw new IllegalStateException("Card object has been disposed of");
+        }
+        
+        // Get the card's basic channel
+        CardChannel basicChannel = card.getBasicChannel();
+        
+        // Check if a SecurityManager exists and the caller does not have the required permission for openLogicalChannel()
+        if (sm != null) {
+            sm.checkPermission(new CardPermission(card, "openLogicalChannel"));
+        }
+        
+        // Select the applet or file on the card that you want to communicate with
+        // This is an example command to select the Master File (MF)
+        byte[] selectMFCommand = {(byte) 0x00, (byte) 0xA4, (byte) 0x04, (byte) 0x00, (byte) 0x00};
+        ResponseAPDU selectMFResponse = basicChannel.transmit(new CommandAPDU(selectMFCommand));
+        
+        // Check if the response indicates success (SW1=0x90, SW2=0x00)
+        if (selectMFResponse.getSW1() == 0x90 && selectMFResponse.getSW2() == 0x00) {
+            // If successful, open a new logical channel to the card
+            CardChannel logicalChannel = card.openLogicalChannel();
+            
+            // Check if a SecurityManager exists and the caller does not have the required permission for getBasicChannel()
+            if (sm != null) {
+                sm.checkPermission(new CardPermission(logicalChannel.getCard(), "getBasicChannel"));
+            }
+            
+            // Check if the channel has been closed or if the corresponding Card has been disconnected
+            if (logicalChannel == null) {
+                throw new IllegalStateException("Logical channel could not be opened");
+            }
+            
+            return logicalChannel;
+        } else {
+            // If unsuccessful, throw a CardException
+            throw new CardException("Failed to select Master File on card");
+        }
+    }
+    
+    public static ResponseAPDU transmitAPDU(CardChannel channel, CommandAPDU command) throws CardException {
+        SecurityManager sm = System.getSecurityManager();
+        
+        // Check if the channel has been closed or if the corresponding Card has been disconnected
+        if (channel == null || channel.getCard().isDisposed()) {
+            throw new IllegalStateException("Channel or corresponding Card has been closed or disconnected");
+        }
+        
+        // Check if the APDU encodes a MANAGE CHANNEL command
+        if (command.getCLA() == 0x00 && command.getINS() == 0x70) {
+            throw new IllegalArgumentException("APDU encodes a MANAGE CHANNEL command");
+        }
+        
+        // Check if command is null
+        if (command == null) {
+            throw new NullPointerException("Command is null");
+        }
+        
+        // Send the command to the card and get the response
+        ResponseAPDU response = channel.transmit(command);
+        
+        // Check if the card operation failed
+        if (response.getSW1() != 0x90) {
+            throw new CardException("Card operation failed: " + Integer.toHexString(response.getSW()));
+        }
+        
+        return response;
+    }
+}
+```
+
+This updated method includes the following checks and exceptions:
+
+- Check if a SecurityManager exists and the caller does not have the required permission for `getBasicChannel()`. If so, throw a `SecurityException`.
+- Check if the card object has been disposed of via the `disconnect()` method. If so, throw an `IllegalStateException`.
+- Get the card's basic channel using the `getBasicChannel()` method.
+- Check if a SecurityManager exists and the caller does not have the required permission for `openLogicalChannel()`. If so, throw a `SecurityException`.
+- Send a command to select the Master File (MF) on the card using the `transmit()` method of the basic channel.
+- Check if the response indicates success (SW1=0x90, SW2=0x00).
+- If successful, open a new logical channel to the card using the `openLogicalChannel()` method of the `Card` object.
+- Check if a SecurityManager exists and the caller does not have the required permission for `getBasicChannel()` on the logical channel's card. If so, throw a `SecurityException`.
+- Check if the channel has been closed or if the corresponding Card has been disconnected. If so, throw an `IllegalStateException`.
+- Return the logical channel.
+- If unsuccessful, throw a `CardException`.
+- Check if the channel has been closed or if the corresponding Card has been disconnected. If so, throw an `IllegalStateException`.
+- Check if the APDU encodes a MANAGE CHANNEL command. If so, throw an `IllegalArgumentException`.
+- Check if command is null. If so, throw a `NullPointerException`.
+- Send the command to the card and get the response.
+- Check if the card operation failed. If so, throw a `CardException`.
+------------------------------------------------------

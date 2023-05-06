@@ -1,0 +1,53 @@
+
+Sure, here's the updated code snippet that checks for a `NamingException` when calling `Context.getEnvironment()` and throws a `NamingException` if one is encountered:
+
+```java
+import javax.naming.Binding;
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+
+public class BindingsHelper {
+
+    public static NamingEnumeration<Binding> getBindingsWithScope(String scopeValue) throws NamingException {
+        // Set up the initial context
+        DirContext context = new InitialDirContext();
+
+        // Set up the search controls
+        SearchControls controls = new SearchControls();
+        controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        // Search for the bindings with the specified scope value
+        NamingEnumeration<SearchResult> results = context.search("", "(objectClass=*)", controls);
+
+        // Iterate through the search results and add the bindings with the specified scope value to a list
+        List<Binding> bindings = new ArrayList<>();
+        while (results.hasMore()) {
+            SearchResult result = results.next();
+            String name = result.getNameInNamespace();
+            Object obj = result.getObject();
+            if (obj instanceof Context) {
+                Context subContext = (Context) obj;
+                try {
+                    String subScopeValue = subContext.getEnvironment().get(Context.PROVIDER_URL).toString();
+                    if (subScopeValue.equals(scopeValue)) {
+                        bindings.add(new Binding(name, subContext));
+                    }
+                } catch (NamingException e) {
+                    throw new NamingException("Error getting environment for context: " + e.getMessage());
+                }
+            }
+        }
+
+        // Return the list of bindings with the specified scope value
+        return Collections.enumeration(bindings);
+    }
+}
+```
+
+This updated code uses a try-catch block to catch any `NamingException` that may be thrown when calling `Context.getEnvironment()`. If a `NamingException` is caught, it is re-thrown as a new `NamingException` with a more descriptive error message.
+------------------------------------------------------

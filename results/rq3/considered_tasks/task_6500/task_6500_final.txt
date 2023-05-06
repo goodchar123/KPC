@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the `setField` method that includes the requested checks:
+
+```java
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalField;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.UnsupportedTemporalTypeException;
+import java.time.DateTimeException;
+
+public class DateTimeHelper {
+    public static LocalDateTime setField(LocalDateTime dateTime, TemporalField field, long newValue) {
+        if (!dateTime.isSupported(field)) {
+            throw new UnsupportedTemporalTypeException("Unsupported field: " + field);
+        }
+        try {
+            return dateTime.with(field, newValue);
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Unable to set field " + field + " to value " + newValue, e);
+        } catch (ArithmeticException e) {
+            throw new ArithmeticException("Numeric overflow occurred while setting field " + field + " to value " + newValue);
+        }
+    }
+}
+```
+
+This updated method first checks if the specified field is supported by the `LocalDateTime` object using the `isSupported` method. If the field is not supported, it throws an `UnsupportedTemporalTypeException`.
+
+Next, it attempts to set the field to the new value using the `with` method. If a `DateTimeException` is thrown, it re-throws the exception with a more informative message. If an `ArithmeticException` is thrown due to numeric overflow, it throws a new `ArithmeticException` with a message indicating which field and value caused the overflow.
+
+You can call this updated method in the same way as before:
+
+```java
+LocalDateTime dateTime = LocalDateTime.now();
+LocalDateTime newDateTime = DateTimeHelper.setField(dateTime, ChronoField.YEAR, 2022);
+``` 
+
+If any of the checks fail, the method will throw an exception with an appropriate message.
+------------------------------------------------------

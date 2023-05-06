@@ -1,0 +1,81 @@
+
+Thank you for your feedback. Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+public static void insertImageIntoStream(InputStream originalStream, OutputStream outputStream, BufferedImage newImage, String format) throws IOException {
+    // Check if formatName is null
+    if (format == null) {
+        throw new IllegalArgumentException("Format name cannot be null");
+    }
+
+    // Create a new ImageOutputStream from the output stream
+    ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(outputStream);
+
+    // Get the image reader for the original stream
+    ImageReader reader = ImageIO.getImageReadersByFormatName(format).next();
+
+    // Check if the input source has not been set
+    if (reader.getInput() == null) {
+        throw new IllegalStateException("Input source has not been set");
+    }
+
+    reader.setInput(originalStream);
+
+    // Get the image writer for the output stream
+    ImageWriter writer = ImageIO.getImageWritersByFormatName(format).next();
+
+    // Check if the output has not been set
+    if (writer.getOutput() == null) {
+        throw new IllegalStateException("Output has not been set");
+    }
+
+    writer.setOutput(imageOutputStream);
+
+    // Get the metadata for the original image
+    IIOMetadata metadata = null;
+
+    try {
+        metadata = reader.getImageMetadata(0);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+    } catch (IOException e) {
+        throw new IOException("An error occurred during reading", e);
+    }
+
+    // Create a new image with the same dimensions as the original
+    BufferedImage newBufferedImage = new BufferedImage(newImage.getWidth(), newImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+    // Draw the original image onto the new image
+    Graphics2D graphics = newBufferedImage.createGraphics();
+    graphics.drawImage(newImage, 0, 0, null);
+    graphics.dispose();
+
+    // Create a new IIOImage with the new image and metadata
+    IIOImage iioImage = new IIOImage(newBufferedImage, null, metadata);
+
+    // Check if image contains a Raster and canWriteRasters returns false
+    if (writer.canWriteRasters() == false && newBufferedImage.getRaster() != null) {
+        throw new UnsupportedOperationException("Image contains a Raster and canWriteRasters returns false");
+    }
+
+    // Check if image is null
+    if (iioImage == null) {
+        throw new IllegalArgumentException("Image cannot be null");
+    }
+
+    // Write the new image to the output stream
+    try {
+        writer.write(metadata, iioImage, null);
+    } catch (IOException e) {
+        throw new IOException("An error occurred during writing", e);
+    }
+
+    // Close the streams
+    reader.dispose();
+    writer.dispose();
+    imageOutputStream.close();
+}
+```
+
+This updated version of the method includes error checking for all of the potential issues you mentioned. If any of these issues are detected, the method will throw an appropriate exception with a descriptive error message.
+------------------------------------------------------

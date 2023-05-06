@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the Java method that checks for ZIP format errors and closed zip files:
+
+```java
+import java.io.*;
+import java.util.zip.*;
+
+public static InputStream getZipEntryInputStream(String zipFilePath, String entryName) throws IOException {
+    ZipFile zipFile = new ZipFile(zipFilePath);
+    ZipEntry entry = zipFile.getEntry(entryName);
+    if (entry == null) {
+        zipFile.close();
+        throw new FileNotFoundException("Entry not found in zip file: " + entryName);
+    }
+    try {
+        InputStream inputStream = zipFile.getInputStream(entry);
+        if (inputStream == null) {
+            zipFile.close();
+            throw new ZipException("ZIP format error: " + entryName);
+        }
+        return inputStream;
+    } catch (IOException e) {
+        zipFile.close();
+        throw e;
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Zip file has been closed: " + zipFilePath);
+    }
+}
+```
+
+This updated method first checks if the `ZipEntry` object is null, which indicates that the entry was not found in the zip file. If this is the case, it closes the `ZipFile` object and throws a `FileNotFoundException`.
+
+Next, it tries to get an input stream for the entry using the `getInputStream` method of the `ZipFile` object. If the input stream is null, it means that there was a ZIP format error, so it closes the `ZipFile` object and throws a `ZipException`.
+
+If there is an `IOException` while getting the input stream, it closes the `ZipFile` object and rethrows the exception.
+
+Finally, if the `ZipFile` object has been closed, it throws an `IllegalStateException`.
+------------------------------------------------------

@@ -1,0 +1,43 @@
+
+Here's the updated Java method that checks if the `otherInstant` parameter is null for `Instant.isBefore(Instant)` and `Instant.isAfter(Instant)` methods and throws appropriate `NullPointerException`:
+
+```java
+public static int convertYearsMonthsToDays(int years, int months, Instant referenceInstant, Instant otherInstant) {
+    ZoneId systemDefaultZoneId;
+    try {
+        systemDefaultZoneId = ZoneId.systemDefault();
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Converted zone ID has an invalid format", e);
+    } catch (ZoneRulesException e) {
+        throw new ZoneRulesException("Converted zone region ID cannot be found", e);
+    }
+    LocalDate referenceDate = referenceInstant.atZone(systemDefaultZoneId).toLocalDate();
+    LocalDate targetDate;
+    try {
+        targetDate = referenceDate.plusYears(years).plusMonths(months);
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Result exceeds the supported date range", e);
+    }
+    Instant targetInstant;
+    try {
+        targetInstant = targetDate.atStartOfDay(systemDefaultZoneId).toInstant();
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Result exceeds the supported range for Instant", e);
+    }
+    if (targetInstant.isBefore(Instant.MIN) || targetInstant.isAfter(Instant.MAX)) {
+        throw new DateTimeException("Result exceeds the supported range for Instant");
+    }
+    if (otherInstant == null) {
+        throw new NullPointerException("otherInstant must not be null");
+    }
+    if (referenceInstant.isBefore(otherInstant)) {
+        throw new IllegalArgumentException("referenceInstant must be after otherInstant");
+    }
+    return (int) ChronoUnit.DAYS.between(otherInstant, targetInstant);
+}
+```
+
+This updated method checks if the `otherInstant` parameter is null for the `Instant.isBefore(Instant)` and `Instant.isAfter(Instant)` methods using `Objects.requireNonNull()`, and throws a `NullPointerException` with a descriptive message if it is.
+
+Then, it proceeds with the rest of the method as before,
+------------------------------------------------------

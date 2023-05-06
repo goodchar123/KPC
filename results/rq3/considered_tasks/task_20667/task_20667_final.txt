@@ -1,0 +1,76 @@
+
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public String getNCharParameter(Connection conn, String query, int parameterIndex) throws SQLException {
+    String result = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        stmt = conn.prepareStatement(query);
+        if (stmt == null) {
+            throw new SQLException("Failed to create PreparedStatement");
+        }
+        stmt.setFetchSize(1);
+        stmt.setQueryTimeout(30);
+        stmt.setEscapeProcessing(true);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        try {
+            stmt.setNull(parameterIndex, Types.NVARCHAR);
+        } catch (SQLException e) {
+            throw new SQLException("Failed to set parameter value", e);
+        }
+        rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            try {
+                result = rs.getNString(parameterIndex);
+            } catch (SQLException e) {
+                throw new SQLException("Failed to retrieve parameter value", e);
+            }
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout exceeded, attempt to cancel statement
+            if (stmt != null) {
+                try {
+                    stmt.cancel();
+                } catch (SQLException ex) {
+                    throw new SQLFeatureNotSupportedException("Failed to cancel statement", ex);
+                }
+            }
+        }
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Failed to close ResultSet", e);
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Failed to close PreparedStatement", e);
+            }
+        }
+    }
+    
+    return result;
+}
+```
+
+This updated method now includes additional error handling for the following scenarios:
+
+- If `conn.prepareStatement(query)` returns `null`, a `SQLException` is thrown with a message indicating that the `PreparedStatement` failed to be created.
+- If `stmt.setNull(parameterIndex, Types.NVARCHAR)` throws a `SQLException`, a new `SQLException` is thrown with a message indicating that the parameter value failed to be set.
+- If `rs.getNString(parameterIndex)` throws a `SQLException`, a new `SQLException` is thrown with a message indicating that the parameter value failed to be retrieved.
+- If `stmt.cancel()` throws a `SQLException`, a new `SQLFeatureNotSupportedException` is thrown with a message indicating that the statement failed to be cancelled.
+
+In each of these cases, the original exception is included as the cause of the new exception being thrown.
+
+Additionally, the `finally` block now includes try-catch statements to handle any `SQLException` that may occur when closing the result set or statement objects. If an exception is caught during the closing process, it is re-thrown with a message indicating which object failed to be closed.
+------------------------------------------------------

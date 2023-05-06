@@ -1,0 +1,78 @@
+
+Sure, here's the updated code with the additional exception handling:
+
+```java
+public ResultSet getOriginalRow(Connection conn, String tableName, ResultSet currentResultSet) throws SQLException {
+    // Get the primary key column name(s) for the table
+    DatabaseMetaData metaData = null;
+    try {
+        metaData = conn.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting database metadata", e);
+    }
+    ResultSet pkColumns = null;
+    try {
+        pkColumns = metaData.getPrimaryKeys(null, null, tableName);
+    } catch (SQLException e) {
+        throw new SQLException("Error getting primary keys for table " + tableName, e);
+    }
+    List<String> pkColumnNames = new ArrayList<>();
+    while (pkColumns.next()) {
+        pkColumnNames.add(pkColumns.getString("COLUMN_NAME"));
+    }
+    
+    // Build the SQL query to retrieve the original row
+    StringBuilder queryBuilder = new StringBuilder("SELECT * FROM ");
+    queryBuilder.append(tableName).append(" WHERE ");
+    for (String pkColumnName : pkColumnNames) {
+        queryBuilder.append(pkColumnName).append(" = ? AND ");
+    }
+    if (pkColumnNames.isEmpty()) {
+        throw new SQLException("Table " + tableName + " has no primary key");
+    }
+    queryBuilder.delete(queryBuilder.length() - 5, queryBuilder.length()); // Remove the last " AND "
+    String query = queryBuilder.toString();
+    
+    // Prepare the statement and set the primary key values as parameters
+    PreparedStatement statement = null;
+    ResultSet originalResultSet = null;
+    try {
+        statement = conn.prepareStatement(query);
+        int parameterIndex = 1;
+        for (String pkColumnName : pkColumnNames) {
+            Object pkValue = currentResultSet.getObject(pkColumnName);
+            if (pkValue == null) {
+                throw new SQLException("Primary key value for column " + pkColumnName + " is null");
+            }
+            statement.setObject(parameterIndex++, pkValue);
+        }
+        
+        // Execute the query and return the result set
+        originalResultSet = statement.executeQuery();
+        if (!originalResultSet.next()) {
+            throw new SQLException("No original row found");
+        }
+    } catch (SQLException e) {
+        if (statement != null) {
+            statement.close();
+        }
+        if (originalResultSet != null) {
+            originalResultSet.close();
+        }
+        throw e;
+    } catch (Exception e) {
+        if (statement != null) {
+            statement.close();
+        }
+        if (originalResultSet != null) {
+            originalResultSet.close();
+        }
+        throw new SQLException("Error retrieving original row", e);
+    }
+    
+    return originalResultSet;
+}
+```
+
+In this updated code, I've added try-catch blocks to handle the additional exceptions that you mentioned. If an exception occurs, the method throws a new `SQLException` with a descriptive error message. If no exception occurs, the method returns the resulting `ResultSet` object containing the original row. I've also added a check to ensure that the primary key value is not null before setting it as a parameter in the prepared statement.
+------------------------------------------------------

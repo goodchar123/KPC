@@ -1,0 +1,56 @@
+
+Here's the updated Java method that checks for errors accessing the `Clob` value and throws the appropriate exceptions, including checking for support of the `length()` method:
+
+```java
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.Clob;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+
+public class ClobWriter {
+    public static void writeClobToStream(Clob clob, OutputStream outputStream) throws SQLException, IOException {
+        int bufferSize = 1024;
+        char[] buffer = new char[bufferSize];
+        int bytesRead = 0;
+        long position = 1;
+        try {
+            if (clob == null) {
+                throw new SQLException("Clob is null");
+            }
+            if (!isClobLengthSupported(clob)) {
+                throw new SQLFeatureNotSupportedException("Clob length method not supported");
+            }
+            if (clob.length() == 0) {
+                return;
+            }
+            while ((bytesRead = clob.getCharacterStream(position, bufferSize).read(buffer, 0, bufferSize)) != -1) {
+                outputStream.write(new String(buffer, 0, bytesRead).getBytes());
+                position += bytesRead;
+            }
+        } catch (SQLException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SQLFeatureNotSupportedException("Method not supported", e);
+        }
+    }
+    
+    private static boolean isClobLengthSupported(Clob clob) {
+        try {
+            clob.length();
+            return true;
+        } catch (AbstractMethodError e) {
+            return false;
+        } catch (SQLFeatureNotSupportedException e) {
+            return false;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+}
+```
+
+This updated method includes a new private method `isClobLengthSupported()` that checks if the `length()` method is supported by the JDBC driver. If the method is not supported, a `SQLFeatureNotSupportedException` is thrown.
+------------------------------------------------------

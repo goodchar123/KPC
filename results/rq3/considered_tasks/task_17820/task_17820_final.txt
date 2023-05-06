@@ -1,0 +1,28 @@
+
+Sure, here's the updated code snippet that checks for an `IOException` when calling `java.net.URL.openConnection()` and throws it if one occurs:
+
+```java
+public static String getLinkName(String link) throws IOException {
+    String name = "";
+    try {
+        URL url = new URL(link);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("HEAD");
+        conn.connect();
+        name = conn.getHeaderField("Content-Disposition");
+        if (name == null) {
+            name = url.getFile();
+            name = name.substring(name.lastIndexOf('/') + 1);
+        } else {
+            name = name.substring(name.indexOf("filename=") + 9);
+            name = name.replaceAll("\"", "");
+        }
+    } catch (IOException e) {
+        throw new IOException("An I/O exception occurred while opening a connection to the URL: " + e.getMessage());
+    }
+    return name;
+}
+```
+
+Now, if an `IOException` occurs while opening a connection to the URL, it will be caught and re-thrown with a more descriptive error message.
+------------------------------------------------------

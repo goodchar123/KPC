@@ -1,0 +1,31 @@
+
+Sure, here's an updated version of the Java method that includes the requested exception handling:
+
+```java
+public static Class<?> byteArrayToClass(byte[] bytes, CodeSource codeSource) throws IOException, ClassNotFoundException, InvalidClassException, StreamCorruptedException, OptionalDataException, SecurityException {
+    Class<?> clazz = null;
+    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+         ObjectInputStream ois = new ObjectInputStream(bis)) {
+        clazz = (Class<?>) ois.readObject();
+    } catch (ClassNotFoundException | InvalidClassException | StreamCorruptedException | OptionalDataException e) {
+        throw e;
+    }
+    if (clazz != null && codeSource != null) {
+        ProtectionDomain protectionDomain = new ProtectionDomain(codeSource, null);
+        CodeSource[] codeSources = {codeSource};
+        PermissionCollection permissions = new Permissions();
+        permissions.setReadOnly(); // mark as read-only
+        permissions.add(new AllPermission());
+        ProtectionDomain[] protectionDomains = {new ProtectionDomain(codeSource, permissions)};
+        clazz = new SecureClassLoader() {
+            public Class<?> defineClass(byte[] bytes, ProtectionDomain protectionDomain) {
+                return super.defineClass(null, bytes, 0, bytes.length, protectionDomain);
+            }
+        }.defineClass(bytes, protectionDomain);
+    }
+    return clazz;
+}
+```
+
+This updated method includes the requested exception handling for the ObjectInputStream.readObject() method, and also marks the PermissionCollection as read-only to prevent modification after it has been added to the ProtectionDomain.
+------------------------------------------------------

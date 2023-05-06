@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that includes the requested error checking:
+
+```java
+public InputStream getClobAsciiStream(SerialClob clob) throws SQLException, IOException {
+    Reader reader;
+    try {
+        reader = clob.getCharacterStream();
+    } catch (SQLException e) {
+        throw new SQLException("Error accessing CLOB value", e);
+    } catch (AbstractMethodError e) {
+        throw new SQLFeatureNotSupportedException("JDBC driver does not support getCharacterStream() method for CLOB", e);
+    }
+    StringWriter writer = new StringWriter();
+    char[] buffer = new char[1024];
+    int n;
+    while ((n = reader.read(buffer)) != -1) {
+        writer.write(buffer, 0, n);
+    }
+    String clobString = writer.toString();
+    try {
+        return new ByteArrayInputStream(clobString.getBytes("US-ASCII"));
+    } catch (UnsupportedEncodingException e) {
+        throw new IOException("Unsupported encoding: US-ASCII", e);
+    } catch (IllegalArgumentException e) {
+        throw new IOException("Invalid encoding argument: US-ASCII", e);
+    }
+}
+```
+
+This updated method now checks for the following errors:
+
+- If there is an error accessing the CLOB value for `java.sql.Clob.getCharacterStream()`, a `SQLException` is thrown.
+- If the JDBC driver does not support this method for `java.sql.Clob.getCharacterStream()`, a `SQLFeatureNotSupportedException` is thrown.
+- If an I/O error occurs for `java.io.Reader.read(char[])`, an `IOException` is thrown.
+- If `off` is negative, or `len` is negative, or `off + len` is negative or greater than the length of the given array for `java.io.StringWriter.write(char[],int,int)`, an `IndexOutOfBoundsException` is thrown.
+
+Note that the `IllegalArgumentException` is also caught in case the encoding argument is invalid.
+------------------------------------------------------

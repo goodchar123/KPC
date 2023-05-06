@@ -1,0 +1,43 @@
+
+Sure, here's an updated version of the Java method that includes exception handling for the potential issues you mentioned:
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
+
+public static byte[] aesEncryptDecrypt(byte[] data, byte[] key, int mode) throws Exception {
+    if (key == null || key.length != 16) {
+        throw new InvalidKeyException("Invalid key length. Key must be 16 bytes long.");
+    }
+    if (mode != Cipher.ENCRYPT_MODE && mode != Cipher.DECRYPT_MODE) {
+        throw new IllegalArgumentException("Invalid cipher mode. Mode must be either Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.");
+    }
+    try {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+        cipher.init(mode, secretKeySpec);
+        return cipher.doFinal(data);
+    } catch (NoSuchAlgorithmException e) {
+        throw new NoSuchAlgorithmException("Invalid transformation. Transformation must be a valid algorithm name.", e);
+    } catch (NoSuchPaddingException e) {
+        throw new NoSuchPaddingException("Invalid padding scheme. Padding scheme must be available for the specified algorithm.", e);
+    } catch (InvalidKeyException e) {
+        throw new InvalidKeyException("Invalid key. Key must be appropriate for initializing this cipher and must not exceed the maximum allowable keysize.", e);
+    } catch (UnsupportedOperationException e) {
+        throw new UnsupportedOperationException("Invalid cipher mode. CipherSpi implementation does not support the specified mode.", e);
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Invalid cipher state. Cipher must be initialized before calling doFinal().", e);
+    } catch (IllegalBlockSizeException e) {
+        throw new IllegalBlockSizeException("Invalid block size. Cipher must be a block cipher and padding must be requested (only in encryption mode).", e);
+    } catch (BadPaddingException e) {
+        throw new BadPaddingException("Invalid padding. Cipher must be in decryption mode and padding must be requested.", e);
+    } catch (AEADBadTagException e) {
+        throw new AEADBadTagException("Invalid authentication tag. Cipher must be decrypting in an AEAD mode and the received authentication tag must match the calculated value.", e);
+    }
+}
+```
+
+This updated method includes additional checks and exception handling for the potential issues you mentioned. For example, it checks the length of the key to ensure it is 16 bytes long, and throws an `InvalidKeyException` if it is not. It also catches specific exceptions that may be thrown by the `Cipher` class and re-throws them with more informative error messages.
+
+Note that this is just an example of how you can handle exceptions in a Java method that uses the `Cipher` class. Depending on your specific use case, you may need to handle different exceptions or add additional checks.
+------------------------------------------------------

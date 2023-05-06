@@ -1,0 +1,32 @@
+
+Here's an updated version of the Java method that includes the requested check:
+
+```java
+public void restrictEventsByClassRegex(String regex) throws VMCannotBeModifiedException {
+    EventRequestManager erm = vm.eventRequestManager();
+    if (!erm.canBeModified()) {
+        throw new VMCannotBeModifiedException();
+    }
+    try {
+        regex.matches("");
+    } catch (PatternSyntaxException e) {
+        throw e;
+    }
+    for (EventRequest request : erm.eventRequests()) {
+        if (request instanceof ClassPrepareRequest) {
+            ClassPrepareRequest cpr = (ClassPrepareRequest) request;
+            String className = cpr.referenceType().name();
+            if (!className.matches(regex)) {
+                cpr.disable();
+            }
+        }
+    }
+}
+```
+
+This updated method first checks if the `EventRequestManager` can be modified using the `canBeModified()` method. If it cannot be modified, a `VMCannotBeModifiedException` is thrown.
+
+Next, the method attempts to match the provided regular expression against an empty string using the `matches()` method. If the syntax is invalid, a `PatternSyntaxException` is thrown.
+
+Finally, the method iterates over all existing event requests and disables any `ClassPrepareRequest` that does not match the provided regular expression.
+------------------------------------------------------

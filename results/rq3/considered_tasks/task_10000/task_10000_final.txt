@@ -1,0 +1,70 @@
+
+Sure, here's an updated version of the `ReplaceableObjectInputStream` class that checks for these exceptions:
+
+```java
+import java.io.*;
+
+public class ReplaceableObjectInputStream extends ObjectInputStream {
+    
+    public ReplaceableObjectInputStream(InputStream in) throws IOException {
+        super(in);
+    }
+    
+    @Override
+    protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+        ObjectStreamClass desc = super.readClassDescriptor();
+        if (desc.getName().equals("com.example.Replaceable")) {
+            desc = ObjectStreamClass.lookup(Replaceable.class);
+        }
+        return desc;
+    }
+    
+    @Override
+    public void registerValidation(ObjectInputValidation validation, int priority) throws NotActiveException, InvalidObjectException {
+        if (validation instanceof Replaceable) {
+            Replaceable replaceable = (Replaceable) validation;
+            replaceable.replaceObject();
+        }
+        super.registerValidation(validation, priority);
+    }
+    
+    @Override
+    protected void readStreamHeader() throws IOException, StreamCorruptedException {
+        try {
+            super.readStreamHeader();
+        } catch (StreamCorruptedException e) {
+            throw new StreamCorruptedException("Control information in the stream is inconsistent.");
+        }
+    }
+    
+    @Override
+    protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+        try {
+            return super.resolveClass(desc);
+        } catch (ClassNotFoundException e) {
+            throw new InvalidClassException("Something is wrong with a class used by deserialization.");
+        }
+    }
+    
+    @Override
+    protected Object readObjectOverride() throws IOException, ClassNotFoundException {
+        try {
+            return super.readObjectOverride();
+        } catch (OptionalDataException e) {
+            throw new OptionalDataException("Primitive data was found in the stream instead of objects.");
+        }
+    }
+    
+}
+```
+
+In this updated version, we override three additional methods to check for these exceptions:
+
+- `readStreamHeader()`: This method is called to read the stream header. We override it to catch `StreamCorruptedException` and throw a more descriptive exception message.
+
+- `resolveClass()`: This method is called to resolve a class descriptor. We override it to catch `ClassNotFoundException` and throw a more descriptive exception message.
+
+- `readObjectOverride()`: This method is called to read an object from the stream. We override it to catch `OptionalDataException` and throw a more descriptive exception message.
+
+With these additional checks, the `ReplaceableObjectInputStream` class should be more robust and provide better error messages when something goes wrong during deserialization.
+------------------------------------------------------

@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the Java method that checks for a query timeout and attempts to cancel the currently running statement:
+
+```java
+import java.sql.*;
+
+public class UpdateFloatValue {
+   public static void main(String[] args) {
+      String url = "jdbc:mysql://localhost:3306/mydatabase";
+      String username = "root";
+      String password = "password";
+      String query = "UPDATE mytable SET mycolumn = ? WHERE id = ?";
+      float floatValue = 3.14f;
+      int id = 1;
+      int timeout = 10; // in seconds
+
+      try (Connection conn = DriverManager.getConnection(url, username, password);
+           PreparedStatement pstmt = conn.prepareStatement(query)) {
+         pstmt.setFloat(1, floatValue);
+         pstmt.setInt(2, id);
+         pstmt.setQueryTimeout(timeout);
+         int rowsUpdated = pstmt.executeUpdate();
+         System.out.println(rowsUpdated + " rows updated successfully.");
+      } catch (SQLException e) {
+         if (e instanceof SQLTimeoutException) {
+            // Timeout occurred, attempt to cancel the statement
+            try {
+               pstmt.cancel();
+            } catch (SQLException ex) {
+               System.out.println("Error cancelling statement: " + ex.getMessage());
+            }
+         }
+         System.out.println("Error: " + e.getMessage());
+      }
+   }
+}
+```
+
+In this updated version, we've added a `timeout` variable that specifies the query timeout in seconds. We then set the query timeout using the `setQueryTimeout()` method on the `PreparedStatement` object.
+
+If a `SQLTimeoutException` is thrown during the `executeUpdate()` method call, we attempt to cancel the statement using the `cancel()` method on the `PreparedStatement` object. If an exception is thrown while attempting to cancel the statement, we print an error message.
+
+Note that this code assumes that the `executeUpdate()` method call is blocking and will not return until the statement has completed or a timeout occurs. If the driver supports asynchronous execution of statements, additional code may be required to properly handle timeouts.
+------------------------------------------------------

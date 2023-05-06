@@ -1,0 +1,38 @@
+
+Here's an updated version of the code snippet that checks for the conditions you mentioned:
+
+```java
+public static void loadLibrary(String libname) throws SecurityException, UnsatisfiedLinkError, NullPointerException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkLink(libname);
+    }
+    if (libname == null) {
+        throw new NullPointerException("libname is null");
+    }
+    String mappedName = mapLibraryName(libname);
+    if (mappedName == null) {
+        throw new UnsatisfiedLinkError("Cannot map library name: " + libname);
+    }
+    try {
+        System.load(mappedName);
+    } catch (SecurityException e) {
+        throw e;
+    } catch (UnsatisfiedLinkError e) {
+        throw e;
+    } catch (Exception e) {
+        throw new UnsatisfiedLinkError("Failed to load library: " + mappedName);
+    }
+}
+```
+
+This updated version of the `loadLibrary` method first checks if a security manager exists and if its `checkLink` method allows loading of the specified dynamic library. If not, it throws a `SecurityException`.
+
+Next, it checks if the `libname` argument is null. If it is, it throws a `NullPointerException`.
+
+Then, it uses the `mapLibraryName` method to map the library name to a platform-specific name. If the mapped name is null, it throws an `UnsatisfiedLinkError`.
+
+Finally, it attempts to load the library using the `System.load` method. If an exception is thrown during the loading process, it throws an `UnsatisfiedLinkError`.
+
+Note that the `SecurityException` and `UnsatisfiedLinkError` caught in the `try-catch` block are re-thrown to propagate the error to the calling code.
+------------------------------------------------------

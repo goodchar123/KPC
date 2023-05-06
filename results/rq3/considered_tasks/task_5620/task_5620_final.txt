@@ -1,0 +1,44 @@
+
+Thank you for pointing that out. Here's the updated Java method that includes the requested error handling:
+
+```java
+public static boolean isThreadAllocatedMemoryEnabled() {
+    try {
+        Class<?> clazz = Class.forName("java.lang.management.ManagementFactory");
+        Method method = clazz.getMethod("getThreadMXBean");
+        Object threadMXBean = method.invoke(null);
+        Class<?> threadMXBeanClass = Class.forName("java.lang.management.ThreadMXBean");
+        Method isThreadAllocatedMemorySupportedMethod = threadMXBeanClass.getMethod("isThreadAllocatedMemorySupported");
+        boolean isSupported = (boolean) isThreadAllocatedMemorySupportedMethod.invoke(threadMXBean);
+        if (isSupported) {
+            Method isThreadAllocatedMemoryEnabledMethod = threadMXBeanClass.getMethod("isThreadAllocatedMemoryEnabled");
+            return (boolean) isThreadAllocatedMemoryEnabledMethod.invoke(threadMXBean, (Object[]) null);
+        }
+    } catch (ClassNotFoundException e) {
+        throw new LinkageError("Class not found: " + e.getMessage());
+    } catch (NoSuchMethodException e) {
+        throw new LinkageError("Method not found: " + e.getMessage());
+    } catch (IllegalAccessException e) {
+        throw new IllegalArgumentException("Illegal access: " + e.getMessage());
+    } catch (InvocationTargetException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof Error) {
+            throw (Error) cause;
+        } else if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        } else {
+            throw new IllegalArgumentException("Invocation target exception: " + cause.getMessage());
+        }
+    } catch (ExceptionInInitializerError e) {
+        throw new ExceptionInInitializerError("Initialization failed: " + e.getMessage());
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Specified object is null: " + e.getMessage());
+    } catch (Throwable t) {
+        throw new ExceptionInInitializerError("Initialization failed: " + t.getMessage());
+    }
+    return false;
+}
+```
+
+This updated method includes error handling for the scenario where the linkage fails for `Class.forName` method and throws a `LinkageError`. It also includes error handling for the scenario where the initialization provoked by the `Method.invoke` method fails and throws an `ExceptionInInitializerError`.
+------------------------------------------------------

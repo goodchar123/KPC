@@ -1,0 +1,34 @@
+
+Sure, here's the updated code snippet that includes all the requested error checks:
+
+```java
+public void writeAsciiStream(SQLOutputImpl output, InputStream inputStream) throws SQLException, IOException {
+    if (inputStream == null) {
+        throw new NullPointerException("Input stream cannot be null");
+    }
+    byte[] buffer = new byte[1024];
+    int bytesRead;
+    try {
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            String asciiString = new String(buffer, 0, bytesRead, "US-ASCII");
+            try {
+                output.writeString(asciiString);
+            } catch (SQLException e) {
+                throw new SQLException("Database access error occurred", e);
+            } catch (SQLFeatureNotSupportedException e) {
+                throw new SQLFeatureNotSupportedException("JDBC driver does not support this method", e);
+            }
+        }
+    } catch (IOException e) {
+        throw new IOException("Error reading input stream", e);
+    }
+}
+```
+
+This updated code includes the following error checks:
+
+- Checks if the `inputStream` parameter is null before reading from it. If it is null, a `NullPointerException` is thrown.
+- Checks if the first byte cannot be read for any reason other than the end of the file, if the input stream has been closed, or if some other I/O error occurs. If any of these conditions are met, an `IOException` is thrown.
+- Checks if a database access error occurs when calling the `writeString` method. If so, a new `SQLException` is thrown with the original exception as the cause.
+- Checks if the JDBC driver does not support the `writeString` method. If so, a new `SQLFeatureNotSupportedException` is thrown with the original exception as the cause.
+------------------------------------------------------

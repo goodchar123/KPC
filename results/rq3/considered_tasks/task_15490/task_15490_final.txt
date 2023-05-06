@@ -1,0 +1,58 @@
+
+Sure, here's the updated code that checks for these exceptions:
+
+```java
+import java.io.*;
+import java.nio.file.*;
+import java.security.*;
+import java.security.cert.*;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.*;
+
+public class CRLVerifier {
+
+    public static boolean verifyCRLSignature(X509CRL crl, PublicKey publicKey) throws Exception {
+        Signature signature = Signature.getInstance(crl.getSigAlgName());
+        signature.initVerify(publicKey);
+        try {
+            signature.update(crl.getTBSCertList());
+        } catch (CRLException e) {
+            throw new CRLException("Error encoding TBSCertList: " + e.getMessage());
+        }
+        return signature.verify(crl.getSignature());
+    }
+
+    public static void main(String[] args) throws Exception {
+        try {
+            // Load the CRL and public key
+            X509CRL crl = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(new FileInputStream("crl.crl"));
+            PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Files.readAllBytes(Paths.get("public_key.der"))));
+
+            // Verify the CRL signature
+            boolean verified = verifyCRLSignature(crl, publicKey);
+            System.out.println("CRL signature verified: " + verified);
+        } catch (NoSuchAlgorithmException e) {
+            throw new NoSuchAlgorithmException("No Provider supports a Signature implementation for the specified algorithm: " + e.getMessage());
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Algorithm is null: " + e.getMessage());
+        } catch (InvalidKeyException e) {
+            throw new InvalidKeyException("The key is invalid: " + e.getMessage());
+        } catch (SignatureException e) {
+            throw new SignatureException("This signature object is not initialized properly: " + e.getMessage());
+        } catch (CertificateException e) {
+            throw new CertificateException("No Provider supports a CertificateFactorySpi implementation for the specified type: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IOException("An I/O error occurs reading from the stream: " + e.getMessage());
+        } catch (InvalidKeySpecException e) {
+            throw new InvalidKeySpecException("The given key specification is inappropriate for this key factory to produce a public key: " + e.getMessage());
+        } catch (SecurityException e) {
+            throw new SecurityException("In the case of the default provider, and a security manager is installed, the checkRead method is invoked to check read access to the file: " + e.getMessage());
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError("An array of the required size cannot be allocated, for example the file is larger than 2GB: " + e.getMessage());
+        }
+    }
+}
+```
+
+In this updated code, we wrap each method call that can throw an exception in a try-catch block that catches the specific exception and throws a new exception with a more descriptive message. This way, the caller of the `main` method can handle the exceptions appropriately.
+------------------------------------------------------

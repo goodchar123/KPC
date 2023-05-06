@@ -1,0 +1,54 @@
+
+Sure, here's the updated code snippet that checks for the exceptions you mentioned:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
+import java.security.Security;
+import java.security.cert.CRLException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509CRL;
+import java.util.List;
+
+public static X509CRL getCertificateCRL(X509Certificate cert) throws CertificateException, CertificateParsingException, IOException, CRLException {
+    byte[] crlDistributionPointExtension = cert.getExtensionValue("2.5.29.31");
+    if (crlDistributionPointExtension == null) {
+        return null;
+    }
+    List<String> crlDistributionPoints = CRLDistributionPointsExtension.getCrlDistributionPoints(cert);
+    if (crlDistributionPoints == null || crlDistributionPoints.isEmpty()) {
+        return null;
+    }
+    for (String crlDistributionPoint : crlDistributionPoints) {
+        X509CRL crl = getCRLFromURL(crlDistributionPoint);
+        if (crl != null && crl.isRevoked(cert)) {
+            return crl;
+        }
+    }
+    return null;
+}
+
+private static X509CRL getCRLFromURL(String crlDistributionPoint) throws CertificateException, IOException, CRLException {
+    InputStream crlStream = null;
+    try {
+        URL url = new URL(crlDistributionPoint);
+        crlStream = url.openStream();
+        CertificateFactory cf = getCertificateFactory();
+        X509CRL crl = (X509CRL) cf.generateCRL(crlStream);
+        return crl;
+    } catch (IOException e) {
+        throw e;
+    } catch (CRLException e) {
+        throw e;
+    } catch (Exception e) {
+        return null;
+    } finally {
+        if (crlStream != null) {
+            try {
+                crlStream.close();
+            }
+------------------------------------------------------

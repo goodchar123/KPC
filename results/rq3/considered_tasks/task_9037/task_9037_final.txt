@@ -1,0 +1,31 @@
+
+Here's an updated version of the Java method that includes the requested check:
+
+```java
+public <K, V> V computeIfPresent(Map<K, V> map, K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    Objects.requireNonNull(remappingFunction);
+    Objects.requireNonNull(map);
+    if (!map.containsKey(key)) {
+        return null;
+    }
+    V oldValue = map.get(key);
+    if (oldValue == null) {
+        if (!map.containsKey(null)) {
+            throw new NullPointerException("This map does not permit null keys");
+        }
+    } else {
+        try {
+            K castKey = map.keySet().iterator().next().getClass().cast(key);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("The key is of an inappropriate type for this map");
+        }
+        V newValue = remappingFunction.apply(key, oldValue);
+        if (newValue == null) {
+            if (!map.containsKey(null)) {
+                throw new NullPointerException("This map does not permit null keys");
+            }
+        } else {
+            try {
+                K castKey = map.keySet().iterator().next().getClass().cast(key);
+                map.put(castKey, newValue
+------------------------------------------------------

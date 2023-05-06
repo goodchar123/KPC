@@ -1,0 +1,67 @@
+Please write a java method that Registers a new virtual-machine shutdown hook.
+Sure, here's an example Java method that registers a new virtual-machine shutdown hook:
+
+```java
+public void registerShutdownHook() {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+            // Code to be executed when the virtual machine is shutting down
+            System.out.println("Virtual machine is shutting down...");
+        }
+    });
+}
+```
+
+This method uses the `addShutdownHook()` method of the `Runtime` class to register a new shutdown hook. The `addShutdownHook()` method takes a `Thread` object as its argument, which will be executed when the virtual machine is shutting down. In this example, we create an anonymous inner class that extends `Thread` and overrides its `run()` method to contain the code we want to execute when the virtual machine is shutting down. In this case, we simply print a message to the console.
+------------------------------------------------------
+Please check If the specified hook has already been registered,          or if it can be determined that the hook is already running or          has already been run for java.lang.Runtime.addShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check If the virtual machine is already in the process          of shutting down for java.lang.Runtime.addShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check If a security manager is present and it denies          RuntimePermission("shutdownHooks") for java.lang.Runtime.addShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw SecurityException.
+Sure, here's an updated version of the Java method that includes the requested checks:
+
+```java
+public void registerShutdownHook(Thread hook) throws IllegalArgumentException, IllegalStateException, SecurityException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("shutdownHooks"));
+    }
+    if (Runtime.getRuntime().removeShutdownHook(hook)) {
+        throw new IllegalArgumentException("Hook has already been registered");
+    }
+    try {
+        Runtime.getRuntime().addShutdownHook(hook);
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Virtual machine is already in the process of shutting down");
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager denies RuntimePermission(\"shutdownHooks\")");
+    }
+}
+```
+
+This updated method takes a `Thread` object as its argument, which represents the shutdown hook to be registered. It first checks if a security manager is present and if it denies the `RuntimePermission("shutdownHooks")`. If the hook has already been registered, it throws an `IllegalArgumentException`. If the virtual machine is already in the process of shutting down, it throws an `IllegalStateException`. Finally, it attempts to register the shutdown hook using the `addShutdownHook()` method of the `Runtime` class. If this fails due to a security exception, it throws a `SecurityException`.
+------------------------------------------------------
+Please check If the virtual machine is already in the process of shutting          down for java.lang.Runtime.removeShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check If a security manager is present and it denies          RuntimePermission("shutdownHooks") for java.lang.Runtime.removeShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw SecurityException.
+Please check If the specified hook has already been registered,          or if it can be determined that the hook is already running or          has already been run for java.lang.Runtime.addShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Sure, here's an updated version of the Java method that includes the requested checks for removing a shutdown hook:
+
+```java
+public void removeShutdownHook(Thread hook) throws IllegalArgumentException, IllegalStateException, SecurityException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("shutdownHooks"));
+    }
+    try {
+        if (!Runtime.getRuntime().removeShutdownHook(hook)) {
+            throw new IllegalArgumentException("Hook has not been registered");
+        }
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Virtual machine is already in the process of shutting down");
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager denies RuntimePermission(\"shutdownHooks\")");
+    }
+}
+```
+
+This updated method takes a `Thread` object as its argument, which represents the shutdown hook to be removed. It first checks if a security manager is present and if it denies the `RuntimePermission("shutdownHooks")`. It then attempts to remove the shutdown hook using the `removeShutdownHook()` method of the `Runtime` class. If the hook has not been registered, it throws an `IllegalArgumentException`. If the virtual machine is already in the process of shutting down, it throws an `IllegalStateException`. Finally, if a security exception occurs, it throws a `SecurityException`.
+------------------------------------------------------

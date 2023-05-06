@@ -1,0 +1,94 @@
+Please write a java method that Description copied from interface: NotificationEmitter
+Here is an example of a Java method that implements the NotificationEmitter interface:
+
+```
+public class MyNotificationEmitter implements NotificationEmitter {
+
+    private NotificationListener listener;
+
+    @Override
+    public void addNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws IllegalArgumentException {
+        this.listener = listener;
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener) throws ListenerNotFoundException {
+        this.listener = null;
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws ListenerNotFoundException {
+        this.listener = null;
+    }
+
+    @Override
+    public void sendNotification(Notification notification) {
+        if (listener != null) {
+            listener.handleNotification(notification, null);
+        }
+    }
+
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return new MBeanNotificationInfo[0];
+    }
+}
+```
+
+This implementation simply stores a single NotificationListener and sends any notifications received to that listener. It does not use the NotificationFilter or handback objects. The getNotificationInfo method returns an empty array of MBeanNotificationInfo objects.
+------------------------------------------------------
+Please check The listener is not registered with the MBean, or it is not registered with the given filter and handback. for javax.management.NotificationEmitter.removeNotificationListener(javax.management.NotificationListener,javax.management.NotificationFilter,java.lang.Object) in the code snippet you provided, otherwise throw ListenerNotFoundException.
+Here is an updated version of the code snippet that checks if the listener is registered with the MBean and with the given filter and handback before removing it. If the listener is not found, it throws a ListenerNotFoundException:
+
+```
+public class MyNotificationEmitter implements NotificationEmitter {
+
+    private NotificationListener listener;
+    private NotificationFilter filter;
+    private Object handback;
+
+    @Override
+    public void addNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws IllegalArgumentException {
+        this.listener = listener;
+        this.filter = filter;
+        this.handback = handback;
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener) throws ListenerNotFoundException {
+        if (this.listener == listener) {
+            this.listener = null;
+            this.filter = null;
+            this.handback = null;
+        } else {
+            throw new ListenerNotFoundException("Listener not found");
+        }
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws ListenerNotFoundException {
+        if (this.listener == listener && this.filter == filter && this.handback == handback) {
+            this.listener = null;
+            this.filter = null;
+            this.handback = null;
+        } else {
+            throw new ListenerNotFoundException("Listener not found with the given filter and handback");
+        }
+    }
+
+    @Override
+    public void sendNotification(Notification notification) {
+        if (listener != null) {
+            listener.handleNotification(notification, handback);
+        }
+    }
+
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return new MBeanNotificationInfo[0];
+    }
+}
+```
+
+This implementation stores the filter and handback objects along with the listener, and checks if they match when removing the listener. If the listener is not found, it throws a ListenerNotFoundException with an appropriate message.
+------------------------------------------------------

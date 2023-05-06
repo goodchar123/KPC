@@ -1,0 +1,35 @@
+
+I apologize for the repeated responses. Here's an updated version of the `take()` method that checks if the current thread is allowed to modify the thread for `interrupt()`, and throws a `SecurityException` if not:
+
+```
+@Override
+public T take() throws InterruptedException {
+    T element = null;
+    boolean interrupted = false;
+    try {
+        while (element == null) {
+            try {
+                element = queue.take();
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
+        }
+    } finally {
+        if (interrupted) {
+            checkAccess();
+            Thread.currentThread().interrupt();
+        }
+    }
+    return element;
+}
+
+private void checkAccess() {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkAccess(Thread.currentThread());
+    }
+}
+```
+
+In this version, we add a call to `checkAccess()` before calling `Thread.currentThread().interrupt()`. The `checkAccess()` method checks if the current thread is allowed to modify the thread for `interrupt()`, and throws a `SecurityException`
+------------------------------------------------------

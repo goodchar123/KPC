@@ -1,0 +1,30 @@
+
+Here's an updated version of the method that includes error handling for both the `write` and `flush` operations:
+
+```java
+public int writeBytesToBlob(Blob blob, byte[] bytes, int pos) throws SQLException, IOException {
+    OutputStream out = blob.setBinaryStream(pos + 1);
+    try {
+        out.write(bytes);
+    } catch (IOException e) {
+        throw new IOException("Error writing bytes to BLOB", e);
+    }
+    try {
+        out.flush();
+    } catch (IOException e) {
+        throw new IOException("Error flushing output stream", e);
+    }
+    try {
+        out.close();
+    } catch (IOException e) {
+        throw new IOException("Error closing output stream", e);
+    }
+    if (out.checkError()) {
+        throw new IOException("Error writing bytes to output stream");
+    }
+    return bytes.length;
+}
+```
+
+This version separates the `write` and `flush` operations into separate try-catch blocks, so that errors can be handled separately. It also adds error handling for the `close` operation, as before. Finally, it checks for errors using `OutputStream.checkError()` after all operations are complete, and throws an `IOException` if an error occurred.
+------------------------------------------------------

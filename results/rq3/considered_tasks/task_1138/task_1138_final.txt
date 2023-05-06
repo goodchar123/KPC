@@ -1,0 +1,53 @@
+
+Sure, here's an updated version of the Java method that includes the requested error handling:
+
+```java
+import javax.management.*;
+import java.util.*;
+
+public class MBeanAttributeRetriever {
+    public static void main(String[] args) throws Exception {
+        // Create a JMX connector to connect to the MBean server
+        JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi");
+        JMXConnector connector = JMXConnectorFactory.connect(url);
+        try {
+            connector.connect();
+        } catch (SecurityException e) {
+            System.err.println("Could not connect to MBean server due to security reasons.");
+            throw e;
+        }
+
+        // Get the MBean server connection
+        MBeanServerConnection mbsc = connector.getMBeanServerConnection();
+
+        // Define the object name of the MBean you want to retrieve attributes from
+        ObjectName mbeanName = new ObjectName("com.example:type=MyMBean");
+
+        // Define the names of the attributes you want to retrieve
+        String[] attributeNames = {"Attribute1", "Attribute2", "Attribute3"};
+
+        // Retrieve the values of the attributes
+        AttributeList attributeList = mbsc.getAttributes(mbeanName, attributeNames);
+
+        // Check if the AttributeList contains any non-Attribute elements
+        for (Object obj : attributeList) {
+            if (!(obj instanceof Attribute)) {
+                throw new IllegalArgumentException("AttributeList contains an element that is not an Attribute.");
+            }
+        }
+
+        // Print out the values of the attributes
+        for (Attribute attribute : attributeList.asList()) {
+            System.out.println(attribute.getName() + " = " + attribute.getValue());
+        }
+
+        // Close the JMX connector
+        connector.close();
+    }
+}
+```
+
+In this updated version, we catch the `SecurityException` that may be thrown by the `connect` method of the `JMXConnector` interface if the connection could not be made for security reasons. We print an error message and re-throw the exception.
+
+We also check if the `AttributeList` contains any non-`Attribute` elements by iterating over the list and checking the type of each element. If we find a non-`Attribute` element, we throw an `IllegalArgumentException`.
+------------------------------------------------------

@@ -1,0 +1,43 @@
+
+Sure, here's the updated code snippet that checks for the specified error codes and throws a `GSSException` if any of them occur:
+
+```
+import org.ietf.jgss.*;
+
+public class GSSNameFactory {
+
+    public static GSSName createGSSName(byte[] name, Oid namespace, Oid mechanism) throws GSSException {
+        GSSManager manager = GSSManager.getInstance();
+        GSSName gssName = null;
+        try {
+            gssName = manager.createName(name, namespace);
+        } catch (GSSException e) {
+            if (e.getMajor() == GSSException.BAD_NAMETYPE ||
+                e.getMajor() == GSSException.BAD_NAME ||
+                e.getMajor() == GSSException.BAD_MECH ||
+                e.getMajor() == GSSException.FAILURE) {
+                throw e;
+            }
+        }
+        GSSName canonicalizedName = null;
+        try {
+            canonicalizedName = gssName.canonicalize(mechanism);
+        } catch (GSSException e) {
+            if (e.getMajor() == GSSException.BAD_NAMETYPE ||
+                e.getMajor() == GSSException.BAD_NAME ||
+                e.getMajor() == GSSException.BAD_MECH ||
+                e.getMajor() == GSSException.FAILURE) {
+                throw e;
+            }
+        }
+        return canonicalizedName;
+    }
+}
+```
+
+This updated method first tries to create a `GSSName` object using the `GSSManager.createName` method, and checks for the specified error codes using the `GSSException.getMajor` method. If any of the specified error codes occur, the method throws the `GSSException`.
+
+Similarly, the method then tries to canonicalize the `GSSName` object using the `GSSName.canonicalize` method, and checks for the specified error codes using the `GSSException.getMajor` method. If any of the specified error codes occur, the method throws the `GSSException`.
+
+Note that if the `GSSManager.createName` method throws an exception, the `gssName` variable will be `null`, so we need to check for this before calling the `canonicalize` method.
+------------------------------------------------------

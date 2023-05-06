@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the `createMBean` method that checks for the various exceptions and throws the appropriate ones:
+
+```java
+import javax.management.*;
+
+public class MBeanServerConnectionHandler {
+    
+    private MBeanServerConnection mbsc;
+    
+    // Constructor that initializes the MBeanServerConnection instance
+    public MBeanServerConnectionHandler(MBeanServerConnection mbsc) {
+        this.mbsc = mbsc;
+    }
+    
+    // Method that creates an MBean with the specified class name and object name
+    public ObjectInstance createMBean(String className, ObjectName objectName) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException, MBeanException, NotCompliantMBeanException, RuntimeOperationsException, IOException {
+        try {
+            return mbsc.createMBean(className, objectName);
+        } catch (ClassNotFoundException e) {
+            throw new ReflectionException(e, "Class not found: " + className);
+        } catch (Exception e) {
+            String message = e.getMessage();
+            if (message.contains("InstanceAlreadyExistsException")) {
+                throw new InstanceAlreadyExistsException(message);
+            } else if (message.contains("MBeanRegistrationException")) {
+                throw new MBeanRegistrationException(e, message);
+            } else if (message.contains("RuntimeMBeanException")) {
+                throw new RuntimeMBeanException((RuntimeException) e.getCause(), message);
+            } else if (message.contains("RuntimeErrorException")) {
+                throw new RuntimeErrorException((Error) e.getCause(), message);
+            } else if (message.contains("MBeanException")) {
+                throw new MBeanException((Exception) e.getCause(), message);
+            } else if (message.contains("NotCompliantMBeanException")) {
+                throw new NotCompliantMBeanException(message);
+            } else if (message.contains("IllegalArgumentException")) {
+                throw new RuntimeOperationsException(new IllegalArgumentException(message), message);
+            } else {
+                throw new IOException("Communication problem occurred when talking to the MBean server", e);
+            }
+        }
+    }
+}
+```
+
+This updated method now catches the various exceptions that can be thrown by the `createMBean` method and throws the appropriate exceptions based on the error message. Note that for `ClassNotFoundException`, we wrap it in a `ReflectionException` as per the Javadoc for `createMBean`.
+------------------------------------------------------

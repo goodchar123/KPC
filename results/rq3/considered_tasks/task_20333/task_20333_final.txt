@@ -1,0 +1,72 @@
+
+Sure, here's the updated code snippet that includes the requested exception handling:
+
+```java
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.reflect.Field;
+
+public class NativeLibraryLookup {
+    public static Lookup getLookup() throws ReflectiveOperationException {
+        ClassLoader classLoader = NativeLibraryLookup.class.getClassLoader();
+        Field field = ClassLoader.class.getDeclaredField("nativeLibraries");
+        try {
+            field.setAccessible(true);
+        } catch (SecurityException e) {
+            throw new InaccessibleObjectException("Cannot enable access to nativeLibraries field", e);
+        }
+        Object nativeLibraries = field.get(classLoader);
+        Class<?> nativeLibraryClass;
+        try {
+            nativeLibraryClass = Class.forName("java.lang.ClassLoader$NativeLibrary");
+        } catch (ClassNotFoundException e) {
+            throw new LinkageError("Cannot locate NativeLibrary class", e);
+        } catch (ExceptionInInitializerError e) {
+            throw new ExceptionInInitializerError("Initialization failed for NativeLibrary class");
+        }
+        Field handleField = nativeLibraryClass.getDeclaredField("handle");
+        try {
+            handleField.setAccessible(true);
+        } catch (SecurityException e) {
+            throw new InaccessibleObjectException("Cannot enable access to handle field", e);
+        }
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        for (Object nativeLibrary : (Iterable<?>) nativeLibraries) {
+            long handle;
+            try {
+                handle = (Long) handleField.get(nativeLibrary);
+            } catch (IllegalAccessException e) {
+                throw new IllegalAccessException("Cannot access handle field");
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid argument for handle field");
+            } catch (NullPointerException e) {
+                throw new NullPointerException("Object is null for instance field");
+            } catch (ExceptionInInitializerError e) {
+                throw new ExceptionInInitializerError("Initialization failed for handle field");
+            }
+            if (handle != 0) {
+                try {
+                    return lookup.in(MethodHandles.privateLookupIn(Class.forName("jnr.ffi.provider.jffi.NativeLibrary"), lookup));
+                } catch (ClassNotFoundException e) {
+                    throw new ClassNotFoundException("Cannot locate NativeLibrary class", e);
+                } catch (ExceptionInInitializerError e) {
+                    throw new ExceptionInInitializerError("Initialization failed for NativeLibrary class");
+                }
+            }
+        }
+        throw new UnsupportedOperationException("No native libraries found");
+    }
+}
+```
+
+This updated code snippet includes exception handling for the following scenarios:
+
+- If access cannot be enabled for `setAccessible(true)`, it throws an `InaccessibleObjectException`.
+- If the request is denied by the security manager for `setAccessible(true)`, it throws a `SecurityException`.
+- If the `Field` object is enforcing Java language access control and the underlying field is inaccessible for `get(Object)`, it throws an `IllegalAccessException`.
+- If the specified object is not an instance of the class or interface declaring the underlying field (or a subclass or implementor thereof) for `get(Object)`, it throws an `IllegalArgumentException`.
+- If the specified object is null and the field is an instance field for `get(Object)`, it throws a `NullPointerException`.
+- If the initialization provoked by this method fails for `Class.forName(String)`, it throws an `ExceptionInInitializerError`.
+- If the linkage fails for `Class.forName(String)`, it throws a `LinkageError`.
+- If the class cannot be located for `Class.forName(String)`, it throws a `ClassNotFoundException`.
+------------------------------------------------------

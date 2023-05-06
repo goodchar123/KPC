@@ -1,0 +1,30 @@
+
+Sure, here's an updated version of the Java method that checks for service configuration errors or instantiation errors when calling `TransformerFactory.newInstance()`, and throws a `TransformerFactoryConfigurationError` if necessary:
+
+```java
+public static void removeAttributeNode(Document doc, Element element, String attributeName) {
+    // Get the attribute node to remove
+    Attr attr = element.getAttributeNode(attributeName);
+    if (attr != null) {
+        // Remove the attribute node from the element
+        element.removeAttributeNode(attr);
+        // Save the changes to the document
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File("output.xml"));
+            transformer.transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            throw new TransformerFactoryConfigurationError("Error creating transformer: " + e.getMessage());
+        } catch (TransformerFactoryConfigurationError e) {
+            throw e;
+        } catch (TransformerException e) {
+            throw new TransformerFactoryConfigurationError("Error transforming document: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method adds two catch blocks to handle `TransformerConfigurationException` and `TransformerException` separately. If either of these exceptions is thrown, a `TransformerFactoryConfigurationError` is thrown with a message indicating the specific error that occurred. Additionally, if a `TransformerFactoryConfigurationError` is thrown by `TransformerFactory.newInstance()`, it is re-thrown without modification.
+------------------------------------------------------

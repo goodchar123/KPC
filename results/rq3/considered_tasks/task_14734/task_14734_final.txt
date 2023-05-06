@@ -1,0 +1,71 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+import java.io.OutputStream;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+public class TableToXmlConverter {
+  
+  public static void emitXmlDocument(Map<String, String> table, String encoding, OutputStream output) throws Exception {
+    try {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document doc = builder.newDocument();
+      
+      Element root = doc.createElement("properties");
+      doc.appendChild(root);
+      
+      for (Map.Entry<String, String> entry : table.entrySet()) {
+        Element prop = doc.createElement("property");
+        try {
+          prop.setAttribute("name", entry.getKey());
+        } catch (DOMException e) {
+          throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid character in property name: " + entry.getKey());
+        }
+        prop.setTextContent(entry.getValue());
+        root.appendChild(prop);
+      }
+      
+      try {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(output);
+        transformer.transform(source, result);
+      } catch (TransformerConfigurationException e) {
+        throw new TransformerFactoryConfigurationError("Error configuring transformer: " + e.getMessage());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid transformer output property: " + e.getMessage());
+      } catch (TransformerException e) {
+        throw new TransformerException("Error transforming document: " + e.getMessage());
+      }
+    } catch (FactoryConfigurationError e) {
+      throw new FactoryConfigurationError("Error configuring document builder factory: " + e.getMessage());
+    } catch (DOMException e) {
+      throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Error creating element: " + e.getMessage());
+    }
+  }
+  
+}
+```
+
+This updated code includes try-catch blocks to handle the various exceptions that can be thrown by the methods used in the original code. It also includes custom error messages to provide more information about the specific error that occurred.
+------------------------------------------------------

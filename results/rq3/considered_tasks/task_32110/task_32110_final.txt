@@ -1,0 +1,40 @@
+
+Sure, here's the updated Java method that checks for NoSuchElementException and IOException:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.spi.ImageReaderSpi;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+public static Iterator<ImageReader> getImageReadersBySuffix(String suffix) throws IOException {
+    ArrayList<ImageReader> readers = new ArrayList<>();
+    Iterator<ImageReaderSpi> readerSpis = ImageIO.getImageReadersBySuffix(suffix);
+    while (readerSpis.hasNext()) {
+        ImageReaderSpi readerSpi = readerSpis.next();
+        try {
+            ImageReader reader = readerSpi.createReaderInstance();
+            if (reader == null) {
+                throw new IOException("Failed to create ImageReader instance");
+            }
+            readers.add(reader);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            // Ignore any exceptions and continue with the next readerSpi
+        }
+    }
+    if (readers.isEmpty()) {
+        throw new NoSuchElementException("No ImageReaders found for suffix: " + suffix);
+    }
+    return readers.iterator();
+}
+```
+
+This updated method now throws a NoSuchElementException if the iteration has no more elements for `java.util.Iterator.next()`. It also throws an IOException if an error occurs during loading, initialization of the reader class, or during instantiation or initialization of the reader object.
+
+In addition, it checks if the `createReaderInstance()` method returns null and throws an IOException if it does. Finally, it checks if the ArrayList of ImageReaders is empty and throws a NoSuchElementException if it is.
+------------------------------------------------------

@@ -1,0 +1,21 @@
+
+Here's an updated version of the Java method that checks for the presence of a security manager and verifies the caller's permissions before accessing the declared fields of the class and its class loader:
+
+```java
+public boolean hasWaitingThreads(Condition condition) throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        Class<?> callerClass = Reflection.getCallerClass();
+        Class<?> thisClass = getClass();
+        ClassLoader callerClassLoader = callerClass.getClassLoader();
+        ClassLoader thisClassLoader = thisClass.getClassLoader();
+        if (callerClassLoader != null &&
+                (callerClassLoader != thisClassLoader &&
+                !sm.checkPermission(new RuntimePermission("accessDeclaredMembers")) ||
+                !callerClassLoader.isAncestorOf(thisClassLoader) &&
+                !sm.checkPackageAccess(thisClass.getPackage().getName()) ||
+                !sm.checkPermission(new RuntimePermission("getClassLoader")))) {
+            throw new SecurityException("Access denied by security manager");
+        }
+   
+------------------------------------------------------

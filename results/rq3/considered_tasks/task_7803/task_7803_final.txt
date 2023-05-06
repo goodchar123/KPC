@@ -1,0 +1,115 @@
+
+Here's the updated Java method that checks for various security and permission checks when getting the class loader:
+
+```java
+public static ClassLoader getClassLoader(Class<?> clazz) {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        ClassLoader callerClassLoader = getClassLoader();
+        ClassLoader requestedClassLoader = clazz.getClassLoader();
+        if (callerClassLoader != null && !isClassLoaderAncestor(requestedClassLoader, callerClassLoader)) {
+            s.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+    return clazz.getClassLoader();
+}
+
+public static ClassLoader getContextClassLoader() {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        ClassLoader callerClassLoader = getClassLoader();
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (callerClassLoader != null && !isClassLoaderAncestor(contextClassLoader, callerClassLoader)) {
+            s.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+    return Thread.currentThread().getContextClassLoader();
+}
+
+public static ClassLoader getSystemClassLoader() {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        ClassLoader callerClassLoader = getClassLoader();
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (callerClassLoader != null && !isClassLoaderAncestor(systemClassLoader, callerClassLoader)) {
+            s.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        if (isSystemClassLoaderRecursive()) {
+            throw new IllegalStateException("Recursive invocation of getSystemClassLoader");
+        }
+    }
+    try {
+        return ClassLoader.getSystemClassLoader();
+    } catch (Throwable t) {
+        throw new Error(t);
+    }
+}
+
+public static ClassLoader getParentClassLoader(ClassLoader classLoader) {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        ClassLoader callerClassLoader = getClassLoader();
+        if (callerClassLoader != null && !isClassLoaderAncestor(classLoader, callerClassLoader)) {
+            s.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+    return classLoader.getParent();
+}
+
+private static ClassLoader getClassLoader() {
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+        cl = ClassLoader.getSystemClassLoader();
+    }
+    return cl;
+}
+
+private static boolean isClassLoaderAncestor(ClassLoader loader1, ClassLoader loader2) {
+    ClassLoader parent = loader1.getParent();
+    while (parent != null) {
+        if (parent == loader2) {
+            return true;
+        }
+        parent = parent.getParent();
+    }
+    return false;
+}
+
+private static boolean isSystemClassLoaderRecursive() {
+    String systemClassLoaderName = System.getProperty("java.system.class.loader");
+    if (systemClassLoaderName == null) {
+        return false;
+    }
+    try {
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (systemClassLoader == null) {
+            return false;
+        }
+        Class<?> systemClassLoaderClass = systemClassLoader.loadClass(systemClassLoaderName);
+        if (systemClassLoaderClass == null) {
+            return false;
+        }
+        Constructor<?> constructor = systemClassLoaderClass.getConstructor();
+        if (constructor == null) {
+            return false;
+        }
+        constructor.setAccessible(true);
+        Object instance = constructor.newInstance();
+        if (!(instance instanceof ClassLoader)) {
+            return false;
+        }
+        ClassLoader classLoader = (ClassLoader) instance;
+        return isClassLoaderAncestor(classLoader, systemClassLoader);
+    } catch (Throwable t) {
+        return false;
+    }
+}
+```
+
+This method checks for the following conditions:
+
+- When getting the class loader for a class, it checks if a security manager is present, and the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested, and the caller does not have the `RuntimePermission("getClassLoader")`. If any of these conditions is met, the method throws a `SecurityException`.
+- When getting the context class loader, it checks if a security manager is present, and the caller's class loader is not null and is not the same as or an ancestor of the context class loader, and the caller does not have the `RuntimePermission("getClassLoader")`. If any of these conditions is met, the method throws a `SecurityException`.
+- When getting the system class loader, it checks if a security manager is present, and the caller's class loader is not null and is not the same as or an ancestor of the system class loader, and the caller does not have the `RuntimePermission("getClassLoader")`. If any of these conditions is met, the method throws a `SecurityException`. It also checks if the method is invoked recursively during the construction of the class loader specified by the "java.system.class.loader" property. If this is the case, the method throws an `IllegalStateException`. Finally, it checks if the system property "java.system.class.loader" is defined but the named class could not be loaded, the provider class does not define the required constructor, or an exception is thrown by that constructor when it is invoked. The underlying cause of the error can be retrieved via the `Throwable.getCause()` method. If any of these conditions is met, the method throws an `Error`.
+- When getting the parent class loader, it checks if a security manager is present, and the caller's class loader is not null and is not an ancestor of this class loader, and the caller does not have the `RuntimePermission("getClassLoader")`. If any of these conditions is met, the method throws a `SecurityException`.
+------------------------------------------------------

@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the `insertEmptyRow` method that checks for database access errors and closed connections, as well as query timeouts:
+
+```java
+public void insertEmptyRow(Connection conn, String tableName, int timeoutSeconds) throws SQLException {
+    if (conn == null || conn.isClosed()) {
+        throw new SQLException("Connection is null or closed");
+    }
+    String sql = "INSERT INTO " + tableName + " DEFAULT VALUES";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setQueryTimeout(timeoutSeconds);
+        stmt.executeUpdate();
+    } catch (SQLTimeoutException e) {
+        // Attempt to cancel the statement if the timeout has been exceeded
+        stmt.cancel();
+        throw e;
+    } catch (SQLException e) {
+        // Check for database access errors or closed connections
+        if (e.getErrorCode() == 0 || e.getSQLState().equals("08003")) {
+            throw new SQLException("Database access error or closed connection", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method first checks if the `Connection` object is null or closed, and throws a `SQLException` if either condition is true.
+
+Next, the SQL statement is prepared and the query timeout is set using the `setQueryTimeout` method. If a `SQLTimeoutException` is thrown during the execution of the statement, the `catch` block attempts to cancel the statement using the `cancel` method and then re-throws the exception.
+
+Finally, the `catch` block also checks for other types of `SQLExceptions`, specifically those with an error code of 0 or a SQL state of "08003". These indicate database access errors or closed connections, and a new `SQLException` is thrown with a more descriptive error message. If the exception is not one of these types, it is re-thrown as-is.
+------------------------------------------------------

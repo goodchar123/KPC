@@ -1,0 +1,100 @@
+
+Sure, here's an updated version of the code snippet that includes the error handling you requested:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.channels.IllegalBlockingModeException;
+import java.security.AccessControlException;
+import java.net.SocketException;
+
+public class ServerSocketExample {
+    public static ServerSocket createServerSocket(int port, int backlog) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(port, backlog);
+        return serverSocket;
+    }
+
+    public static void handleClient(Socket clientSocket) throws IOException {
+        try {
+            // Check for security manager
+            SecurityManager security = System.getSecurityManager();
+            if (security != null) {
+                security.checkAccept(clientSocket.getInetAddress().getHostAddress());
+            }
+
+            // Check for timeout
+            int timeout = 0;
+            try {
+                timeout = clientSocket.getSoTimeout();
+            } catch (SocketException e) {
+                // Protocol error exception
+                throw new SocketException(e.getMessage());
+            }
+            if (timeout > 0) {
+                long startTime = System.currentTimeMillis();
+                while (System.currentTimeMillis() - startTime < timeout) {
+                    if (clientSocket.isBound()) {
+                        break;
+                    }
+                }
+                if (!clientSocket.isBound()) {
+                    throw new SocketTimeoutException("Timeout waiting for connection");
+                }
+            }
+
+            // Check for non-blocking mode
+            if (clientSocket.getChannel() != null && clientSocket.getChannel().isBlocking()) {
+                throw new IllegalBlockingModeException();
+            }
+
+            // Create input and output streams
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+            try {
+                inputStream = clientSocket.getInputStream();
+                outputStream = clientSocket.getOutputStream();
+            } catch (IOException e) {
+                // I/O exception
+                throw new IOException(e.getMessage());
+            }
+
+            // Do something with the streams
+            // ...
+
+        } catch (AccessControlException e) {
+            // Security exception
+            throw new SecurityException(e.getMessage());
+        } catch (SocketTimeoutException e) {
+            // Timeout exception
+            throw new SocketTimeoutException(e.getMessage());
+        } catch (IllegalBlockingModeException e) {
+            // Non-blocking mode exception
+            throw new IllegalBlockingModeException();
+        } catch (SocketException e) {
+            // Protocol error exception
+            throw new SocketException(e.getMessage());
+        } finally {
+            // Close the streams and socket
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+                clientSocket.close();
+            } catch (IOException e) {
+                // Error closing streams or socket
+                throw new IOException(e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This code now includes error handling for the various scenarios you mentioned. The `handleClient` method is an example of how you might handle a client connection, and it includes the error handling logic. You can call this method for each client connection that is accepted by the server socket.
+------------------------------------------------------

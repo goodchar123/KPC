@@ -1,0 +1,72 @@
+Please write a java method that Returns a List containing each visible Method that has the given name.
+Here's a Java method that returns a list containing each visible method that has the given name:
+
+```java
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MethodFinder {
+    public static List<Method> findMethodsByName(Class<?> clazz, String methodName) {
+        List<Method> methods = new ArrayList<>();
+        for (Method method : clazz.getMethods()) {
+            if (method.getName().equals(methodName)) {
+                methods.add(method);
+            }
+        }
+        return methods;
+    }
+}
+```
+
+This method takes two parameters: the class to search for methods in, and the name of the method to search for. It uses reflection to get all the methods in the class, and then filters them by name. It only adds methods that have the given name to the list, and then returns the list of matching methods.
+------------------------------------------------------
+Please check If a security manager, s, is present and         the caller's class loader is not the same as or an         ancestor of the class loader for the current class and         invocation of s.checkPackageAccess() denies access to the package         of this class. for java.lang.Class.getMethods() in the code snippet you provided, otherwise throw SecurityException.
+Here's an updated version of the `findMethodsByName` method that checks for the security manager and throws a `SecurityException` if access to the package of the current class is denied:
+
+```java
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MethodFinder {
+    public static List<Method> findMethodsByName(Class<?> clazz, String methodName) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            ClassLoader callerClassLoader = MethodFinder.class.getClassLoader();
+            ClassLoader currentClassLoader = clazz.getClassLoader();
+            if (currentClassLoader != callerClassLoader && !isAncestor(currentClassLoader, callerClassLoader)) {
+                sm.checkPackageAccess(clazz.getPackage().getName());
+            }
+        }
+        List<Method> methods = AccessController.doPrivileged((PrivilegedAction<List<Method>>) () -> {
+            List<Method> result = new ArrayList<>();
+            for (Method method : clazz.getMethods()) {
+                if (method.getName().equals(methodName)) {
+                    result.add(method);
+                }
+            }
+            return result;
+        });
+        return methods;
+    }
+
+    private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+        ClassLoader current = descendant;
+        while (current != null) {
+            if (current == ancestor) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+}
+```
+
+This updated version first checks if a security manager is present. If it is, it gets the class loader of the current class and the caller's class loader, and checks if they are the same or if the caller's class loader is an ancestor of the current class loader. If not, it calls `checkPackageAccess` on the package of the current class to see if access is allowed.
+
+The method then uses `AccessController.doPrivileged` to run the code that gets the methods in the class, since this code may require elevated privileges. Finally, it returns the list of matching methods.
+------------------------------------------------------

@@ -1,0 +1,45 @@
+
+Sure, here's an updated implementation of the `MyPreferences` class that checks for the presence of a security manager and throws a `SecurityException` if it denies the `RuntimePermission("preferences")`:
+
+```
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.prefs.Preferences;
+
+public class MyPreferences {
+    private Preferences prefs;
+
+    public MyPreferences() {
+        prefs = AccessController.doPrivileged(new PrivilegedAction<Preferences>() {
+            public Preferences run() {
+                Preferences userRoot = Preferences.userRoot();
+                SecurityManager sm = System.getSecurityManager();
+                if (sm != null) {
+                    sm.checkPermission(new RuntimePermission("preferences"));
+                }
+                return userRoot.node(this.getClass().getName());
+            }
+        });
+    }
+
+    public void putInt(String key, int value) {
+        prefs.putInt(key, value);
+    }
+
+    public Preferences node(String pathName) {
+        if (pathName == null) {
+            throw new NullPointerException("Path name cannot be null");
+        }
+        if (pathName.length() > 1 && pathName.endsWith("/")) {
+            throw new IllegalArgumentException("Path name ends with slash and is more than one character long");
+        }
+        if (pathName.contains("//")) {
+            throw new IllegalArgumentException("Path name contains multiple consecutive slashes");
+        }
+        try {
+            return prefs.node(pathName);
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Node has been removed with removeNode() method", e);
+        } catch (IllegalArgumentException e) {
+            throw new
+------------------------------------------------------

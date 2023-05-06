@@ -1,0 +1,29 @@
+
+Here's the updated Java method that includes the requested null and argument checks:
+
+```
+public static <T, U> VarHandle adaptVarHandle(VarHandle varHandle, Class<T> targetType, Class<U> valueType) {
+    if (targetType == null || valueType == null) {
+        throw new NullPointerException("Target type and value type cannot be null");
+    }
+    if (valueType == void.class) {
+        throw new IllegalArgumentException("Value type cannot be void");
+    }
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    MethodType getterType = MethodType.methodType(targetType, valueType);
+    MethodType setterType = MethodType.methodType(void.class, targetType, valueType);
+    MethodHandle getter = lookup.findVirtual(valueType, "doubleValue", getterType);
+    MethodHandle setter = lookup.findVirtual(targetType, "valueOf", setterType);
+    if (!getter.type().returnType().equals(targetType)) {
+        throw new IllegalArgumentException("Getter return type does not match target type");
+    }
+    return varHandle.withValueConverter(MethodHandles.filterReturnValue(getter, setter));
+}
+```
+
+This updated method first checks if the `targetType` and `valueType` arguments are null, and throws a `NullPointerException` if either is null. It also checks if the `valueType` argument is `void.class`, and throws an `IllegalArgumentException` if it is.
+
+The method then proceeds with the same logic as before, creating the necessary `MethodType` and `MethodHandle` objects. However, it now includes an additional check to ensure that the return type of the `getter` method handle matches the `targetType`. If they do not match, an `IllegalArgumentException` is thrown.
+
+Finally, the method returns a new `VarHandle` object that has been adapted with a value converter that uses the getter and setter method handles to convert incoming and outgoing values between the target and value types.
+------------------------------------------------------

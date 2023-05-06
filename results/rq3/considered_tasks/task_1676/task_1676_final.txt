@@ -1,0 +1,47 @@
+
+Here is the updated code snippet that includes the requested error checking:
+
+```
+public void addOrReplaceDescriptors(ModelMBeanInfo mbeanInfo, Descriptor[] descriptors) throws IndexOutOfBoundsException, ArrayStoreException, NullPointerException, RuntimeMBeanException, MBeanRegistrationException, InstanceAlreadyExistsException, RuntimeErrorException, RuntimeOperationsException {
+    // Get the existing descriptors from the ModelMBeanInfo
+    Descriptor[] existingDescriptors = mbeanInfo.getDescriptors();
+
+    // Create a new array to hold the merged descriptors
+    Descriptor[] mergedDescriptors = new Descriptor[existingDescriptors.length + descriptors.length];
+
+    // Copy the existing descriptors into the merged array
+    try {
+        System.arraycopy(existingDescriptors, 0, mergedDescriptors, 0, existingDescriptors.length);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds");
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("An element in the src array could not be stored into the dest array because of a type mismatch");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Either src or dest is null");
+    }
+
+    // Copy the new descriptors into the merged array, replacing any existing descriptors with the same name
+    for (int i = 0; i < descriptors.length; i++) {
+        boolean replaced = false;
+        for (int j = 0; j < existingDescriptors.length; j++) {
+            if (descriptors[i].getName().equals(existingDescriptors[j].getName())) {
+                mergedDescriptors[j] = descriptors[i];
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) {
+            mergedDescriptors[existingDescriptors.length + i] = descriptors[i];
+        }
+    }
+
+    // Create a new ModelMBeanInfo with the merged descriptors
+    ModelMBeanInfo newMBeanInfo = new ModelMBeanInfoSupport(
+        mbeanInfo.getClassName(),
+        mbeanInfo.getDescription(),
+        mbeanInfo.getAttributes(),
+        mbeanInfo.getConstructors(),
+        mbeanInfo.getOperations(),
+        mergedDescriptors
+
+------------------------------------------------------

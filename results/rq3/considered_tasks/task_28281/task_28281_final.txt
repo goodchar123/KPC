@@ -1,0 +1,47 @@
+
+Here's an updated version of the Java method that includes the requested check:
+
+```
+public static void forceAlphaPremultiplied(WritableRaster raster, boolean isAlphaPremultiplied) {
+    ColorModel colorModel = raster.getColorModel();
+    if (colorModel.isAlphaPremultiplied() != isAlphaPremultiplied) {
+        if (!colorModel.isCompatibleRaster(raster)) {
+            throw new UnsupportedOperationException("ColorModel does not support createCompatibleWritableRaster");
+        }
+        WritableRaster newRaster = colorModel.createCompatibleWritableRaster(raster.getWidth(), raster.getHeight());
+        if (newRaster == null) {
+            throw new UnsupportedOperationException("ColorModel does not support createCompatibleWritableRaster");
+        }
+        ColorConvertOp op = new ColorConvertOp(colorModel.getColorSpace(), newRaster.getColorModel().getColorSpace(), null);
+        if (op.getRenderingHints() == null && op.getPoint2D() == null) {
+            throw new IllegalArgumentException("Operation is ill defined");
+        }
+        op.filter((BufferedImage) raster, newRaster);
+        if (!raster.getBounds().contains(newRaster.getBounds())) {
+            throw new ArrayIndexOutOfBoundsException("Coordinates are not in bounds");
+        }
+        Object inData = newRaster.getDataElements(0, 0, null);
+        if (inData == null || !inData.getClass().isArray() || Array.getLength(inData) < newRaster.getWidth() * newRaster.getHeight()) {
+            throw new IllegalArgumentException("inData is not an array or is too small to hold the input");
+        }
+        try {
+            raster.setDataElements(0, 0, newRaster);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new ArrayIndexOutOfBoundsException("Coordinates are not in bounds or inData is too small to hold the input");
+        } catch (NullPointerException e) {
+            if (op.getRenderingHints() == null && op.getPoint2D() == null && newRaster == null) {
+                throw new IllegalArgumentException("dest is null and this op was constructed using the constructor which takes only a RenderingHints argument, since the operation is ill defined");
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This updated method includes the following check:
+
+- After calling the `getDataElements` method, it checks if the returned object is an array using the `isArray` method. If it's not an array, it throws a new `IllegalArgumentException` with a more descriptive message that explains that the object argument is not an array.
+
+This check ensures that the method operates correctly and provides more detailed error messages in case of an exception.
+------------------------------------------------------

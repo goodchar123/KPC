@@ -1,0 +1,24 @@
+
+Sure, here's an updated version of the method that checks if the current thread has access to the thread group before calling the `enumerate()` method:
+
+```java
+public static void resumeThreadGroup(ThreadGroup threadGroup) throws SecurityException {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkAccess(threadGroup);
+    }
+    Thread[] threads = new Thread[threadGroup.activeCount()];
+    if (securityManager != null) {
+        securityManager.checkPermission(new RuntimePermission("modifyThreadGroup"));
+    }
+    threadGroup.enumerate(threads);
+    for (Thread thread : threads) {
+        if (thread != null) {
+            thread.resume();
+        }
+    }
+}
+```
+
+This version first checks if a `SecurityManager` is installed and if so, calls its `checkAccess()` method to determine if the current thread has access to the thread group. If the check fails, a `SecurityException` is thrown. If the check passes, the method proceeds to check if the current thread has the `modifyThreadGroup` permission using the `checkPermission()` method. If the permission check fails, a `SecurityException` is thrown. If the permission check passes, the method proceeds to enumerate all threads in the thread group and resume them as before.
+------------------------------------------------------

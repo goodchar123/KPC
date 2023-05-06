@@ -1,0 +1,47 @@
+
+Here's the updated Java method that checks for a security manager and null collection:
+
+```java
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
+
+public class FileFinder {
+    
+    public static List<File> findFiles(String packageName, String extension) {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkRead(packageName.replace(".", "/"));
+        }
+        
+        List<File> files = new ArrayList<>();
+        String packagePath = packageName.replace(".", "/");
+        String basePath = AccessController.doPrivileged((PrivilegedAction<String>) () -> Thread.currentThread().getContextClassLoader().getResource("").getPath());
+        File directory = new File(basePath + packagePath);
+        if (directory.exists()) {
+            File[] fileList = directory.listFiles();
+            if (fileList != null) {
+                for (File file : fileList) {
+                    if (file.isFile() && file.getName().endsWith(extension)) {
+                        files.add(file);
+                    } else if (file.isDirectory()) {
+                        files.addAll(findFiles(packageName + "." + file.getName(), extension));
+                    }
+                }
+            } else {
+                throw new NullPointerException("File list is null");
+            }
+        }
+        return files;
+    }
+}
+```
+
+This updated method first checks if a security manager exists and if it does, it calls the `SecurityManager.checkRead(String)` method to check if read access is allowed for the specified directory. If access is denied, a `SecurityException` is thrown.
+
+Next, the method checks if the file list returned by `directory.listFiles()` is null. If it is, a `NullPointerException` is thrown.
+
+These checks ensure that the method is being used safely and securely.
+------------------------------------------------------

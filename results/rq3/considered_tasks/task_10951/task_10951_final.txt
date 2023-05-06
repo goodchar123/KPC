@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the method that checks if the value of `millis` is negative before calling `Thread.sleep(long)`:
+
+```java
+public void writeBytesToChannel(WritableByteChannel channel, ByteBuffer[] buffers, int offset, int length) throws IOException, IllegalArgumentException {
+    long bytesWritten = 0;
+    while (bytesWritten < length) {
+        long bytesTransferred = channel.write(buffers, offset, length);
+        if (bytesTransferred == 0) {
+            // Handle the case where the channel is non-blocking and no bytes were transferred
+            // Wait for the channel to become writable before trying again
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // Handle the exception
+            }
+        }
+        bytesWritten += bytesTransferred;
+        offset += bytesTransferred;
+        length -= bytesTransferred;
+    }
+}
+
+// Check if the value of millis is negative before calling Thread.sleep(long)
+public void sleep(long millis) throws IllegalArgumentException {
+    if (millis < 0) {
+        throw new IllegalArgumentException("Sleep time cannot be negative");
+    }
+    try {
+        Thread.sleep(millis);
+    } catch (InterruptedException e) {
+        // Handle the exception
+    }
+}
+```
+
+I've added an `IllegalArgumentException` to the method signature and added a check to ensure that the value of `millis` is not negative before calling `Thread.sleep(long)`. If the value of `millis` is negative, the method throws an `IllegalArgumentException` with a message indicating that the sleep time cannot be negative.
+------------------------------------------------------

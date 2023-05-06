@@ -1,0 +1,30 @@
+
+You are correct, it is important to perform additional checks when using `System.arraycopy()` to avoid accessing data outside array bounds or causing type mismatches. Here's an updated version of the method that includes these checks:
+
+```java
+public static void storeVector(int[] array, int offset, int mask, Vector<Integer> vector) {
+    int index = offset;
+    Integer[] vectorArray = vector.toArray(new Integer[0]);
+    int length = Math.min(vectorArray.length, Integer.bitCount(mask));
+    try {
+        System.arraycopy(vectorArray, 0, array, offset, length);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds.");
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("An element in the src array could not be stored into the dest array because of a type mismatch.");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Either src or dest is null.");
+    }
+}
+```
+
+This updated version of the method first converts the `Vector` to an array of `Integer` objects using the `toArray()` method. It then calculates the length of the array to copy based on the number of bits set in the mask and the length of the `Integer` array.
+
+The method then calls `System.arraycopy()` to copy the `Integer` array into the `int` array. If any of the following conditions are met, an exception is thrown:
+
+- If copying would cause access of data outside array bounds, an `IndexOutOfBoundsException` is thrown with a message indicating the problem.
+- If an element in the source array could not be stored into the destination array because of a type mismatch, an `ArrayStoreException` is thrown with a message indicating the problem.
+- If either the source or destination array is null, a `NullPointerException` is thrown with a message indicating the problem.
+
+By including these checks, we can ensure that the method will not attempt to access data outside array bounds, cause type mismatches, or operate on null arrays, which could result in unexpected behavior or errors.
+------------------------------------------------------

@@ -1,0 +1,52 @@
+
+Sure, here's the updated Java method that includes the error checking you requested:
+
+```java
+public static CharBuffer decodeRemaining(ByteBuffer input, Charset charset) {
+    if (input == null || charset == null) {
+        throw new IllegalArgumentException("Input ByteBuffer and Charset cannot be null");
+    }
+
+    if (input.remaining() < 0) {
+        throw new IllegalArgumentException("Input ByteBuffer capacity cannot be negative");
+    }
+
+    CharsetDecoder decoder = charset.newDecoder();
+
+    if (decoder.isInCoding()) {
+        throw new IllegalStateException("Decoding operation is already in progress");
+    }
+
+    CharBuffer output = CharBuffer.allocate(input.remaining());
+
+    try {
+        decoder.decode(input, output, true);
+        decoder.flush(output);
+    } catch (IllegalStateException e) {
+        throw e;
+    } catch (CoderMalfunctionError e) {
+        throw e;
+    } catch (Exception e) {
+        throw new CoderMalfunctionError(e);
+    }
+
+    if (decoder.isInCoding()) {
+        throw new IllegalStateException("Decoding operation is still in progress");
+    }
+
+    output.flip();
+
+    return output;
+}
+```
+
+This updated method checks for the following errors:
+
+- If the input ByteBuffer or Charset is null, it throws an IllegalArgumentException.
+- If the input ByteBuffer capacity is negative, it throws an IllegalArgumentException.
+- If a decoding operation is already in progress, it throws an IllegalStateException.
+- If an unexpected exception occurs during decoding, it throws a CoderMalfunctionError.
+- If the decoding operation is still in progress after decoding and flushing, it throws an IllegalStateException.
+
+Note that the CoderMalfunctionError is a runtime exception that indicates a problem with the CharsetDecoder implementation, so it doesn't need to be declared in the method signature.
+------------------------------------------------------

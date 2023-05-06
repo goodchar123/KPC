@@ -1,0 +1,48 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+public static void getClientInfoProperties(Connection conn) throws SQLException {
+    // Check if the connection is closed
+    if (conn.isClosed()) {
+        throw new SQLException("Connection is closed");
+    }
+
+    // Get the DatabaseMetaData object
+    DatabaseMetaData metaData = conn.getMetaData();
+
+    // Check for database access errors
+    try {
+        // Get the list of client info properties supported by the driver
+        ResultSet rs = metaData.getClientInfoProperties();
+
+        // Check for database access errors
+        try {
+            // Print the list of client info properties
+            while (rs.next()) {
+                // Check if the result set is closed
+                if (rs.isClosed()) {
+                    throw new SQLException("Result set is closed");
+                }
+
+                String name = rs.getString("NAME");
+                String value = rs.getString("MAX_LEN");
+                System.out.println(name + ": " + value);
+            }
+        } catch (SQLException e) {
+            // Close the result set and re-throw the exception
+            rs.close();
+            throw e;
+        } finally {
+            // Close the result set
+            rs.close();
+        }
+    } catch (SQLException e) {
+        // Re-throw the exception
+        throw e;
+    }
+}
+```
+
+This updated method includes error handling for the cases you mentioned. It checks if the connection is closed before getting the `DatabaseMetaData` object, and throws a `SQLException` if it is. It also checks for database access errors when calling `getClientInfoProperties()` and `getString()`, and throws a `SQLException` if any occur. Finally, it checks if the result set is closed before accessing its data, and closes the result set in a `finally` block to ensure it is always closed, even if an exception is thrown.
+------------------------------------------------------

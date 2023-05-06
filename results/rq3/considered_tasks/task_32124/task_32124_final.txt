@@ -1,0 +1,68 @@
+
+Thank you for the additional feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Iterator;
+
+public class ImageDecoder {
+    public static BufferedImage decodeImageFromURL(URL url) throws IOException {
+        if (url == null) {
+            throw new IllegalArgumentException("URL cannot be null");
+        }
+        try {
+            ImageInputStream stream = ImageIO.createImageInputStream(url.openStream());
+            if (stream == null) {
+                throw new IOException("Failed to create ImageInputStream for " + url);
+            }
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
+            if (!readers.hasNext()) {
+                throw new IOException("No suitable ImageReader found for " + url);
+            }
+            ImageReader reader = readers.next();
+            reader.setInput(stream);
+            if (reader.getNumImages(true) == 0) {
+                throw new IllegalStateException("Input source has not been set for " + url);
+            }
+            BufferedImage image = reader.read(0);
+            if (image == null) {
+                throw new IndexOutOfBoundsException("Supplied index is out of bounds for " + url);
+            }
+            reader.dispose();
+            stream.close();
+            return image;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Input cannot be null", e);
+        } catch (IOException e) {
+            throw new IOException("An I/O exception occurred while decoding image from " + url, e);
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Input source has not been set or input has been specified with seekForwardOnly set to true for " + url, e);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds for " + url);
+        } catch (Exception e) {
+            throw new IOException("An error occurred while decoding image from " + url, e);
+        } finally {
+            try {
+                if (stream != null) {
+                    stream.close();
+                }
+            } catch (IOException e) {
+                throw new IOException("An I/O error occurred while closing ImageInputStream for " + url, e);
+            }
+        }
+    }
+}
+```
+
+This updated code checks for the following errors:
+
+- If the input URL is null, an IllegalArgumentException is thrown.
+- If the ImageInputStream cannot be created, an IOException is thrown.
+- If an I/O exception
+------------------------------------------------------

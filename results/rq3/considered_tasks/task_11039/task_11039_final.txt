@@ -1,0 +1,94 @@
+
+Sure, here's an updated version of the code snippet that includes error checking and exception handling for the `next()` and `remove()` methods of the iterator:
+
+```java
+public void selectKeys() throws IOException {
+    Selector selector = null;
+    try {
+        selector = Selector.open();
+    } catch (IOException e) {
+        throw new IOException("Error opening selector", e);
+    }
+    
+    // Register channels with selector
+    try {
+        channel1.register(selector, SelectionKey.OP_READ);
+        channel2.register(selector, SelectionKey.OP_WRITE);
+        channel3.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+    } catch (ClosedChannelException e) {
+        throw new ClosedChannelException("Channel is closed", e);
+    } catch (ClosedSelectorException e) {
+        throw new ClosedSelectorException("Selector is closed", e);
+    } catch (IllegalBlockingModeException e) {
+        throw new IllegalBlockingModeException("Channel is in blocking mode", e);
+    } catch (IllegalSelectorException e) {
+        throw new IllegalSelectorException("Channel was not created by the same provider as the given selector", e);
+    } catch (CancelledKeyException e) {
+        throw new CancelledKeyException("Channel is already registered with the given selector but the corresponding key has already been cancelled", e);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Ops does not correspond to a supported operation", e);
+    }
+    
+    // Select keys whose channels are ready for I/O operations
+    while (true) {
+        int readyChannels = 0;
+        try {
+            readyChannels = selector.select();
+        } catch (IOException e) {
+            throw new IOException("Error selecting keys", e);
+        }
+        
+        if (readyChannels == 0) {
+            continue;
+        }
+        
+        Set<SelectionKey> selectedKeys = null;
+        try {
+            selectedKeys = selector.selectedKeys();
+        } catch (ClosedSelectorException e) {
+            throw new ClosedSelectorException("Selector is closed", e);
+        }
+        
+        Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+        
+        while (keyIterator.hasNext()) {
+            SelectionKey key = null;
+            try {
+                key = keyIterator.next();
+            } catch (NoSuchElementException e) {
+                throw new NoSuchElementException("No more elements in iterator", e);
+            }
+            
+            try {
+                if (key.isReadable()) {
+                    if (key.isValid()) {
+                        // Handle read operation
+                    } else {
+                        throw new CancelledKeyException("Key has been cancelled");
+                    }
+                } else if (key.isWritable()) {
+                    if (key.isValid()) {
+                        // Handle write operation
+                    } else {
+                        throw new CancelledKeyException("Key has been cancelled");
+                    }
+                }
+            } catch (CancelledKeyException e) {
+                keyIterator.remove();
+                throw e;
+            }
+            
+            try {
+                keyIterator.remove();
+            } catch (UnsupportedOperationException e) {
+                throw new UnsupportedOperationException("Remove operation not supported by iterator", e);
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException("Next method has not been called, or remove method has already been called after the last call to the next method", e);
+            }
+        }
+    }
+}
+```
+
+In this updated version, we use try-catch blocks to handle potential exceptions that may occur when calling the `next()` and `remove()` methods of the iterator, and throw a `NoSuchElementException` if there are no more elements in the iterator, a `UnsupportedOperationException` if the remove operation is not supported by the iterator, or a `IllegalStateException` if the remove method has already been called after the last call to the next method. We also use try-catch blocks to handle potential exceptions that may occur when selecting keys or removing them from the selected set.
+------------------------------------------------------

@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the `getComparator` method that checks if the string can be parsed as a long before extracting the sort key. If the string cannot be parsed as a long, it throws a `NumberFormatException`:
+
+```java
+import java.util.Comparator;
+import java.util.function.Function;
+
+public class SortKeyComparator {
+    public static Comparator<String> getComparator(Function<String, Long> keyExtractor) {
+        return Comparator.comparing(s -> {
+            try {
+                return keyExtractor.apply(s);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("String does not contain a parsable long: " + s);
+            }
+        }, Long::compare);
+    }
+}
+```
+
+This updated version of the method uses a lambda expression to wrap the `keyExtractor` function in a try-catch block. If the function throws a `NumberFormatException`, it is caught and re-thrown with a more descriptive error message that includes the original string that caused the exception.
+
+Here's an example usage of this updated method:
+
+```java
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] strings = {"123", "456", "789", "101112", "not_a_long"};
+        Comparator<String> comparator = SortKeyComparator.getComparator(s -> Long.parseLong(s));
+        Arrays.sort(strings, comparator);
+        System.out.println(Arrays.toString(strings));
+    }
+}
+```
+
+This code creates an array of strings that includes a string that cannot be parsed as a long. When the `getComparator` method is called with a lambda function that uses `Long.parseLong` to extract the sort key, it throws a `NumberFormatException` for the "not_a_long" string. The error message includes the original string that caused the exception.
+------------------------------------------------------

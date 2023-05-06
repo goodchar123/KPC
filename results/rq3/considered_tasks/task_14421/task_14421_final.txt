@@ -1,0 +1,42 @@
+
+Sure, here's the updated Java method that includes the requested checks:
+
+```java
+public static Locale addUnicodeLocaleAttribute(Locale locale, String attribute) throws NullPointerException, IllformedLocaleException, PatternSyntaxException {
+    if (locale == null) {
+        throw new NullPointerException("Locale cannot be null");
+    }
+    if (attribute == null) {
+        throw new NullPointerException("Attribute cannot be null");
+    }
+    Set<String> attributes = locale.getUnicodeLocaleAttributes();
+    if (!attributes.contains(attribute)) {
+        Locale.Builder builder = new Locale.Builder().setLocale(locale);
+        String languageTag = builder.getLocale().toLanguageTag();
+        if (!LocaleUtils.isLocaleWellFormed(languageTag)) {
+            throw new IllformedLocaleException("Locale is not well-formed: " + languageTag);
+        }
+        String regex = "^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$";
+        if (!LocaleUtils.isRegexWellFormed(regex)) {
+            throw new PatternSyntaxException("Invalid regular expression: " + regex, regex, 0);
+        }
+        if (!LocaleUtils.isAttributeWellFormed(attribute)) {
+            throw new IllformedLocaleException("Attribute is not well-formed: " + attribute);
+        }
+        builder.addUnicodeLocaleAttribute(attribute);
+        return builder.build();
+    }
+    return locale;
+}
+```
+
+This method now checks for the following conditions:
+
+- If the input `Locale` object is null, it throws a `NullPointerException`.
+- If the input attribute is null, it throws a `NullPointerException`.
+- If the input `Locale` object is not well-formed after adding the attribute, it throws an `IllformedLocaleException`.
+- If the input attribute is not well-formed, it throws an `IllformedLocaleException`.
+- If the regular expression used to validate the attribute is invalid, it throws a `PatternSyntaxException`.
+
+To perform the well-formedness checks, this method uses three utility methods `LocaleUtils.isLocaleWellFormed()`, `LocaleUtils.isAttributeWellFormed()`, and `LocaleUtils.isRegexWellFormed()`. These methods can be implemented using regular expressions or other techniques to validate the format of the input strings. The `isRegexWellFormed()` method checks if the regular expression used to validate the attribute is well-formed and throws a `PatternSyntaxException` if it's not.
+------------------------------------------------------

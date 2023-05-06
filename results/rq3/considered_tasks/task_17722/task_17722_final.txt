@@ -1,0 +1,28 @@
+
+Sure, here's an updated version of the `retrieveContext()` method that checks for a security manager and its `checkPermission()` method before calling `Thread.getStackTrace()`. If a security manager exists and its `checkPermission()` method doesn't allow getting the stack trace of the thread, a `SecurityException` is thrown:
+
+```
+public void retrieveContext() throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("getStackTrace"));
+    }
+
+    // Get the current thread's execution context
+    Thread currentThread = Thread.currentThread();
+    StackTraceElement[] stackTrace = currentThread.getStackTrace();
+
+    // Iterate through the stack trace to find the first method that is not this one
+    for (int i = 0; i < stackTrace.length; i++) {
+        StackTraceElement element = stackTrace[i];
+        if (!element.getMethodName().equals("retrieveContext")) {
+            // Found the first method that is not this one, so print its context
+            System.out.println("Context: " + element.getClassName() + "." + element.getMethodName() + " at line " + element.getLineNumber());
+            break;
+        }
+    }
+}
+```
+
+This version first checks if a security manager exists using `System.getSecurityManager()`. If one exists, it then calls its `checkPermission()` method with a `RuntimePermission` object for `"getStackTrace"`. If the security manager doesn't allow getting the stack trace of the thread, a `SecurityException` is thrown. If the security manager allows it, the method proceeds to retrieve the stack trace and print the context as before.
+------------------------------------------------------

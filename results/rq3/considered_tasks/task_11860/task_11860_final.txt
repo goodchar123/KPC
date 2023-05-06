@@ -1,0 +1,41 @@
+
+Here's the updated Java method that includes the requested error checking:
+
+```java
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPOutputStream;
+
+public class CompressionHelper {
+    
+    public static void compressData(byte[] inputData, byte[] outputBuffer) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
+        gzipStream.write(inputData);
+        try {
+            gzipStream.finish();
+        } catch (IOException e) {
+            throw new IOException("Error finishing GZIPOutputStream compression", e);
+        }
+        byte[] compressedData = byteStream.toByteArray();
+        try {
+            System.arraycopy(compressedData, 0, outputBuffer, 0, compressedData.length);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Error copying compressed data to output buffer: " + e.getMessage());
+        } catch (ArrayStoreException e) {
+            throw new ArrayStoreException("Error copying compressed data to output buffer: " + e.getMessage());
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Error copying compressed data to output buffer: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method includes try-catch blocks to catch potential errors that may occur during the compression and copying processes. 
+
+For the `GZIPOutputStream.finish()` method, an `IOException` is thrown if an error occurs. 
+
+For the `System.arraycopy()` method, an `IndexOutOfBoundsException` is thrown if copying would cause access of data outside array bounds, an `ArrayStoreException` is thrown if an element in the source array could not be stored into the destination array because of a type mismatch, and a `NullPointerException` is thrown if either the source or destination array is null. 
+
+In each catch block, a new exception is thrown with a more descriptive error message that includes the original exception's message.
+------------------------------------------------------

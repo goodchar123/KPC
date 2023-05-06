@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the `connectToServer()` method that checks for a security manager and calls its `checkConnect()` method before creating the socket:
+
+```java
+import java.net.Socket;
+import java.net.InetAddress;
+import java.io.IOException;
+import java.security.*;
+
+public class SocketConnector {
+    public static void connectToServer(String serverAddress, int serverPort) throws IOException, SecurityException {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            try {
+                security.checkConnect(serverAddress, serverPort);
+            } catch (SecurityException e) {
+                throw new SecurityException("Access denied by security manager", e);
+            }
+        }
+        
+        try {
+            // Create a new socket with the given server address and port
+            Socket socket = new Socket(InetAddress.getByName(serverAddress), serverPort);
+            
+            // Do something with the socket, such as sending or receiving data
+            
+            // Close the socket when finished
+            socket.close();
+        } catch (IOException e) {
+            // Handle any exceptions that occur while connecting to the server
+            e.printStackTrace();
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method first checks if a security manager is present using `System.getSecurityManager()`. If a security manager exists, it calls its `checkConnect()` method with the server address and port as arguments. If the operation is not allowed, it throws a `SecurityException` with a message indicating that access was denied by the security manager.
+
+If no security manager is present or the `checkConnect()` method allows the operation, the method proceeds to create the socket as before. If an `IOException` occurs while connecting to the server, it is caught and re-thrown along with its stack trace.
+------------------------------------------------------

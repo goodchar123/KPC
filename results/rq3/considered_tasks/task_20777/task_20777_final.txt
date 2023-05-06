@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the `executeSQL()` method that includes the requested error handling:
+
+```java
+import java.sql.*;
+
+public class SQLExecutor {
+    public void executeSQL(Connection conn, String sql, boolean retrieveKeys) throws SQLException {
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Connection is null or closed");
+        }
+        
+        try (Statement stmt = conn.createStatement()) {
+            if (retrieveKeys) {
+                int resultSetType = stmt.getResultSetType();
+                if (resultSetType != ResultSet.TYPE_FORWARD_ONLY) {
+                    throw new SQLException("Statement.getResultSetType() returned an unsupported result set type: " + resultSetType);
+                }
+                stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            } else {
+                stmt.executeUpdate(sql);
+            }
+        } catch (SQLException e) {
+            if (e instanceof SQLTimeoutException) {
+                throw (SQLTimeoutException) e;
+            } else if (e instanceof SQLFeatureNotSupportedException) {
+                throw (SQLFeatureNotSupportedException) e;
+            } else {
+                throw new SQLException("Error executing SQL statement: " + e.getMessage());
+            }
+        }
+    }
+    
+    public void closeStatement(Statement stmt) throws SQLException {
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing statement: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This updated method includes error handling for `Statement.getResultSetType()`. If the `Statement` object is `null` or closed, or if `getResultSetType()` returns an unsupported result set type, it throws a `SQLException` with an appropriate error message.
+
+If there is any other error executing the SQL statement, it catches the `SQLException` and throws a new `SQLException` with an error message that includes the original exception's message.
+
+Additionally, this updated method includes a new `closeStatement()` method that can be used to close a `Statement` object. This method checks if the `Statement` object is `null` before attempting to close it, and throws a `SQLException` with an appropriate error message if there is an error closing the statement.
+------------------------------------------------------

@@ -1,0 +1,43 @@
+
+Sure, here's an updated version of the code snippet that includes the requested checks and exceptions:
+
+```java
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.prefs.Preferences;
+
+public class PreferenceExample {
+    private static final int MAX_KEY_LENGTH = 80;
+    private static final int MAX_VALUE_LENGTH = 8192;
+    
+    public static void main(String[] args) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("preferences"));
+        }
+        
+        Preferences prefs = AccessController.doPrivileged(new PrivilegedAction<Preferences>() {
+            public Preferences run() {
+                return Preferences.userRoot().node("com.example.app");
+            }
+        });
+        
+        String key = "username";
+        String value = "johndoe";
+        
+        // Check for invalid path name
+        if (key == null) {
+            throw new NullPointerException("Key cannot be null");
+        }
+        if (key.contains("//") || key.endsWith("/") && key.length() > 1) {
+            throw new IllegalArgumentException("Invalid key: " + key);
+        }
+        if (value == null) {
+            throw new NullPointerException("Value cannot be null");
+        }
+        if (value.contains("\u0000")) {
+            throw new IllegalArgumentException("Key or value contains null character");
+        }
+        if (key.length() > MAX_KEY_LENGTH) {
+            throw new IllegalArgumentException("Key
+------------------------------------------------------

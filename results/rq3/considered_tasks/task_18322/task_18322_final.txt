@@ -1,0 +1,71 @@
+
+Sure, here's an updated version of the code snippet that includes the error checking and exception handling you requested:
+
+```java
+import javax.xml.parsers.*;
+import javax.xml.xpath.*;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+
+public class XPathEvaluator {
+    
+    public static <T> T evaluateXPath(String xpathExpression, Object source, QName returnType) throws XPathExpressionException {
+        try {
+            XPathFactory xpathFactory = XPathFactory.newInstance();
+            XPath xpath = xpathFactory.newXPath();
+            if (xpathExpression == null) {
+                throw new NullPointerException("XPath expression cannot be null");
+            }
+            XPathExpression expr = xpath.compile(xpathExpression);
+            if (returnType == null || !isValidReturnType(returnType)) {
+                throw new IllegalArgumentException("Invalid return type specified");
+            }
+            Object result = expr.evaluate(source, returnType);
+            return (T) result;
+        } catch (XPathFactoryConfigurationException e) {
+            throw new RuntimeException("Failed to create XPathFactory", e);
+        }
+    }
+    
+    private static boolean isValidReturnType(QName returnType) {
+        return returnType.equals(XPathConstants.STRING) ||
+               returnType.equals(XPathConstants.NUMBER) ||
+               returnType.equals(XPathConstants.BOOLEAN) ||
+               returnType.equals(XPathConstants.NODE) ||
+               returnType.equals(XPathConstants.NODESET);
+    }
+    
+    public static void main(String[] args) throws Exception {
+        try {
+            String xml = "<root><person><name>John</name><age>30</age></person></root>";
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            try {
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                if (xml == null) {
+                    throw new IllegalArgumentException("XML string cannot be null");
+                }
+                Document doc = builder.parse(new InputSource(new StringReader(xml)));
+                String xpathExpression = "/root/person/name/text()";
+                String name = evaluateXPath(xpathExpression, doc, XPathConstants.STRING);
+                System.out.println("Name: " + name);
+                xpathExpression = "/root/person/age/text()";
+                int age = evaluateXPath(xpathExpression, doc, XPathConstants.NUMBER);
+                System.out.println("Age: " + age);
+            } catch (ParserConfigurationException e) {
+                throw new RuntimeException("Failed to create DocumentBuilder", e);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid argument", e);
+            } catch (NullPointerException e) {
+                throw new RuntimeException("Null argument", e);
+            } catch (Exception e) {
+                throw new RuntimeException("Error parsing XML", e);
+            }
+        } catch (FactoryConfigurationError e) {
+            throw new RuntimeException("Failed to create DocumentBuilderFactory", e);
+        }
+    }
+}
+```
+
+In this updated version, we've added error checking and exception handling for the various potential issues that could arise when using the `XPathFactory`, `XPath`, and `DocumentBuilder` classes. We've also added a helper method `isValidReturnType` to check if the specified return type is valid. If any of these checks fail, we throw an appropriate exception with a descriptive error message.
+------------------------------------------------------

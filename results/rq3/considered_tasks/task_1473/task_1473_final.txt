@@ -1,0 +1,31 @@
+
+Sure, here's the updated Java method that includes the null and type checking, as well as checking for existing keys:
+
+```
+public void addRowToTabularData(TabularData tabularData, Object[] rowData) throws NullPointerException, InvalidOpenTypeException, KeyAlreadyExistsException {
+    CompositeType rowType = tabularData.getTabularType().getRowType();
+    CompositeData newRow = new CompositeDataSupport(rowType, tabularData.getTabularType().getIndexNames(), rowData);
+    
+    if (newRow == null) {
+        throw new NullPointerException("CompositeData cannot be null");
+    }
+    
+    if (!rowType.isValue(newRow)) {
+        throw new InvalidOpenTypeException("CompositeData does not conform to this TabularData instance's row type definition");
+    }
+    
+    Object[] indexValues = new Object[tabularData.getTabularType().getIndexNames().size()];
+    for (int i = 0; i < indexValues.length; i++) {
+        indexValues[i] = newRow.get(tabularData.getTabularType().getIndexNames().get(i));
+    }
+    
+    if (tabularData.containsKey(indexValues)) {
+        throw new KeyAlreadyExistsException("Index for CompositeData already maps to an existing value in the underlying HashMap");
+    }
+    
+    tabularData.put(newRow);
+}
+```
+
+This updated method now checks for null values, invalid types, and existing keys before adding a new row to the TabularData instance. It throws the appropriate exceptions if any of these checks fail.
+------------------------------------------------------

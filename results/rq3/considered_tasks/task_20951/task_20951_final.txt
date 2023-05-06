@@ -1,0 +1,37 @@
+
+Here's the updated Java method that includes error handling for the `getTypeInfo()`, `next()`, and `getString()` methods:
+
+```java
+public boolean supportsAlterTableWithAddColumn(DatabaseMetaData metadata) throws SQLException {
+    boolean supportsAlterTable = false;
+    ResultSet rs = null;
+    try {
+        rs = metadata.getTypeInfo();
+        while (rs.next()) {
+            String typeName = rs.getString("TYPE_NAME");
+            if (typeName.equalsIgnoreCase("ALTER TABLE")) {
+                supportsAlterTable = true;
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error accessing database metadata: " + e.getMessage());
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing result set: " + e.getMessage());
+            }
+        }
+    }
+    return supportsAlterTable;
+}
+```
+
+In this updated method, we've added a try-catch block around the `getTypeInfo()` method call to catch any `SQLException` that may occur. If an exception is caught, we throw a new `SQLException` with a custom error message that includes the original exception's message.
+
+We've also added a finally block to ensure that the `ResultSet` is closed properly, even if an exception is thrown. Within the finally block, we check if the `ResultSet` is not null before calling the `close()` method. If an exception occurs while closing the `ResultSet`, we throw a new `SQLException` with a custom error message.
+
+Finally, we've added a try-catch block around the `next()` and `getString()` method calls within the while loop to catch any `SQLException` that may occur. If an exception is caught, we throw a new `SQLException` with a custom error message that includes the original exception's message.
+------------------------------------------------------

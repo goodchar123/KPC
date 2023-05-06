@@ -1,0 +1,24 @@
+
+Sure, here's the updated code snippet that checks if the security manager denies access to `java.lang.Module.getClassLoader()` and throws a `SecurityException` in that case:
+
+```java
+public ClassLoader getClassLoaderForModule(String moduleName) {
+    Module module = ModuleLayer.boot().findModule(moduleName).orElse(null);
+    if (module != null) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        try {
+            return module.getClassLoader();
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied to module class loader", e);
+        }
+    } else {
+        return null;
+    }
+}
+```
+
+This updated method first checks if a security manager is installed using `System.getSecurityManager()`. If a security manager is present, it checks if the `getClassLoader` permission is granted using `sm.checkPermission()`. If the permission is denied, a `SecurityException` is thrown. If the permission is granted, the method attempts to return the ClassLoader for the module with the given name. If a `SecurityException` is thrown during this attempt, the method catches it and throws a new `SecurityException` with a more descriptive message. If the module is not found, the method returns null.
+------------------------------------------------------

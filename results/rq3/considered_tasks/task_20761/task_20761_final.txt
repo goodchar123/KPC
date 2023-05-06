@@ -1,0 +1,54 @@
+
+Sure, here's the updated code snippet that includes the error checking and SQLException throwing:
+
+```java
+public void executeMultipleResultsQuery(String sql) throws SQLException {
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        stmt = conn.createStatement();
+        boolean hasResults = stmt.execute(sql);
+        int resultCount = 0;
+        while (hasResults) {
+            rs = stmt.getResultSet();
+            // process the result set
+            while (rs.next()) {
+                // do something with each row of the result set
+            }
+            rs.close();
+            resultCount++;
+            hasResults = stmt.getMoreResults();
+        }
+        System.out.println("Query returned " + resultCount + " result sets.");
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+}
+```
+
+This updated method now includes a try-catch-finally block that checks for SQLExceptions and closes the ResultSet, Statement, and Connection objects in the finally block. This ensures that all resources are properly closed, even if an exception is thrown.
+------------------------------------------------------

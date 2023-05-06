@@ -1,0 +1,60 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections when calling `createStatement()`, and checks for query timeout exceeded when calling `executeUpdate()`:
+
+```java
+import java.sql.*;
+
+public class Example {
+    public static void setColumnType(Connection conn, String tableName, String columnName, int typeCode) throws SQLException {
+        String sql = "ALTER TABLE " + tableName + " MODIFY " + columnName + " " + getTypeName(typeCode);
+        try {
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            if (conn.isClosed()) {
+                throw new SQLException("Connection is closed", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private static String getTypeName(int typeCode) {
+        // same as before
+    }
+}
+```
+
+In this updated code, we wrap the `createStatement()` and `executeUpdate()` calls in a try-catch block to catch any `SQLException` that might occur. If an exception is caught, we check if the connection is closed using the `isClosed()` method of the `Connection` object. If it is closed, we throw a new `SQLException` with a message indicating that the connection is closed. Otherwise, we re-throw the original exception.
+
+To handle query timeout exceeded, we can set the query timeout using the `setQueryTimeout()` method of the `Statement` object before executing the statement. Then, we can catch the `SQLTimeoutException` that might be thrown by the `executeUpdate()` method and handle it appropriately. Here's the updated code:
+
+```java
+import java.sql.*;
+
+public class Example {
+    public static void setColumnType(Connection conn, String tableName, String columnName, int typeCode) throws SQLException {
+        String sql = "ALTER TABLE " + tableName + " MODIFY " + columnName + " " + getTypeName(typeCode);
+        try {
+            Statement stmt = conn.createStatement();
+            stmt.setQueryTimeout(10); // set query timeout to 10 seconds
+            stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            if (e instanceof SQLTimeoutException) {
+                throw (SQLTimeoutException) e;
+            } else if (conn.isClosed()) {
+                throw new SQLException("Connection is closed", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private static String getTypeName(int typeCode) {
+        // same as before
+    }
+}
+```
+
+In this updated code, we set the query timeout to 10 seconds using the `setQueryTimeout()` method of the `Statement` object. Then, we catch any `SQLException` that might occur and check if it is an instance of `SQLTimeoutException`. If it is, we re-throw it. Otherwise, we check if the connection is closed and throw a new `SQLException` with a message indicating that the connection is closed, or re-throw the original exception.
+------------------------------------------------------

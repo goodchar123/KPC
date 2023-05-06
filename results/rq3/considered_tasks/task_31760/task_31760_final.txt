@@ -1,0 +1,36 @@
+
+Here's the updated Java method that checks for resource, security, and argument exceptions when obtaining a line from a mixer:
+
+```java
+import javax.sound.sampled.*;
+
+public Set<Line> getOpenSourceLines(Mixer mixer) throws LineUnavailableException, IllegalArgumentException, SecurityException {
+    Set<Line> openLines = new HashSet<>();
+    Line.Info[] lineInfos = mixer.getSourceLineInfo();
+    for (Line.Info lineInfo : lineInfos) {
+        try {
+            Line line = mixer.getLine(lineInfo);
+            if (line instanceof SourceDataLine && line.isOpen()) {
+                openLines.add(line);
+            }
+        } catch (LineUnavailableException e) {
+            // A matching line is not available due to resource restrictions
+            throw e;
+        } catch (SecurityException e) {
+            // A matching line is not available due to security restrictions
+            throw e;
+        } catch (IllegalArgumentException e) {
+            // This mixer does not support any lines matching the description
+            throw e;
+        }
+    }
+    return openLines;
+}
+```
+
+This updated method now includes try-catch blocks to handle the exceptions that may be thrown when obtaining a line from a mixer. 
+
+If a matching line is not available due to resource restrictions, a `LineUnavailableException` is thrown. If a matching line is not available due to security restrictions, a `SecurityException` is thrown. If this mixer does not support any lines matching the description, an `IllegalArgumentException` is thrown.
+
+Note that the `getLine()` method may also throw an `UnsupportedOperationException` if the mixer does not support the requested line. However, this exception is a runtime exception and does not need to be explicitly caught or declared in the method signature.
+------------------------------------------------------

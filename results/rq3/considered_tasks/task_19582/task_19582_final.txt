@@ -1,0 +1,32 @@
+
+Sure, here's the updated code snippet that checks for the exceptions you mentioned:
+
+```java
+public List<String> getSourceIdentifiers(Class<?> type) throws IOException, IllegalStateException {
+    List<String> identifiers = new ArrayList<>();
+    String typeName = type.getName().replace(".", "/") + ".class";
+    URL resource = type.getClassLoader().getResource(typeName);
+    if (resource != null) {
+        try {
+            JarURLConnection connection = (JarURLConnection) resource.openConnection();
+            JarFile jarFile = connection.getJarFile();
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(typeName)) {
+                    CodeSource codeSource = new CodeSource(resource, entry.getCertificates());
+                    identifiers.add(codeSource.getLocation().toString());
+                }
+            }
+        } catch (IOException e) {
+            throw new IOException("Error opening connection to resource: " + resource, e);
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Jar file has been closed", e);
+        }
+    }
+    return identifiers;
+}
+```
+
+In this updated version, we've added two catch blocks to handle the exceptions you mentioned. If an `IOException` occurs while opening the connection to the resource, we throw a new `IOException` with a more informative error message that includes the URL of the resource. If an `IllegalStateException` occurs while iterating over the entries in the JAR file, we throw a new `IllegalStateException` with a more informative error message.
+------------------------------------------------------

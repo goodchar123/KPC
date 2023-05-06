@@ -1,0 +1,39 @@
+
+Here's an updated version of the Java method that includes the error checking you requested:
+
+```java
+public static void readNextJarEntry(JarInputStream jarInputStream) throws IOException, ZipException, SecurityException {
+    JarEntry jarEntry = jarInputStream.getNextJarEntry();
+    if (jarEntry == null) {
+        throw new ZipException("Error reading ZIP file");
+    }
+    if (!jarEntry.verify()) {
+        throw new SecurityException("Incorrectly signed JAR file entry");
+    }
+    byte[] buffer = new byte[1024];
+    int bytesRead;
+    try {
+        while ((bytesRead = jarInputStream.read(buffer)) != -1) {
+            if (buffer == null) {
+                throw new NullPointerException("Input stream buffer is null");
+            }
+            // process the entry data
+        }
+    } catch (IOException e) {
+        if (e.getMessage().equals("Stream closed")) {
+            throw e;
+        } else {
+            throw new IOException("Error reading input stream", e);
+        }
+    }
+}
+```
+
+This updated method checks for three potential errors:
+
+1. If `getNextJarEntry()` returns `null`, it throws a `ZipException` indicating an error reading the ZIP file.
+2. If an `IOException` occurs while reading the entry data, it checks the error message to determine if the input stream has been closed or if some other I/O error occurred. If the input stream has been closed, it rethrows the exception. Otherwise, it throws a new `IOException` with a more descriptive error message.
+3. If `verify()` returns `false` for the current `JarEntry`, it throws a `SecurityException` indicating an incorrectly signed JAR file entry.
+
+You can customize the error messages to fit your needs.
+------------------------------------------------------

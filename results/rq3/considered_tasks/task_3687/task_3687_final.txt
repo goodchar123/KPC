@@ -1,0 +1,64 @@
+
+Sure, here's the updated Java method that includes error checking and exception handling for the `setNamespaceContext()` method:
+
+```java
+public void addEventToOutputStream(XMLEventWriter eventWriter, String namespaceURI, String localName) throws XMLStreamException {
+    // Create a new StartElement with the given namespace URI and local name
+    StartElement startElement = eventFactory.createStartElement("", namespaceURI, localName);
+
+    // Write the StartElement to the output stream
+    try {
+        eventWriter.add(startElement);
+    } catch (XMLStreamException e) {
+        throw new XMLStreamException("Error occurred while adding event to output stream", e);
+    }
+
+    // Create a new namespace context and add it to the output stream
+    NamespaceContext context = new NamespaceContext() {
+        @Override
+        public String getNamespaceURI(String prefix) {
+            if (prefix == null) {
+                throw new IllegalArgumentException("Prefix cannot be null");
+            }
+            if (prefix.equals("")) {
+                if (namespaceURI == null) {
+                    throw new IllegalArgumentException("Namespace URI cannot be null");
+                }
+                return namespaceURI;
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public String getPrefix(String namespaceURI) {
+            if (namespaceURI == null) {
+                throw new IllegalArgumentException("Namespace URI cannot be null");
+            }
+            if (namespaceURI.equals(namespaceURI)) {
+                return "";
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Iterator<String> getPrefixes(String namespaceURI) {
+            if (namespaceURI == null) {
+                throw new IllegalArgumentException("Namespace URI cannot be null");
+            }
+            return null;
+        }
+    };
+
+    // Set the namespace context on the output stream
+    try {
+        eventWriter.setNamespaceContext(context);
+    } catch (XMLStreamException e) {
+        throw new XMLStreamException("Error occurred while setting namespace context on output stream", e);
+    }
+}
+```
+
+We catch any `XMLStreamException` that may be thrown by the `setNamespaceContext()` method and throw a new `XMLStreamException` with a more descriptive error message.
+------------------------------------------------------

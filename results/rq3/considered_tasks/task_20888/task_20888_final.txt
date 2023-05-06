@@ -1,0 +1,39 @@
+
+Here's the updated Java method that checks for the mentioned exceptions and throws the appropriate exceptions:
+
+```java
+public void undoChanges(Savepoint savepoint) throws SQLException, SQLFeatureNotSupportedException {
+    Connection conn = null;
+    Savepoint currentSavepoint = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed.");
+        }
+        if (conn.getAutoCommit()) {
+            throw new SQLException("Connection is in auto-commit mode.");
+        }
+        currentSavepoint = conn.setSavepoint();
+        if (currentSavepoint.equals(savepoint)) {
+            conn.rollback(savepoint);
+            System.out.println("Changes undone successfully.");
+        } else {
+            System.out.println("Invalid savepoint specified.");
+        }
+    } catch (SQLException e) {
+        conn.rollback();
+        throw e;
+    } catch (SQLFeatureNotSupportedException e) {
+        throw e;
+    } finally {
+        if (conn != null) {
+            conn.close();
+        }
+    }
+}
+```
+
+This updated method first checks if the connection is closed or in auto-commit mode, and throws a SQLException if either of these conditions is true. It also checks if the JDBC driver supports the setSavepoint() method, and throws a SQLFeatureNotSupportedException if it doesn't.
+
+In the catch block, it rolls back the transaction and re-throws the SQLException or SQLFeatureNotSupportedException. Finally, it closes the connection in the finally block.
+------------------------------------------------------

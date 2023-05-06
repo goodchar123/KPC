@@ -1,0 +1,49 @@
+
+Here's an updated version of the Java method that checks for security manager and throws appropriate exceptions:
+
+```java
+public List<Object> getReferencingObjects() throws SecurityException, InaccessibleObjectException {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        Class<?> thisClass = getClass();
+        ClassLoader thisClassLoader = thisClass.getClassLoader();
+        ClassLoader callerClassLoader = getClass().getClassLoader();
+        if (callerClassLoader != thisClassLoader) {
+            // Check permission to access declared fields
+            securityManager.checkPermission(new RuntimePermission("accessDeclaredMembers"), thisClass);
+            // Check package access for getDeclaredFields()
+            securityManager.checkPackageAccess(thisClass.getPackage().getName());
+        }
+    }
+    List<Object> referencingObjects = new ArrayList<>();
+    Set<Object> visitedObjects = new HashSet<>();
+    Queue<Object> queue = new LinkedList<>();
+    queue.add(this);
+    visitedObjects.add(this);
+    while (!queue.isEmpty()) {
+        Object currentObject = queue.poll();
+        for (Field field : currentObject.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            try {
+                Object fieldValue = field.get(currentObject);
+                if (fieldValue != null && !visitedObjects.contains(fieldValue)) {
+                    visitedObjects.add(fieldValue);
+                    queue.add(fieldValue);
+                    if (fieldValue == this) {
+                        referencingObjects.add(currentObject);
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                // Handle exception
+                throw new InaccessibleObjectException("Cannot access field: " + field.getName());
+            }
+        }
+    }
+    return referencingObjects;
+}
+```
+
+This updated method first checks if a security manager is present. If so, it checks if the caller's class loader is different from the class loader of this class and if so, it checks for permission to access declared fields and package access for `getDeclaredFields()`. If any of these checks fail, it throws a `SecurityException`.
+
+Next, it proceeds with the same logic as before to find referencing objects. However, it now also checks for any exceptions thrown by `Field.setAccessible(true)` and throws an `InaccessibleObjectException` if access cannot be enabled. Finally, it also checks for any exceptions thrown by `Field.get()` and throws a `SecurityException` if the security manager denies access to the field.
+------------------------------------------------------

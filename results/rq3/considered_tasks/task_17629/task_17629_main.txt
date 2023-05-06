@@ -1,0 +1,66 @@
+Please write a java method that Closes the TLS connection gracefully and reverts back to the underlying connection.
+Here's an example Java method that closes the TLS connection gracefully and reverts back to the underlying connection:
+
+```java
+import javax.net.ssl.SSLSocket;
+
+public void closeTLSSocket(SSLSocket sslSocket) {
+    try {
+        // Shutdown the SSL socket gracefully
+        sslSocket.close();
+    } catch (Exception e) {
+        // Handle any exceptions that occur during the shutdown process
+        e.printStackTrace();
+    }
+
+    // Revert back to the underlying connection
+    try {
+        sslSocket.startHandshake();
+    } catch (Exception e) {
+        // Handle any exceptions that occur during the handshake process
+        e.printStackTrace();
+    }
+}
+```
+
+This method takes an `SSLSocket` object as a parameter and first closes the TLS connection gracefully using the `close()` method. If any exceptions occur during the shutdown process, they are caught and printed to the console.
+
+After the TLS connection is closed, the method then reverts back to the underlying connection by calling the `startHandshake()` method on the `SSLSocket` object. Again, any exceptions that occur during this process are caught and printed to the console.
+------------------------------------------------------
+Please check on a network level error for javax.net.ssl.SSLSocket.startHandshake() in the code snippet you provided, otherwise throw IOException.
+Sure, here's an updated version of the Java method that checks for network level errors during the `startHandshake()` method and throws an `IOException` if any occur:
+
+```java
+import javax.net.ssl.SSLSocket;
+import java.io.IOException;
+
+public void closeTLSSocket(SSLSocket sslSocket) throws IOException {
+    try {
+        // Shutdown the SSL socket gracefully
+        sslSocket.close();
+    } catch (Exception e) {
+        // Handle any exceptions that occur during the shutdown process
+        e.printStackTrace();
+    }
+
+    // Revert back to the underlying connection
+    try {
+        sslSocket.startHandshake();
+    } catch (IOException e) {
+        // Check for network level errors and throw an IOException if any occur
+        if (e.getMessage().contains("Network is unreachable") || e.getMessage().contains("Connection refused")) {
+            throw new IOException("Network level error occurred during SSL handshake", e);
+        } else {
+            e.printStackTrace();
+        }
+    } catch (Exception e) {
+        // Handle any other exceptions that occur during the handshake process
+        e.printStackTrace();
+    }
+}
+```
+
+This updated method now throws an `IOException` if a network level error occurs during the `startHandshake()` method. It checks for two specific error messages ("Network is unreachable" and "Connection refused") and throws the `IOException` with a custom message if either of these messages are found in the exception's message.
+
+If any other exceptions occur during the handshake process, they are caught and printed to the console as before.
+------------------------------------------------------

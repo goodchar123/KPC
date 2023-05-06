@@ -1,0 +1,65 @@
+
+Sure, here's the updated code snippet that includes the exception handling you requested:
+
+```java
+import java.sql.*;
+
+public class UpdateBlobColumn {
+    public static void updateBlob(Connection conn, String tableName, String columnName, int id, byte[] blobData) throws SQLException, Exception {
+        String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            Blob blob = null;
+            try {
+                blob = conn.createBlob();
+            } catch (SQLException e) {
+                throw new SQLException("Error creating Blob object: " + e.getMessage());
+            }
+            try {
+                blob.setBytes(1, blobData);
+            } catch (SQLException e) {
+                if (e instanceof SQLFeatureNotSupportedException) {
+                    throw new SQLFeatureNotSupportedException("setBytes method not supported: " + e.getMessage());
+                } else {
+                    throw new SQLException("Error setting Blob data: " + e.getMessage());
+                }
+            }
+            try {
+                pstmt.setBlob(1, blob);
+            } catch (SQLException e) {
+                if (e instanceof SQLFeatureNotSupportedException) {
+                    throw new SQLFeatureNotSupportedException("setBlob method not supported: " + e.getMessage());
+                } else {
+                    throw new SQLException("Error setting Blob parameter: " + e.getMessage());
+                }
+            }
+            try {
+                pstmt.setInt(2, id);
+            } catch (SQLException e) {
+                throw new SQLException("Error setting ID parameter: " + e.getMessage());
+            }
+            try {
+                pstmt.executeUpdate();
+            } catch (SQLTimeoutException e) {
+                throw new SQLTimeoutException("Query timeout exceeded: " + e.getMessage());
+            } catch (SQLException e) {
+                if (e.getMessage().contains("closed connection")) {
+                    throw new SQLException("Connection closed: " + e.getMessage());
+                } else {
+                    throw new SQLException("Database access error: " + e.getMessage());
+                }
+            }
+        } catch (SQLException e) {
+            if (e.getMessage().contains("closed connection")) {
+                throw new SQLException("Connection closed: " + e.getMessage());
+            } else {
+                throw new SQLException("Database access error: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            throw new Exception("Error closing resource: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method includes try-catch blocks to handle the various exceptions that may occur during the execution of the method. If a `SQLException` occurs while creating the `Blob` object, setting the `Blob` data, setting the `Blob` parameter, or setting the ID parameter, a `SQLException` is thrown with a descriptive error message. If a `SQLFeatureNotSupportedException` occurs while setting the `Blob` data or parameter, a `SQLFeatureNotSupportedException` is thrown with a descriptive error message. If a `SQLTimeoutException` occurs during the execution of the update statement, a `SQLTimeoutException` is thrown with a descriptive error message. If a `SQLException` occurs during the execution of the update statement or while preparing the statement, the type of exception is checked to determine the appropriate error message to throw. If an `Exception` occurs while closing the resource, an `Exception` is thrown with a descriptive error message.
+------------------------------------------------------

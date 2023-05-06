@@ -1,0 +1,49 @@
+
+Sure, here's an updated version of the code snippet that includes all the requested error checks:
+
+```
+import java.awt.*;
+import java.awt.datatransfer.*;
+
+public class ClipboardHelper {
+    public static Object getClipboardContents(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+        try {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if (!toolkit.areExtraMouseButtonsEnabled()) {
+                throw new AWTError("Assistive technologies not loaded");
+            }
+            Clipboard clipboard = toolkit.getSystemClipboard();
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Transferable contents = clipboard.getContents(null);
+            if (contents != null && contents.isDataFlavorSupported(flavor)) {
+                try {
+                    return contents.getTransferData(flavor);
+                } catch (UnsupportedFlavorException e) {
+                    throw new IOException("Data is no longer available in the requested flavor: " + e.getMessage());
+                }
+            }
+            return null;
+        } catch (HeadlessException e) {
+            throw new HeadlessException("Error: " + e.getMessage());
+        } catch (AWTError e) {
+            throw new AWTError("Error loading assistive technologies: " + e.getMessage());
+        }
+    }
+}
+```
+
+This version of the method first checks if the environment is headless using `GraphicsEnvironment.isHeadless()`. If it is, it throws a `HeadlessException`.
+
+Next, it gets a reference to the default toolkit using `Toolkit.getDefaultToolkit()`. It then checks if extra mouse buttons are enabled using the `areExtraMouseButtonsEnabled()` method. If they are not enabled, it throws an `AWTError` with a message indicating that assistive technologies are not loaded.
+
+The method then gets a reference to the system clipboard using `toolkit.getSystemClipboard()`. If the environment is headless, it throws a `HeadlessException`.
+
+If the clipboard contents are not null and support the specified `DataFlavor`, the method retrieves the data using `contents.getTransferData(flavor)`. If the data is no longer available in the requested flavor, it throws an `IOException` with a message indicating the cause of the error. If the contents are null or do not support the specified `DataFlavor`, the method returns null.
+
+If an error occurs while checking for a headless environment, getting the default toolkit, checking for extra mouse buttons, or getting the system clipboard, the method throws a `HeadlessException` or `AWTError` with a message indicating the cause of the error.
+------------------------------------------------------

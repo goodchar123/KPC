@@ -1,0 +1,92 @@
+
+Here's the updated Java method that includes the error checking and exception handling you requested:
+
+```java
+public static Socket createServerModeSocket(Socket socket) throws IOException {
+    // Get the underlying input stream of the socket
+    InputStream inputStream = null;
+    try {
+        inputStream = socket.getInputStream();
+    } catch (IOException e) {
+        throw new IOException("Error creating input stream: " + e.getMessage());
+    }
+
+    // Check if the socket is closed or not connected
+    if (socket.isClosed() || !socket.isConnected()) {
+        throw new IOException("Socket is closed or not connected");
+    }
+
+    // Check if the socket input has been shutdown
+    if (socket.isInputShutdown()) {
+        throw new IOException("Socket input has been shutdown");
+    }
+
+    // Read any data that has already been consumed/removed from the input stream
+    byte[] buffer = new byte[1024];
+    int bytesRead = 0;
+    try {
+        if (inputStream != null) {
+            bytesRead = inputStream.read(buffer);
+        } else {
+            throw new IOException("Input stream is null");
+        }
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Byte array is null");
+    } catch (IOException e) {
+        throw new IOException("Error reading from input stream: " + e.getMessage());
+    }
+
+    // Create a new server mode socket layered over the existing connected socket
+    ServerSocket serverSocket = new ServerSocket();
+    try {
+        serverSocket.setReuseAddress(true);
+    } catch (SocketException e) {
+        throw new SocketException("Error setting SO_REUSEADDR option: " + e.getMessage());
+    }
+    try {
+        serverSocket.bind(new InetSocketAddress(socket.getLocalAddress(), 0));
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager doesn't allow the operation: " + e.getMessage());
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Endpoint is not supported by this socket: " + e.getMessage());
+    } catch (IOException e) {
+        throw new IOException("Error binding server socket: " + e.getMessage());
+    }
+
+    Socket serverModeSocket = null;
+    try {
+        serverModeSocket = serverSocket.accept();
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager doesn't allow the operation: " + e.getMessage());
+    } catch (SocketTimeoutException e) {
+        throw new SocketTimeoutException("Timeout reached: " + e.getMessage());
+    } catch (IllegalBlockingModeException e) {
+        throw new IllegalBlockingModeException("Socket channel is in non-blocking mode: " + e.getMessage());
+    } catch (IOException e) {
+        throw new IOException("Error accepting connection: " + e.getMessage());
+    }
+
+    // Write the previously read data to the new socket's output stream
+    OutputStream outputStream = null;
+    try {
+        outputStream = serverModeSocket.getOutputStream();
+    } catch (IOException e) {
+        throw new IOException("Error creating output stream: " + e.getMessage());
+    }
+    try {
+        if (buffer != null) {
+            outputStream.write(buffer, 0, bytesRead);
+            outputStream.flush();
+        } else {
+            throw new NullPointerException("Byte array is null");
+        }
+    } catch (IOException e) {
+        throw new IOException("Error writing to output stream: " + e.getMessage());
+    }
+
+    return serverModeSocket;
+}
+```
+
+This updated method includes error checking and exception handling for various scenarios, such as when creating the input stream, checking the socket status, reading from the input stream, setting the SO_REUSEADDR option, binding the server socket, accepting a connection, creating the output stream, and writing to the output stream. It throws the appropriate exceptions if any of these scenarios fail.
+------------------------------------------------------

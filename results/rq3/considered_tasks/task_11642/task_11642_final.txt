@@ -1,0 +1,35 @@
+
+Certainly, here's an updated version of the method that checks if the stream has been closed or if the contained input stream does not support reading after close:
+
+```
+public int readInt(DataInputStream input) throws IOException {
+    if (input == null) {
+        throw new NullPointerException("input is null");
+    }
+    if (input.markSupported()) {
+        input.mark(4);
+    }
+    try {
+        return input.readInt();
+    } catch (IOException e) {
+        if (e.getMessage().equals("Stream closed")) {
+            throw new IOException("Stream closed");
+        } else if (e.getMessage().equals("read beyond end of stream")) {
+            throw new EOFException("read beyond end of stream");
+        } else {
+            throw e;
+        }
+    } finally {
+        if (input.markSupported()) {
+            input.reset();
+        }
+    }
+}
+```
+
+This method first checks if the input stream is null and throws a `NullPointerException` if it is. It then checks if the input stream supports marking and marks the current position in the input stream if it does. This is done so that the method can reset the input stream to its original position in case an exception is thrown.
+
+The method then tries to read an int value from the input stream using the `readInt()` method. If an `IOException` is thrown, the method checks the error message to see if it indicates that the stream has been closed or if the contained input stream does not support reading after close. If either of these conditions is true, the method throws an `IOException`. Otherwise, it rethrows the original exception.
+
+Finally, the method resets the input stream to its original position if it supports marking.
+------------------------------------------------------

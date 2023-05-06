@@ -1,0 +1,43 @@
+Please write a java method that Returns the lifetime in seconds for the credential to remain capable of initiating security contexts using the specified mechanism.
+Here's a Java method that returns the lifetime in seconds for the credential to remain capable of initiating security contexts using the specified mechanism:
+
+```java
+public int getLifetime(String mechanism) {
+    int lifetime = 0;
+    try {
+        GSSManager manager = GSSManager.getInstance();
+        Oid oid = new Oid(mechanism);
+        GSSCredential credential = manager.createCredential(null, GSSCredential.INDEFINITE_LIFETIME, oid, GSSCredential.INITIATE_ONLY);
+        lifetime = credential.getRemainingLifetime();
+    } catch (GSSException e) {
+        e.printStackTrace();
+    }
+    return lifetime;
+}
+```
+
+This method uses the Java GSS-API to create a credential for the specified mechanism and then retrieves the remaining lifetime of the credential. The `getLifetime` method takes a `String` parameter `mechanism` which specifies the security mechanism to use. The method returns an `int` value representing the remaining lifetime of the credential in seconds. If an error occurs during the creation of the credential or retrieval of the lifetime, the method prints the stack trace of the exception and returns 0.
+------------------------------------------------------
+Please check containing the following major error codes:         GSSException.FAILURE for org.ietf.jgss.GSSCredential.getRemainingLifetime() in the code snippet you provided, otherwise throw GSSException.
+Sure, here's the updated code snippet that checks for the `GSSException.FAILURE` error code when calling `GSSCredential.getRemainingLifetime()`. If the error code is encountered, the method throws a `GSSException` with the error code and message:
+
+```java
+public int getLifetime(String mechanism) throws GSSException {
+    int lifetime = 0;
+    try {
+        GSSManager manager = GSSManager.getInstance();
+        Oid oid = new Oid(mechanism);
+        GSSCredential credential = manager.createCredential(null, GSSCredential.INDEFINITE_LIFETIME, oid, GSSCredential.INITIATE_ONLY);
+        lifetime = credential.getRemainingLifetime();
+        if (lifetime == GSSCredential.INDEFINITE_LIFETIME || lifetime == GSSCredential.DEFAULT_LIFETIME) {
+            throw new GSSException(GSSException.FAILURE, "Lifetime not available for credential");
+        }
+    } catch (GSSException e) {
+        throw e;
+    }
+    return lifetime;
+}
+```
+
+This updated method now throws a `GSSException` with the error code `GSSException.FAILURE` and a message if the lifetime is not available for the credential. If any other `GSSException` is encountered, it is re-thrown by the method.
+------------------------------------------------------

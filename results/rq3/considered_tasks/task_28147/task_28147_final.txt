@@ -1,0 +1,46 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the Java method that includes the error handling you requested:
+
+```java
+public static DocumentType getDTD(String dtdName) throws IOException, SAXException, FactoryConfigurationError, NullPointerException {
+    DocumentBuilderFactory factory = null;
+    try {
+        factory = DocumentBuilderFactory.newInstance();
+    } catch (FactoryConfigurationError e) {
+        throw new FactoryConfigurationError("Error creating DocumentBuilderFactory: " + e.getMessage());
+    }
+    if (factory == null) {
+        throw new FactoryConfigurationError("Unable to create DocumentBuilderFactory");
+    }
+    factory.setValidating(false);
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = null;
+    try {
+        builder = factory.newDocumentBuilder();
+    } catch (ParserConfigurationException e) {
+        throw new FactoryConfigurationError("Error creating DocumentBuilder: " + e.getMessage());
+    }
+    if (builder == null) {
+        throw new FactoryConfigurationError("Unable to create DocumentBuilder");
+    }
+    EntityResolver resolver = new EntityResolver() {
+        @Override
+        public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+            if (systemId.endsWith(dtdName)) {
+                InputStream in = getClass().getResourceAsStream(dtdName);
+                if (in == null) {
+                    throw new NullPointerException("Resource not found: " + dtdName);
+                }
+                return new InputSource(in);
+            }
+            return null;
+        }
+    };
+    builder.setEntityResolver(resolver);
+    DocumentType dtd = builder.parse(new InputSource(new StringReader("")));
+    return dtd;
+}
+```
+
+This updated version includes try-catch blocks to handle potential errors when creating the `DocumentBuilderFactory` and `DocumentBuilder` objects. It also checks for a `null` value when attempting to load the DTD resource using `getResourceAsStream`, and throws a `NullPointerException` if the resource is not found.
+------------------------------------------------------

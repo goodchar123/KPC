@@ -1,0 +1,25 @@
+
+You're right, it's important to handle potential I/O errors when writing to an `OutputStream`. Here's an updated version of the method that checks for I/O errors and throws an `IOException` if one occurs:
+
+```java
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.NClob;
+import java.sql.SQLException;
+
+public class NClobWriter {
+    public static void writeNClobToStream(NClob nclob, OutputStream outputStream) throws SQLException, IOException {
+        long length = nclob.length();
+        char[] buffer = new char[(int) length];
+        nclob.getCharacterStream().read(buffer);
+        try {
+            outputStream.write(new String(buffer).getBytes());
+        } catch (IOException e) {
+            throw new IOException("Error writing NCLOB to stream", e);
+        }
+    }
+}
+```
+
+In this version of the method, we've wrapped the call to `outputStream.write()` in a try-catch block. If an `IOException` is thrown, we catch it and re-throw it as a new `IOException` with a more descriptive error message. This way, the caller of the method can handle the error appropriately.
+------------------------------------------------------

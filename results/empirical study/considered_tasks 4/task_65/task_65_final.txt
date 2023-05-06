@@ -1,0 +1,46 @@
+
+Sure, here's the updated code that checks if a security manager exists and its `checkPropertyAccess()` method doesn't allow access to the specified system property, and also checks if the key is null before calling `System.getProperty()` and throws `SecurityException` or `NullPointerException` respectively:
+
+```java
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
+public class DirectoryHelper {
+    public static boolean isHiddenDirectory(String directoryPath) throws SecurityException {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            try {
+                AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+                    String property = System.getProperty("user.dir");
+                    if (property == null) {
+                        throw new SecurityException("Cannot access required system property");
+                    }
+                    File directory = new File(directoryPath);
+                    security.checkRead(directory.getAbsolutePath());
+                    return null;
+                });
+            } catch (PrivilegedActionException e) {
+                throw (SecurityException) e.getException();
+            }
+        }
+        File directory = new File(directoryPath);
+        return directory.isHidden();
+    }
+    
+    public static String getSystemProperty(String key) throws NullPointerException, SecurityException {
+        if (key == null) {
+            throw new NullPointerException("Key cannot be null");
+        }
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkPropertyAccess(key);
+        }
+        return System.getProperty(key);
+    }
+}
+```
+
+This updated code includes a new method `getSystemProperty()` that checks if a security manager exists and its `checkPropertyAccess()` method doesn't allow access to the specified system property, and also checks if the key is null before calling `System.getProperty()` and throws `SecurityException` or `NullPointerException` respectively. This method can be used to get system properties with proper error handling and security checks.
+------------------------------------------------------

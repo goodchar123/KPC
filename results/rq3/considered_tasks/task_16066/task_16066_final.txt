@@ -1,0 +1,27 @@
+
+You are correct again. Here's an updated version of the method that includes the I/O error check:
+
+```
+public void updateArchiveAttribute(File file, boolean archiveValue) throws IOException {
+    try {
+        Path filePath = file.toPath();
+        DosFileAttributes dosAttrs = Files.readAttributes(filePath, DosFileAttributes.class);
+        DosFileAttributeView dosView = Files.getFileAttributeView(filePath, DosFileAttributeView.class);
+        
+        if (System.getSecurityManager() != null) {
+            System.getSecurityManager().checkWrite(file.getAbsolutePath());
+        }
+        
+        dosView.setArchive(archiveValue);
+    } catch (IOException e) {
+        System.out.println("Error updating archive attribute: " + e.getMessage());
+        throw e;
+    } catch (SecurityException se) {
+        System.out.println("Security exception: " + se.getMessage());
+        throw new IOException(se);
+    }
+}
+```
+
+This updated method catches the `IOException` that may occur when calling `dosView.setArchive(archiveValue)`. If an `IOException` occurs, it prints out a message to the console and re-throws the exception. If a `SecurityException` occurs, it catches it, prints out a message to the console, and throws a new `IOException` with the `SecurityException` as its cause.
+------------------------------------------------------

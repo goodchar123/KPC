@@ -1,0 +1,49 @@
+
+Sure, here's an updated version of the method that checks for errors and throws the appropriate exceptions:
+
+```java
+public InputStream getPartialBlobStream(Blob blob, long pos, long length) throws SQLException, IOException {
+    // Check if the JDBC driver supports the Blob.length() method
+    if (!blob.getClass().getName().equals("oracle.sql.BLOB") && !blob.getClass().getName().equals("oracle.jdbc.OracleBlob")) {
+        throw new SQLFeatureNotSupportedException("Blob.length() is not supported by this JDBC driver");
+    }
+    
+    // Get the total length of the Blob
+    long blobLength;
+    try {
+        blobLength = blob.length();
+    } catch (SQLException e) {
+        throw new SQLException("Error accessing Blob length", e);
+    }
+    
+    // Check if the requested position and length are valid
+    if (pos < 1 || length < 0 || pos + length - 1 > blobLength) {
+        throw new SQLException("Invalid position or length");
+    }
+    
+    // Check if the JDBC driver supports the Blob.getBytes() method
+    if (!blob.getClass().getName().equals("oracle.sql.BLOB") && !blob.getClass().getName().equals("oracle.jdbc.OracleBlob")) {
+        throw new SQLFeatureNotSupportedException("Blob.getBytes() is not supported by this JDBC driver");
+    }
+    
+    // Get a byte array containing the partial Blob data
+    byte[] partialBlobData;
+    try {
+        partialBlobData = blob.getBytes(pos, (int)length);
+    } catch (SQLException e) {
+        throw new SQLException("Error accessing Blob value", e);
+    }
+    
+    // Create an InputStream object from the byte array
+    return new ByteArrayInputStream(partialBlobData);
+}
+```
+
+This updated method first checks if the JDBC driver supports the `Blob.length()` method, and throws a `SQLFeatureNotSupportedException` if it does not. It then attempts to retrieve the total length of the Blob using the `length()` method, and throws a `SQLException` if there is an error.
+
+Next, it checks if the requested position and length are valid, and throws a `SQLException` if they are not.
+
+It then checks if the JDBC driver supports the `Blob.getBytes()` method, and throws a `SQLFeatureNotSupportedException` if it does not. It then attempts to retrieve the partial Blob data using the `getBytes()` method, and throws a `SQLException` if there is an error.
+
+Finally, it creates a `ByteArrayInputStream` object from the byte array and returns it as an `InputStream`.
+------------------------------------------------------

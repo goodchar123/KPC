@@ -1,0 +1,56 @@
+
+Here's the updated Java method that includes the additional checks:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ArrayAccess {
+    public static MethodHandle getArrayElementGetter(Class<?> arrayType) throws NoSuchMethodException, IllegalAccessException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("accessDeclaredMembers"));
+        }
+        if (arrayType == null) {
+            throw new NullPointerException("arrayType cannot be null");
+        }
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        try {
+            MethodHandle arrayGetter = lookup.findVirtual(arrayType, "get", MethodType.methodType(Object.class, int.class));
+            if (!arrayGetter.isAccessible()) {
+                throw new IllegalAccessException("Access checking failed for arrayGetter");
+            }
+            if (arrayGetter.isVarargsCollector()) {
+                MethodHandle asVarargsCollector = arrayGetter.asVarargsCollector(Object[].class);
+                if (asVarargsCollector == null) {
+                    throw new IllegalAccessException("asVarargsCollector failed for arrayGetter");
+                }
+                arrayGetter = asVarargsCollector;
+            }
+            MethodHandle cast = lookup.findVirtual(Object.class, "cast", MethodType.methodType(arrayType));
+            if (!cast.isAccessible()) {
+                throw new IllegalAccessException("Access checking failed for cast");
+            }
+            MethodHandle result = MethodHandles.filterReturnValue(arrayGetter, cast);
+            if (!result.type().equals(MethodType.methodType(arrayType, arrayType, int.class))) {
+                throw new IllegalArgumentException("Argument list of filter does not match the return type of target");
+            }
+            return result;
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodException("Method does not exist");
+        }
+    }
+}
+```
+
+This updated method first tries to get the `MethodHandle` for the `get` method and checks if it is accessible. If not, it throws an `IllegalAccessException`. It also checks if the method's variable arity modifier bit is set and if `asVarargsCollector` fails. If so, it throws an `IllegalAccessException`.
+
+After getting the `MethodHandle` for the `cast` method, the method checks if it is accessible. If not, it throws an `IllegalAccessException`.
+
+Finally, the method checks if the argument list of the resulting `MethodHandle` matches the return type of the `target` `MethodHandle`. If not, it throws an `IllegalArgumentException`.
+
+If the `findVirtual` method throws a `NoSuchMethodException`, the method rethrows it as a `NoSuchMethodException`.
+
+These additional checks ensure that the method is used correctly and safely, and that any errors are caught and handled appropriately.
+------------------------------------------------------

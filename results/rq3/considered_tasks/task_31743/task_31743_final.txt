@@ -1,0 +1,38 @@
+
+You're right, it's important to handle these potential errors in the `readAudioStream` method. Here's an updated version of the method that includes these checks:
+
+```java
+public void readAudioStream(InputStream audioStream, byte[] buffer, int maxBytes) throws IOException {
+    if (buffer == null) {
+        throw new NullPointerException("Buffer cannot be null");
+    }
+    if (maxBytes < 0 || buffer.length < maxBytes) {
+        throw new IndexOutOfBoundsException("Invalid buffer size");
+    }
+    int bytesRead = 0;
+    int totalBytesRead = 0;
+    while (totalBytesRead < maxBytes && bytesRead != -1) {
+        try {
+            bytesRead = audioStream.read(buffer, totalBytesRead, maxBytes - totalBytesRead);
+        } catch (IOException e) {
+            throw new IOException("Error reading from audio stream", e);
+        }
+        if (bytesRead != -1) {
+            totalBytesRead += bytesRead;
+        }
+    }
+    if (totalBytesRead == 0) {
+        throw new IOException("No bytes read from audio stream");
+    }
+}
+```
+
+This updated method includes the following checks:
+
+- If `buffer` is `null`, a `NullPointerException` is thrown.
+- If `maxBytes` is negative or greater than the length of `buffer`, an `IndexOutOfBoundsException` is thrown.
+- If an `IOException` occurs while reading from the input stream, it is caught and re-thrown as an `IOException` with a more descriptive error message.
+- If no bytes are read from the input stream, an `IOException` is thrown with a descriptive error message.
+
+These checks help ensure that the method behaves correctly and provides useful error messages if something goes wrong.
+------------------------------------------------------

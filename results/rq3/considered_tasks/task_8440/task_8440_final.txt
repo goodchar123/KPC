@@ -1,0 +1,25 @@
+
+Sure, here's an updated version of the `sleep` method that checks if the current thread is allowed to modify the thread for `Thread.interrupt()`. If not, it throws a `SecurityException`:
+
+```java
+import java.util.concurrent.TimeUnit;
+
+public class SleepExample {
+    public static void sleep(long duration, TimeUnit unit) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("modifyThread"));
+        }
+        try {
+            unit.sleep(duration);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+```
+
+This method first checks if a `SecurityManager` is installed. If so, it checks if the current thread has the `modifyThread` permission. If not, it throws a `SecurityException`. If the permission is granted, it performs the `Thread.sleep` as before.
+
+Note that this check is only necessary if a `SecurityManager` is installed. If not, the method will behave as before without any security checks.
+------------------------------------------------------

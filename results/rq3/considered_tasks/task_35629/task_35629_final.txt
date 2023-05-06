@@ -1,0 +1,40 @@
+
+Here's the updated Java method that checks if any thread has interrupted the current thread and throws `InterruptedException` if so, and also checks if a `Throwable` is thrown when running the `Runnable` and throws `InvocationTargetException` if so:
+
+```java
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+
+public class FocusOwnerHelper {
+    public static Component getFocusOwner() throws InterruptedException, InvocationTargetException {
+        Component focusOwner = null;
+        try {
+            focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        } catch (SecurityException e) {
+            // If the calling thread is in a different context than the focus owner,
+            // a SecurityException will be thrown. In this case, we need to use
+            // EventQueue.invokeAndWait() to execute the code in the context of the
+            // event dispatch thread.
+            try {
+                EventQueue.invokeAndWait(new Runnable() {
+                    public void run() {
+                        focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                    }
+                });
+            } catch (InterruptedException ex) {
+                throw ex;
+            } catch (InvocationTargetException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return focusOwner;
+    }
+}
+```
+
+This updated method adds two catch blocks to handle `InterruptedException` and `InvocationTargetException`. If the `Runnable` passed to `EventQueue.invokeAndWait()` throws an `InterruptedException`, we throw the same exception. If it throws an `InvocationTargetException`, we throw that exception instead. If any other exception is thrown, we simply print the stack trace.
+
+Note that we also added `throws InterruptedException, InvocationTargetException` to the method signature to indicate that these exceptions may be thrown.
+------------------------------------------------------

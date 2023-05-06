@@ -1,0 +1,65 @@
+Please write a java method that Returns an array of Type objects representing the  upper bound(s) of this type variable.
+Sure, here's a Java method that returns an array of Type objects representing the upper bound(s) of a given type variable:
+
+```
+import java.lang.reflect.*;
+
+public static Type[] getUpperBounds(TypeVariable<?> typeVar) {
+    Type[] bounds = typeVar.getBounds();
+    if (bounds.length == 1 && bounds[0] == Object.class) {
+        return new Type[0];
+    } else {
+        return bounds;
+    }
+}
+```
+
+This method takes a `TypeVariable<?>` object as its argument and returns an array of `Type` objects representing the upper bounds of the type variable. If the type variable has only one upper bound and that bound is `Object`, the method returns an empty array. Otherwise, it returns an array containing the upper bounds.
+
+Note that this method uses the `getBounds()` method of the `TypeVariable` class to get the upper bounds of the type variable. This method returns an array of `Type` objects representing the upper bounds, which may include class types, interface types, and type variables.
+------------------------------------------------------
+Please check if any of the     bounds refers to a non existent type declaration for java.lang.reflect.TypeVariable.getBounds() in the code snippet you provided, otherwise throw TypeNotPresentException.
+Please check if any of the     bounds refer to a parameterized type that cannot be instantiated     for any reason for java.lang.reflect.TypeVariable.getBounds() in the code snippet you provided, otherwise throw MalformedParameterizedTypeException.
+Sure, here's the updated Java method that checks for non-existent type declarations and parameterized types that cannot be instantiated:
+
+```
+import java.lang.reflect.*;
+
+public static Type[] getUpperBounds(TypeVariable<?> typeVar) throws TypeNotPresentException, MalformedParameterizedTypeException {
+    Type[] bounds = typeVar.getBounds();
+    if (bounds.length == 1 && bounds[0] == Object.class) {
+        return new Type[0];
+    } else {
+        for (Type bound : bounds) {
+            if (bound instanceof TypeVariable) {
+                TypeVariable<?> typeVariable = (TypeVariable<?>) bound;
+                if (typeVariable.getGenericDeclaration() == null) {
+                    throw new TypeNotPresentException(typeVariable.getName(), null);
+                }
+            } else if (bound instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) bound;
+                for (Type arg : parameterizedType.getActualTypeArguments()) {
+                    if (arg instanceof TypeVariable) {
+                        TypeVariable<?> typeVariable = (TypeVariable<?>) arg;
+                        if (typeVariable.getGenericDeclaration() == null) {
+                            throw new TypeNotPresentException(typeVariable.getName(), null);
+                        }
+                    } else if (arg instanceof ParameterizedType) {
+                        throw new MalformedParameterizedTypeException();
+                    }
+                }
+            }
+        }
+        return bounds;
+    }
+}
+```
+
+This updated method first checks if the upper bounds array contains only `Object`. If so, it returns an empty array.
+
+Otherwise, it iterates through each upper bound and checks if it is a `TypeVariable` or a `ParameterizedType`. If it is a `TypeVariable`, it checks if the type variable's generic declaration is null. If so, it throws a `TypeNotPresentException` with the type variable's name.
+
+If the upper bound is a `ParameterizedType`, the method iterates through each actual type argument and checks if it is a `TypeVariable`. If it is, it checks if the type variable's generic declaration is null. If so, it throws a `TypeNotPresentException` with the type variable's name. If any actual type argument is a `ParameterizedType`, the method throws a `MalformedParameterizedTypeException`.
+
+If all upper bounds are valid, the method returns the upper bounds array.
+------------------------------------------------------

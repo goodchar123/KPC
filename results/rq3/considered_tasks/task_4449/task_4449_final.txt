@@ -1,0 +1,31 @@
+
+Sure, here's the updated Java method that checks for the `NO_MODIFICATION_ALLOWED_ERR`, `NOT_FOUND_ERR`, and `NOT_SUPPORTED_ERR` exceptions and throws a `DOMException` if any of them occur:
+
+```java
+public void removeNodeByLocalNameAndNamespaceURI(String localName, String namespaceURI, Node rootNode) throws DOMException {
+    NodeList nodeList = rootNode.getChildNodes();
+    for (int i = 0; i < nodeList.getLength(); i++) {
+        Node node = nodeList.item(i);
+        if (node.getLocalName().equals(localName) && node.getNamespaceURI().equals(namespaceURI)) {
+            try {
+                rootNode.removeChild(node);
+            } catch (DOMException e) {
+                if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR || e.code == DOMException.NOT_FOUND_ERR || e.code == DOMException.NOT_SUPPORTED_ERR) {
+                    throw e;
+                }
+            }
+            return;
+        }
+        try {
+            removeNodeByLocalNameAndNamespaceURI(localName, namespaceURI, node);
+        } catch (DOMException e) {
+            if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR || e.code == DOMException.NOT_FOUND_ERR || e.code == DOMException.NOT_SUPPORTED_ERR) {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This updated method now includes a `try-catch` block around the `removeChild()` method call, and checks for the `NO_MODIFICATION_ALLOWED_ERR`, `NOT_FOUND_ERR`, and `NOT_SUPPORTED_ERR` exceptions. If any of these exceptions occur, the method throws a `DOMException`. Additionally, the `try-catch` block is also added around the recursive call to `removeNodeByLocalNameAndNamespaceURI()` to handle any exceptions that may occur during the recursive traversal of the XML document.
+------------------------------------------------------

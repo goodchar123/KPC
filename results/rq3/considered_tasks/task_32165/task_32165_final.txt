@@ -1,0 +1,36 @@
+
+Sure, here's an updated version of the Java method that includes the requested checks:
+
+```java
+public Raster getRawPixelData(Tile tile) {
+    BufferedImage image = tile.getImage();
+    ColorModel colorModel = image.getColorModel();
+    SampleModel sampleModel = colorModel.createCompatibleSampleModel(tile.getWidth(), tile.getHeight());
+    if (sampleModel == null) {
+        throw new UnsupportedOperationException("createCompatibleSampleModel not supported by this ColorModel");
+    }
+    int maxX = tile.getLocation().x + sampleModel.getWidth();
+    int maxY = tile.getLocation().y + sampleModel.getHeight();
+    if (maxX < tile.getLocation().x || maxY < tile.getLocation().y) {
+        throw new RasterFormatException("Integer overflow when computing Raster dimensions");
+    }
+    DataBuffer dataBuffer = image.getData().getDataBuffer();
+    if (dataBuffer.getNumBanks() > 1 && (sampleModel instanceof PixelInterleavedSampleModel ||
+            sampleModel instanceof SinglePixelPackedSampleModel ||
+            sampleModel instanceof MultiPixelPackedSampleModel)) {
+        throw new RasterFormatException("SampleModel and DataBuffer are incompatible");
+    }
+    if (sampleModel == null || dataBuffer == null) {
+        throw new NullPointerException("SampleModel or DataBuffer is null");
+    }
+    return Raster.createRaster(sampleModel, dataBuffer, tile.getLocation());
+}
+```
+
+This updated method includes the following checks:
+
+- It checks if `createCompatibleSampleModel` returns `null`, and throws an `UnsupportedOperationException` if it does.
+- It checks if computing either `location.x + sm.getWidth()` or `location.y + sm.getHeight()` results in integer overflow, and throws a `RasterFormatException` if it does.
+- It checks if `dataBuffer` has more than one bank and `sampleModel` is a `PixelInterleavedSampleModel`, `SinglePixelPackedSampleModel`, or `MultiPixelPackedSampleModel`, and throws a `RasterFormatException` if they are incompatible.
+- It checks if either `sampleModel` or `dataBuffer` is `null`, and throws a `NullPointerException` if either is `null`.
+------------------------------------------------------

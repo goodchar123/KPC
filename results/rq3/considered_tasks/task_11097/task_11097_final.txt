@@ -1,0 +1,44 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the Java method that includes the necessary checks and exceptions:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+
+public class FileMapper {
+    public static MappedByteBuffer mapFile(String filePath, long position, long size, FileChannel.MapMode mode) throws IOException {
+        RandomAccessFile file = new RandomAccessFile(filePath, mode == FileChannel.MapMode.READ_ONLY ? "r" : "rw");
+        FileChannel channel = file.getChannel();
+        if (!channel.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        long fileSize;
+        try {
+            fileSize = channel.size();
+        } catch (IOException e) {
+            channel.close();
+            file.close();
+            throw e;
+        }
+        if (mode == FileChannel.MapMode.READ_ONLY && !channel.isOpen() || mode == FileChannel.MapMode.READ_WRITE && !channel.isOpen() || position < 0 || size < 0 || position + size > fileSize) {
+            channel.close();
+            file.close();
+            throw new IllegalArgumentException();
+        }
+        MappedByteBuffer buffer = channel.map(mode, position, size);
+        channel.close();
+        file.close();
+        return buffer;
+    }
+}
+```
+
+This updated method now checks for the following conditions:
+
+- If the channel is closed when calling `size()`, it throws a `ClosedChannelException`.
+- If some other I/O error occurs when calling `size()`, it throws an `IOException`.
+
+I hope this updated version of the method is helpful.
+------------------------------------------------------

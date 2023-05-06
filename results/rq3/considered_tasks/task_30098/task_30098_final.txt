@@ -1,0 +1,37 @@
+
+Here's the updated Java method that checks for null input and security manager access:
+
+```java
+public void printPage(int pageIndex, Graphics graphics, PageFormat pageFormat) throws PrinterException {
+    if (graphics == null) {
+        throw new NullPointerException("Graphics context is null");
+    }
+    if (pageFormat == null) {
+        throw new NullPointerException("Page format is null");
+    }
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPrintJobAccess();
+    }
+    PrinterJob printerJob = PrinterJob.getPrinterJob();
+    printerJob.setPrintable(this, pageFormat);
+    if (pageIndex >= printerJob.defaultPage().getNumberOfPages()) {
+        return;
+    }
+    graphics.translate((int) pageFormat.getImageableX(), (int) pageFormat.getImageableY());
+    graphics.setColor(Color.BLACK);
+    graphics.setFont(new Font("Arial", Font.PLAIN, 12));
+    String str = "This is page " + (pageIndex + 1);
+    if (str == null) {
+        throw new NullPointerException("String to be printed is null");
+    }
+    graphics.drawString(str, 100, 100);
+}
+```
+
+This updated method checks for null input for both the `graphics` and `pageFormat` parameters. If either of them is null, a `NullPointerException` is thrown.
+
+It also checks if a security manager exists and calls its `checkPrintJobAccess()` method to ensure that the current thread is allowed to create a print job request. If the security manager disallows it, a `SecurityException` is thrown.
+
+Finally, the method checks if the `str` variable is null before calling the `drawString()` method. If it is null, a `NullPointerException` is thrown.
+------------------------------------------------------

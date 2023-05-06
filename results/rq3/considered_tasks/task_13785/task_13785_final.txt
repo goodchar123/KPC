@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the Java method that checks for the `IllegalStateException` when calling `getKey()` and `getValue()` on a removed entry:
+
+```java
+public static <K, V> Map<K, V> getMapBeforeKey(Map<K, V> map, K toKey) {
+    if (map == null || map.isEmpty()) {
+        return Collections.emptyMap();
+    }
+    return map.entrySet().stream()
+            .filter(entry -> {
+                try {
+                    return entry.getKey().compareTo(toKey) < 0;
+                } catch (IllegalStateException e) {
+                    return false;
+                }
+            })
+            .collect(Collectors.toMap(entry -> {
+                try {
+                    return entry.getKey();
+                } catch (IllegalStateException e) {
+                    throw new IllegalStateException("Entry has been removed from the backing map", e);
+                }
+            }, entry -> {
+                try {
+                    return entry.getValue();
+                } catch (IllegalStateException e) {
+                    throw new IllegalStateException("Entry has been removed from the backing map", e);
+                }
+            }));
+}
+```
+
+This version uses a try-catch block to catch the `IllegalStateException` that may be thrown when calling `getKey()` or `getValue()` on a removed entry. If such an exception is caught, the filter returns `false` to exclude the entry from the result map. 
+
+The `toMap()` collector also uses try-catch blocks to catch the `IllegalStateException` and throw a new `IllegalStateException` with a more informative message.
+
+Note that the `IllegalStateException` is not guaranteed to be thrown by all implementations of `Map.Entry.getKey()` and `Map.Entry.getValue()`, but this code handles it just in case.
+------------------------------------------------------

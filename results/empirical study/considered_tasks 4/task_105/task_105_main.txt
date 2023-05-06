@@ -1,0 +1,79 @@
+Please write a java method that find proxy settings of a System in Java
+Here is a Java method that finds the proxy settings of a system:
+
+```java
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.util.List;
+
+public class ProxySettingsFinder {
+    public static void main(String[] args) {
+        List<Proxy> proxies = getProxySettings();
+        for (Proxy proxy : proxies) {
+            System.out.println(proxy);
+        }
+    }
+
+    public static List<Proxy> getProxySettings() {
+        try {
+            ProxySelector selector = ProxySelector.getDefault();
+            URI uri = new URI("http://www.google.com");
+            List<Proxy> proxies = selector.select(uri);
+            return proxies;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+```
+
+This method uses the `ProxySelector` class to get the default proxy selector for the system. It then creates a `URI` object for a website (in this case, Google), and calls the `select` method on the proxy selector, passing in the URI. This returns a list of `Proxy` objects that represent the proxy settings for the system. The method then returns this list.
+------------------------------------------------------
+Please check If a security manager has been installed and it denies          NetPermission("getProxySelector") for java.net.ProxySelector.getDefault() in the code snippet you provided, otherwise throw SecurityException.
+Sure, here's the updated code snippet that checks for a security manager and throws a `SecurityException` if it denies the `NetPermission("getProxySelector")` permission:
+
+```java
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.SecurityPermission;
+import java.util.List;
+
+public class ProxySettingsFinder {
+    public static void main(String[] args) {
+        List<Proxy> proxies = getProxySettings();
+        for (Proxy proxy : proxies) {
+            System.out.println(proxy);
+        }
+    }
+
+    public static List<Proxy> getProxySettings() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new SecurityPermission("getProperty.netPermission"));
+        }
+        try {
+            List<Proxy> proxies = AccessController.doPrivileged(new PrivilegedAction<List<Proxy>>() {
+                public List<Proxy> run() {
+                    return ProxySelector.getDefault().select(new URI("http://www.google.com"));
+                }
+            });
+            return proxies;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+```
+
+This updated code first checks if a security manager is installed using `System.getSecurityManager()`. If one is installed, it checks for the `getProperty.netPermission` permission using `SecurityManager.checkPermission()`. If the permission is denied, a `SecurityException` is thrown.
+
+If the permission is granted or there is no security manager installed, the code uses `AccessController.doPrivileged()` to execute the `ProxySelector.getDefault().select()` method call with the necessary privileges. This ensures that the code has the necessary permissions to access the proxy settings, even if the calling code does not have those permissions.
+------------------------------------------------------

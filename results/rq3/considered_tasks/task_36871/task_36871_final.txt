@@ -1,0 +1,57 @@
+
+Sure, here's an updated version of the code snippet that checks for a `FactoryConfigurationError` when attempting to create a new `DocumentBuilderFactory`:
+
+```java
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilderFactory;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.core.xml.io.UnmarshallingException;
+
+public class XMLObjectCreator {
+
+    public static XMLObject createXMLObject(String elementName, String namespaceURI, String prefix) throws ParserConfigurationException, UnmarshallingException {
+        // Create a new DocumentBuilderFactory
+        DocumentBuilderFactory documentBuilderFactory = null;
+        try {
+            documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        } catch (FactoryConfigurationError e) {
+            throw new FactoryConfigurationError("Unable to create DocumentBuilderFactory: " + e.getMessage());
+        }
+
+        // Set the namespace awareness to true
+        documentBuilderFactory.setNamespaceAware(true);
+
+        // Create a new DocumentBuilder
+        DocumentBuilder documentBuilder = null;
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new ParserConfigurationException("Unable to create DocumentBuilder: " + e.getMessage());
+        }
+
+        // Create a new XMLObjectBuilderFactory
+        XMLObjectBuilderFactory builderFactory = XMLObjectProviderRegistrySupport.getBuilderFactory();
+
+        // Use the builder factory to create a new XMLObject
+        XMLObject xmlObject = builderFactory.getBuilder(Element.class, namespaceURI, elementName).buildObject(namespaceURI, elementName, prefix);
+
+        // Return the created XMLObject
+        return xmlObject;
+    }
+}
+```
+
+This updated version of the code attempts to create a new `DocumentBuilderFactory` using `DocumentBuilderFactory.newInstance()`. If this fails due to a `FactoryConfigurationError`, it throws a `FactoryConfigurationError` with a message indicating the reason for the failure.
+------------------------------------------------------

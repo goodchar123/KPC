@@ -1,0 +1,28 @@
+
+You're right, it's important to handle potential I/O errors when calling `write()`, `flush()`, and `close()` on an `OutputStream`. Here's an updated version of the method that includes error handling:
+
+```java
+public int writeBytesToBlob(Blob blob, byte[] bytes, int offset, int length) throws SQLException, IOException {
+    OutputStream out = blob.setBinaryStream(offset + 1);
+    try {
+        out.write(bytes, offset, length);
+        out.flush();
+    } catch (IOException e) {
+        throw e;
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+    return length;
+}
+```
+
+This version of the method uses a try-catch-finally block to handle potential exceptions. If an `IOException` or `SQLException` is thrown while writing to the output stream, it is re-thrown to the calling method. In the `finally` block, the output stream is closed to ensure that any resources are released, even if an exception was thrown earlier. If an `IOException` is thrown while closing the stream, it is ignored since the main exception has already been thrown.
+------------------------------------------------------

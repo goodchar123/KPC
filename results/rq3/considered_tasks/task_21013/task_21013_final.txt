@@ -1,0 +1,31 @@
+
+Sure, here's the updated code snippet that checks for both a database access error or a closed connection when retrieving the `DatabaseMetaData` object, and also checks for a database access error when retrieving the maximum number of columns allowed in an ORDER BY clause:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    public int getMaxOrderByColumns(Connection conn) throws SQLException {
+        int maxColumns = 0;
+        try {
+            if (conn.isClosed()) {
+                throw new SQLException("Connection is closed");
+            }
+            DatabaseMetaData metaData = conn.getMetaData();
+            try {
+                maxColumns = metaData.getMaxColumnsInOrderBy();
+            } catch (SQLException e) {
+                throw new SQLException("Database access error occurred while retrieving max columns in ORDER BY clause", e);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Database access error occurred while retrieving database metadata", e);
+        }
+        return maxColumns;
+    }
+}
+```
+
+This updated method now includes two try-catch blocks. The outer try-catch block attempts to retrieve the `DatabaseMetaData` object using the `getMetaData()` method of the `Connection` object. If a `SQLException` is thrown during this process, the catch block catches the exception, creates a new `SQLException` with a custom error message, and re-throws the exception with the original exception as the cause.
+
+The inner try-catch block attempts to retrieve the maximum number of columns allowed in an ORDER BY clause using the `getMaxColumnsInOrderBy()` method of the `DatabaseMetaData` object. If a `SQLException` is thrown during this process, the catch block catches the exception, creates a new `SQLException` with a custom error message, and re-throws the exception with the original exception as the cause. This way, the calling method can handle the exception appropriately.
+------------------------------------------------------

@@ -1,0 +1,48 @@
+
+Sure, here's the updated Java method that checks if the status byte or data bytes are valid and throws an `InvalidMidiDataException` if they are not:
+
+```java
+public static MidiMessage createMidiMessage(int status, int channel) throws InvalidMidiDataException {
+    ShortMessage message = new ShortMessage();
+    if (status < 128 || status > 239 || (status > 223 && status < 240)) {
+        throw new InvalidMidiDataException("Invalid status byte for MIDI message.");
+    }
+    if (channel < 0 || channel > 15) {
+        throw new InvalidMidiDataException("Invalid MIDI channel.");
+    }
+    message.setMessage(status, channel, 0);
+    if (!isValidMidiMessage(message)) {
+        throw new InvalidMidiDataException("Invalid MIDI message.");
+    }
+    return message;
+}
+
+private static boolean isValidMidiMessage(ShortMessage message) {
+    int status = message.getStatus();
+    int data1 = message.getData1();
+    int data2 = message.getData2();
+    switch (status & 0xF0) {
+        case 0x80: // Note off
+        case 0x90: // Note on
+        case 0xA0: // Polyphonic key pressure
+        case 0xB0: // Control change
+        case 0xC0: // Program change
+        case 0xD0: // Channel pressure
+        case 0xE0: // Pitch bend
+            return (data1 >= 0 && data1 <= 127) && (data2 >= 0 && data2 <= 127);
+        default:
+            return false;
+    }
+}
+```
+
+This method first checks if the `status` parameter is a valid MIDI status byte. According to the MIDI specification, valid status bytes are in the range 128-239, except for the range 224-239 which are reserved for system messages. If the `status` parameter is not in this range, the method throws an `InvalidMidiDataException`.
+
+Next, the method checks if the `channel` parameter is a valid MIDI channel. MIDI channels are numbered from 0 to 15, so if the `channel` parameter is outside this range, the method throws an `InvalidMidiDataException`.
+
+If both the `status` and `channel` parameters are valid, the method creates a new `ShortMessage` object and sets its parameters using the `setMessage()` method. The third parameter of `setMessage()` is set to 0 because this type of MIDI message takes no data bytes.
+
+Finally, the method checks if the resulting MIDI message is valid by calling the `isValidMidiMessage()` method. This method checks if the message is a valid MIDI message based on its status byte and data bytes. If the message is not valid, the method throws an `InvalidMidiDataException`.
+
+If the `status`, `channel`, and message bytes are all valid, the method returns the `ShortMessage` object as a `MidiMessage`.
+------------------------------------------------------

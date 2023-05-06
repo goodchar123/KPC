@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the `setCashValue` method that checks for a query timeout and attempts to cancel the statement if it exceeds the specified timeout:
+
+```java
+public void setCashValue(Connection conn, String tableName, String columnName, boolean isCashValue, int queryTimeout) throws SQLException {
+    String sql = "ALTER TABLE " + tableName + " MODIFY " + columnName + " DECIMAL(10,2)";
+    if (isCashValue) {
+        sql += " CHECK (" + columnName + " >= 0)";
+    }
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setQueryTimeout(queryTimeout);
+    try {
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        if ("Statement cancelled due to timeout or client request".equals(e.getMessage())) {
+            throw new SQLTimeoutException("Query timeout exceeded", e.getSQLState(), e.getErrorCode());
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method takes an additional parameter `queryTimeout` which specifies the maximum number of seconds that the statement should be allowed to run before timing out. 
+
+The method sets the query timeout on the `PreparedStatement` object using the `setQueryTimeout` method. It then attempts to execute the statement using the `executeUpdate` method.
+
+If the statement exceeds the specified timeout and is cancelled, the method catches the `SQLException` and checks if the error message indicates that the statement was cancelled due to a timeout. If so, the method throws a `SQLTimeoutException` with a custom error message. Otherwise, it re-throws the original `SQLException`.
+------------------------------------------------------

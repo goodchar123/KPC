@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the code snippet that includes error checking and exception handling:
+
+```java
+import java.io.IOException;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class AsyncChannelGroupExample {
+    
+    public static AsynchronousChannelGroup createChannelGroup(ExecutorService threadPool) throws IOException {
+        try {
+            return AsynchronousChannelGroup.withThreadPool(threadPool);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("Error creating channel group", e);
+        }
+    }
+    
+    public static ExecutorService createThreadPool(int nThreads) throws IllegalArgumentException {
+        if (nThreads <= 0) {
+            throw new IllegalArgumentException("Number of threads must be greater than 0");
+        }
+        return Executors.newFixedThreadPool(nThreads);
+    }
+    
+    public static void main(String[] args) {
+        ExecutorService threadPool = null;
+        try {
+            threadPool = createThreadPool(10);
+            AsynchronousChannelGroup channelGroup = createChannelGroup(threadPool);
+            // Use the channel group for asynchronous I/O operations
+        } catch (IllegalArgumentException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (threadPool != null) {
+                threadPool.shutdown();
+            }
+        }
+    }
+}
+```
+
+In this updated version, the `createChannelGroup` method now catches any `IOException` that may be thrown by the `withThreadPool` method and re-throws it. If any other exception is thrown, it is wrapped in an `IOException` and thrown instead.
+
+The `createThreadPool` method now checks if the `nThreads` parameter is less than or equal to 0, and throws an `IllegalArgumentException` if it is. 
+
+In the `main` method, both `createThreadPool` and `createChannelGroup` are called within a try-catch block that handles any exceptions thrown by these methods. If an exception is caught, it is printed to the console. Finally, the thread pool is shut down in a `finally` block to ensure that it is properly cleaned up.
+------------------------------------------------------

@@ -1,0 +1,40 @@
+
+You are correct, it is important to perform these checks to ensure that the `Arrays.copyOfRange` method is used correctly and to prevent potential errors. Here is an updated version of the method that includes these checks:
+
+```java
+public static <T> Stream<T[]> sliceStream(T[] segment, int sliceSize) {
+    if (segment == null) {
+        throw new NullPointerException("Segment cannot be null");
+    }
+    if (sliceSize <= 0) {
+        throw new IllegalArgumentException("Slice size must be positive");
+    }
+    int numSlices = (segment.length + sliceSize - 1) / sliceSize;
+    return IntStream.range(0, numSlices)
+            .mapToObj(i -> {
+                int from = i * sliceSize;
+                int to = Math.min((i + 1) * sliceSize, segment.length);
+                if (from < 0 || from > segment.length) {
+                    throw new ArrayIndexOutOfBoundsException("From index out of bounds");
+                }
+                if (to < 0 || to > segment.length) {
+                    throw new ArrayIndexOutOfBoundsException("To index out of bounds");
+                }
+                if (from > to) {
+                    throw new IllegalArgumentException("From index greater than to index");
+                }
+                return Arrays.copyOfRange(segment, from, to);
+            });
+}
+```
+
+This updated method includes the following checks:
+
+- `if (segment == null)` checks if the `segment` parameter is null, and throws a `NullPointerException` if it is.
+- `if (sliceSize <= 0)` checks if the `sliceSize` parameter is less than or equal to zero, and throws an `IllegalArgumentException` if it is.
+- `if (from < 0 || from > segment.length)` checks if the `from` index is out of bounds, and throws an `ArrayIndexOutOfBoundsException` if it is.
+- `if (to < 0 || to > segment.length)` checks if the `to` index is out of bounds, and throws an `ArrayIndexOutOfBoundsException` if it is.
+- `if (from > to)` checks if the `from` index is greater than the `to` index, and throws an `IllegalArgumentException` if it is.
+
+By including these checks, we can ensure that the `Arrays.copyOfRange` method is used correctly and that potential errors are caught and handled appropriately.
+------------------------------------------------------

@@ -1,0 +1,38 @@
+
+Sure, here's the updated Java method that includes error checking and exception handling:
+
+```java
+public String getClobSubstring(Clob clob, long pos, int length) throws SQLException, SQLFeatureNotSupportedException, IOException {
+    if (clob == null) {
+        throw new SQLException("Clob object is null");
+    }
+    if (pos < 1) {
+        throw new SQLException("Invalid starting position");
+    }
+    if (length < 1) {
+        throw new SQLException("Invalid length");
+    }
+    Reader reader = clob.getCharacterStream();
+    if (reader == null) {
+        throw new SQLFeatureNotSupportedException("getCharacterStream() not supported by JDBC driver");
+    }
+    char[] buffer = new char[length];
+    if (pos > reader.skip(pos - 1)) {
+        throw new SQLException("Error accessing CLOB value");
+    }
+    int bytesRead = reader.read(buffer, 0, length);
+    if (bytesRead == -1) {
+        throw new SQLException("Error accessing CLOB value");
+    }
+    return new String(buffer, 0, bytesRead);
+}
+```
+
+This updated method includes several checks to ensure that the input parameters are valid and that the CLOB value can be accessed without errors. 
+
+If the Clob object is null, an SQLException is thrown. If the starting position or length is less than 1, an SQLException is thrown. If the JDBC driver does not support the `getCharacterStream()` method, a SQLFeatureNotSupportedException is thrown.
+
+The method also checks for errors when accessing the CLOB value using the `skip()` and `read()` methods. If an error occurs, an SQLException is thrown.
+
+Finally, the method returns the resulting String containing the specified substring.
+------------------------------------------------------

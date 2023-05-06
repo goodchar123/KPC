@@ -1,0 +1,64 @@
+
+Thank you for the feedback. Here's the updated Java method that includes the requested exception handling:
+
+```java
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import java.io.IOException;
+
+public int getMBeanCount(MBeanServerConnection mbsc, String roleName) throws InstanceNotFoundException, MBeanException, ReflectionException, IOException, IllegalArgumentException, InvalidKeyException, RuntimeOperationsException {
+    ObjectName roleObjName = new ObjectName("JMImplementation:type=MBeanServerDelegate");
+    String[] params = {roleName};
+    String[] signature = {String.class.getName()};
+    TabularData td;
+    try {
+        td = (TabularData) mbsc.invoke(roleObjName, "getRole", params, signature);
+    } catch (InstanceNotFoundException | MBeanException | ReflectionException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new ReflectionException(e);
+    }
+    int count = 0;
+    for (Object value : td.values()) {
+        CompositeData cd = (CompositeData) value;
+        String key = "ObjectName";
+        if (cd.containsKey(key)) {
+            ObjectName mbeanObjName = (ObjectName) cd.get(key);
+            if (mbeanObjName != null) {
+                try {
+                    if (mbsc.isRegistered(mbeanObjName)) {
+                        count++;
+                    }
+                } catch (IllegalArgumentException | RuntimeOperationsException e) {
+                    throw e;
+                } catch (IOException e) {
+                    throw new RuntimeOperationsException(e);
+                }
+            }
+        } else {
+            throw new InvalidKeyException("Key " + key + " not found in CompositeData");
+        }
+    }
+    return count;
+}
+```
+
+The method now includes try-catch blocks to handle the following exceptions that can be thrown by the `invoke` method:
+
+- `InstanceNotFoundException`: if the MBean specified is not registered in the MBean server
+- `MBeanException`: if a problem occurs while invoking the MBean's method
+- `ReflectionException`: if a problem occurs while trying to invoke the method
+
+If any of these exceptions are caught, they are re-thrown to the calling method.
+
+The method also includes try-catch blocks to handle the following exceptions that can be thrown by the `isRegistered` method:
+
+- `IllegalArgumentException`: if the object name parameter is null or an empty string
+- `RuntimeOperationsException`: if a communication problem occurs when talking to the MBean server
+- `IOException`: if a communication problem occurs when talking to the MBean server
+
+If any of these exceptions are caught, they are re-thrown to the calling method.
+
+Additionally, the method now checks if the key "ObjectName" exists in the `CompositeData` object before attempting to retrieve its value. If the key is not found, an `InvalidKeyException` is thrown.
+------------------------------------------------------

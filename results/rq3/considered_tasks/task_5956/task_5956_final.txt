@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the Java method that includes all the requested exception handling:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
+import java.io.ObjectInputStream;
+import java.io.OptionalDataException;
+import java.io.StreamCorruptedException;
+import java.net.URL;
+
+public class ObjectReader {
+    public static Object readObjectFromURL(URL url) throws IOException, ClassNotFoundException {
+        try {
+            InputStream inputStream = url.openStream();
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            Object object = objectInputStream.readObject();
+            objectInputStream.close();
+            return object;
+        } catch (IOException e) {
+            throw new IOException("Error reading from stream: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new ClassNotFoundException("Class not found: " + e.getMessage());
+        } catch (InvalidClassException e) {
+            throw new InvalidClassException("Something is wrong with a class used by deserialization: " + e.getMessage());
+        } catch (StreamCorruptedException e) {
+            throw new StreamCorruptedException("Control information in the stream is inconsistent: " + e.getMessage());
+        } catch (OptionalDataException e) {
+            throw new OptionalDataException("Primitive data was found in the stream instead of objects: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IOException("Input/Output related exception: " + e.getMessage());
+        } finally {
+            try {
+                if (objectInputStream != null) {
+                    objectInputStream.close();
+                }
+            } catch (IOException e) {
+                throw new IOException("Error closing object input stream: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This updated method now includes a `finally` block that attempts to close the object input stream, and catches any `IOException` that may occur when doing so and re-throws it as an `IOException` with a more descriptive error message.
+------------------------------------------------------

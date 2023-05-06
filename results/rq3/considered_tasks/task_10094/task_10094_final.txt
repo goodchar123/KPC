@@ -1,0 +1,43 @@
+
+Sure, here's an updated version of the `readDouble` method that checks for an `IOException` when calling `available()` on the input stream:
+
+```java
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class DoubleReader {
+    public static double readDouble(InputStream inputStream) throws IOException {
+        if (inputStream == null) {
+            throw new NullPointerException("Input stream is null");
+        }
+        if (inputStream instanceof DataInputStream) {
+            inputStream = new PushbackInputStream(inputStream);
+        }
+        int availableBytes;
+        try {
+            availableBytes = inputStream.available();
+        } catch (IOException e) {
+            throw new IOException("Error checking available bytes", e);
+        }
+        if (availableBytes < 8) {
+            throw new EOFException("Not enough bytes available to read a double");
+        }
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+        double value;
+        try {
+            value = dataInputStream.readDouble();
+        } catch (IOException e) {
+            throw new IOException("Error reading double value", e);
+        }
+        if (inputStream.available() != availableBytes - 8) {
+            throw new IOException("Error reading double value: input stream has been closed or does not support reading after close");
+        }
+        return value;
+    }
+}
+```
+
+This updated method wraps the call to `inputStream.available()` in a try-catch block and throws an `IOException` with a more descriptive message if an `IOException` occurs.
+------------------------------------------------------

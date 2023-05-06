@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the Java method that handles the `MBeanServerConnection.addNotificationListener(ObjectName, ObjectName, NotificationFilter, Object)` method, with the requested exception handling:
+
+```java
+import javax.management.*;
+import java.io.IOException;
+
+public class MyMBeanServerConnection {
+
+    private MBeanServerConnection mbsc;
+
+    public void addNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, RuntimeOperationsException, IOException {
+        try {
+            mbsc.addNotificationListener(name, listener, filter, handback);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("does not implement the NotificationListener interface")) {
+                throw new RuntimeOperationsException(e, "The MBean named by listener exists but does not implement the NotificationListener interface.");
+            } else {
+                throw e;
+            }
+        } catch (InstanceNotFoundException e) {
+            if (e.getMessage().contains("does not match any of the registered MBeans")) {
+                throw e;
+            } else {
+                throw new RuntimeOperationsException(e, "The MBean name of the notification listener or of the notification broadcaster does not match any of the registered MBeans.");
+            }
+        } catch (IOException e) {
+            throw new IOException("A communication problem occurred when talking to the MBean server.", e);
+        }
+    }
+}
+```
+
+This updated method now handles the three exceptions that you requested:
+
+- `InstanceNotFoundException`: If the MBean name of the notification listener or of the notification broadcaster does not match any of the registered MBeans.
+- `RuntimeOperationsException`: If the MBean named by listener exists but does not implement the NotificationListener interface.
+- `IOException`: If a communication problem occurs when talking to the MBean server.
+
+The method uses try-catch blocks to catch these exceptions and throw the appropriate exceptions with the appropriate error messages. Note that the `IOException` is wrapped with a new `IOException` with a more descriptive error message.
+------------------------------------------------------

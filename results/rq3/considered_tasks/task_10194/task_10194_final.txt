@@ -1,0 +1,41 @@
+
+You're right, it's important to handle additional exceptions that may occur when reading from or writing to streams. Here's the updated code snippet that includes the additional exception handling:
+
+```java
+public static void readAndWrite(InputStream inputStream, OutputStream outputStream) throws IOException {
+    byte[] buffer = new byte[1024];
+    int bytesRead;
+    while ((bytesRead = inputStream.read(buffer)) != -1) {
+        outputStream.write(buffer, 0, bytesRead);
+    }
+}
+
+public static void readAndWriteWithNullCheck(InputStream inputStream, OutputStream outputStream) throws IOException {
+    if (inputStream == null || outputStream == null) {
+        throw new NullPointerException("Input or output stream is null");
+    }
+    byte[] buffer = new byte[1024];
+    int bytesRead;
+    try {
+        bytesRead = inputStream.read(buffer);
+        if (bytesRead == -1) {
+            throw new IOException("End of file reached");
+        }
+    } catch (IOException e) {
+        throw new IOException("Error reading from input stream", e);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Byte array is null");
+    }
+    try {
+        outputStream.write(buffer, 0, bytesRead);
+    } catch (IOException e) {
+        throw new IOException("Error writing to output stream", e);
+    }
+    if (outputStream.checkError()) {
+        throw new IOException("Error writing to output stream");
+    }
+}
+```
+
+The `readAndWriteWithNullCheck()` method now includes additional exception handling. It checks if the first byte cannot be read for any reason other than the end of the file, if the input stream has been closed, or if some other I/O error occurs. If any of these conditions are met, it throws an `IOException`. It also checks if the byte array is null before calling `read(byte[])` on the input stream and throws a `NullPointerException` if it is. It writes the bytes to the output stream and checks if an I/O error occurs. If the output stream is closed, it throws an `IOException`. Finally, it checks if an error occurred while writing to the output stream using `outputStream.checkError()` and throws an `IOException` if it did.
+------------------------------------------------------

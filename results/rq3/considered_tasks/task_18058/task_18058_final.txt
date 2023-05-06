@@ -1,0 +1,30 @@
+
+Sure, here's the updated Java method that includes the null and security checks you requested:
+
+```java
+public void setDigestAlgorithm(String providerName, String algorithm) throws NoSuchAlgorithmException, NoSuchProviderException, NullPointerException, SecurityException, IllegalArgumentException {
+    if (providerName == null || providerName.isEmpty()) {
+        throw new IllegalArgumentException("Provider name cannot be null or empty");
+    }
+    if (algorithm == null) {
+        throw new NullPointerException("Algorithm cannot be null");
+    }
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkSecurityAccess("addProvider");
+    }
+    Provider provider = Security.getProvider(providerName);
+    if (provider == null) {
+        throw new NoSuchProviderException("Provider not found: " + providerName);
+    }
+    MessageDigest digest = MessageDigest.getInstance(algorithm, providerName);
+    Security.addProvider(provider);
+}
+```
+
+This updated method first checks if the `providerName` and `algorithm` parameters are null or empty, and throws an `IllegalArgumentException` if they are. It then checks if a security manager exists and if its `checkSecurityAccess()` method denies access to add a new provider, and throws a `SecurityException` if access is denied.
+
+Next, the method checks if the specified provider exists using the `Security.getProvider()` method, and throws a `NoSuchProviderException` if the provider is not found. If the provider is found, the method sets the digest algorithm from the specified provider using the `getInstance()` method of the `MessageDigest` class.
+
+Finally, the method adds the provider to the security provider list using the `addProvider()` method of the `Security` class.
+------------------------------------------------------

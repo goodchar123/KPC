@@ -1,0 +1,52 @@
+
+Here's the updated Java method that includes the requested checks:
+
+```java
+public static Class<?> findClass(String binaryName) throws ClassNotFoundException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        ClassLoader callerClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (callerClassLoader != null && !callerClassLoader.equals(systemClassLoader) && !isAncestor(systemClassLoader, callerClassLoader)) {
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+
+    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    if (System.getProperty("java.system.class.loader") != null && classLoader.getClass().getName().equals(System.getProperty("java.system.class.loader"))) {
+        throw new IllegalStateException("Recursive invocation during the construction of the class loader specified by the \"java.system.class.loader\" property.");
+    }
+
+    try {
+        return Class.forName(binaryName, true, classLoader);
+    } catch (ClassNotFoundException e) {
+        throw new Error("Failed to load class: " + binaryName, e);
+    } catch (LinkageError e) {
+        throw new LinkageError("Failed to link class: " + binaryName, e);
+    } catch (ExceptionInInitializerError e) {
+        throw new ExceptionInInitializerError("Failed to initialize class: " + binaryName);
+    } catch (SecurityException e) {
+        throw new SecurityException("Failed to load class: " + binaryName, e);
+    }
+}
+
+private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader parent = descendant.getParent();
+    if (parent == null) {
+        return false;
+    } else if (parent.equals(ancestor)) {
+        return true;
+    } else {
+        return isAncestor(ancestor, parent);
+    }
+}
+```
+
+This method first checks if a security manager is present and if the caller's class loader is not null and is not the same as or an ancestor of the system class loader. If so, it checks if the caller has the `RuntimePermission("getClassLoader")` for `ClassLoader.getSystemClassLoader()`. If any of these checks fail, it throws a `SecurityException`.
+
+Next, it checks if the method is being invoked recursively during the construction of the class loader specified by the "java.system.class.loader" property. If so, it throws an `IllegalStateException`.
+
+Then, it attempts to load the class with the specified binary name using `Class.forName`. If the system property "java.system.class.loader" is defined but the named class could not be loaded, the provider class does not define the required constructor, or an exception is thrown by that constructor when it is invoked, it throws an `Error`. If the linkage fails, it throws a `LinkageError`. If the initialization provoked by this method fails, it throws an `ExceptionInInitializerError`.
+
+Finally, if a security manager is present and the loader is null and the caller's class loader is not null, and the caller does not have the `RuntimePermission("getClassLoader")` for `Class.forName`, it throws a `SecurityException`.
+------------------------------------------------------

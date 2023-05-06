@@ -1,0 +1,60 @@
+
+Sure, here's an updated version of the method that includes all the necessary error checks:
+
+```java
+public void setRefParameter(PreparedStatement statement, int parameterIndex, Object object) throws SQLException {
+    if (statement.isClosed()) {
+        throw new SQLException("PreparedStatement is closed");
+    }
+    ParameterMetaData parameterMetaData = statement.getParameterMetaData();
+    if (parameterMetaData == null) {
+        throw new SQLException("Failed to retrieve parameter metadata");
+    }
+    int parameterCount;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Failed to retrieve parameter count", e);
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index");
+    }
+    Connection connection = statement.getConnection();
+    if (connection.isClosed()) {
+        throw new SQLException("Connection is closed");
+    }
+    DatabaseMetaData metaData;
+    try {
+        metaData = connection.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Failed to retrieve database metadata", e);
+    }
+    if (metaData == null) {
+        throw new SQLException("Failed to retrieve database metadata");
+    }
+    if (!metaData.supportsRefCursors()) {
+        throw new SQLFeatureNotSupportedException("setRef() method not supported by JDBC driver");
+    }
+    Ref ref = connection.createRef("REF_TYPE_NAME", object);
+    try {
+        statement.setRef(parameterIndex, ref);
+    } catch (SQLException e) {
+        throw new SQLException("Failed to set Ref parameter", e);
+    }
+}
+```
+
+This updated method first checks if the `PreparedStatement` is closed. If it is closed, it throws a `SQLException`.
+
+Next, the method retrieves the `ParameterMetaData` object associated with the `PreparedStatement` and checks if it is `null`. If it is `null`, it throws a `SQLException`.
+
+The method then tries to retrieve the number of parameters in the SQL statement using `getParameterCount()`. If a `SQLException` is thrown, it is re-thrown with a more descriptive error message.
+
+The method then retrieves the `Connection` object associated with the `PreparedStatement` and checks if it is closed. If the connection is closed, it throws a `SQLException`.
+
+Next, the method calls `getMetaData()` on the connection to retrieve the `DatabaseMetaData` object. If a `SQLException` is thrown, it is re-thrown with a more descriptive error message.
+
+Finally, the method checks if the driver supports the `Ref` data type by calling `supportsRefCursors()` on the `DatabaseMetaData` object. If the method returns `false`, it throws a `SQLFeatureNotSupportedException`.
+
+If all checks pass, the method creates a `Ref` object using the `createRef()` method as before, and tries to set the designated parameter to the `Ref` value using the `setRef()` method of the `PreparedStatement`. If a `SQLException` is thrown, it is re-thrown with a more descriptive error message.
+------------------------------------------------------

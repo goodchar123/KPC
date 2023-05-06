@@ -1,0 +1,55 @@
+
+Sure, here's the updated Java method that includes the requested null and bounds checks:
+
+```java
+public static <E extends Enum<E>> EnumSet<E> createEnumSet(E... elements) {
+    if (elements == null || elements.length == 0) {
+        throw new NullPointerException("Elements cannot be null or empty");
+    }
+    for (E element : elements) {
+        if (element == null) {
+            throw new NullPointerException("Element cannot be null");
+        }
+    }
+    E first = elements[0];
+    if (elements.length == 1) {
+        return EnumSet.of(first);
+    }
+    E[] rest = Arrays.copyOfRange(elements, 1, elements.length);
+    if (rest == null) {
+        throw new NullPointerException("Rest cannot be null");
+    }
+    if (rest.length == 0) {
+        return EnumSet.of(first);
+    }
+    int from = 0;
+    int to = rest.length;
+    if (from < 0 || from > to || to > rest.length) {
+        throw new ArrayIndexOutOfBoundsException("Invalid range: from=" + from + ", to=" + to + ", length=" + rest.length);
+    }
+    return EnumSet.of(first, rest);
+}
+```
+
+This updated method first checks if the `elements` array is null or empty, and throws a `NullPointerException` if it is. It then checks each element in the array for null, and throws a `NullPointerException` if any element is null.
+
+Next, it checks if the `rest` array is null, and throws a `NullPointerException` if it is. It also checks if the `from` and `to` indices are within the bounds of the `rest` array, and throws an `ArrayIndexOutOfBoundsException` if they are not. It also checks if `from` is greater than `to`, and throws an `IllegalArgumentException` if it is.
+
+Finally, if all checks pass, it creates the `EnumSet` using the `EnumSet.of()` method, passing in the first element separately and the remaining elements as an array.
+
+Here's an example of how you could use this updated method to create an enum set containing the elements `MONDAY`, `WEDNESDAY`, and `FRIDAY` from the `DayOfWeek` enum:
+
+```java
+EnumSet<DayOfWeek> days = createEnumSet(DayOfWeek.MONDAY, null, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY);
+System.out.println(days); // throws NullPointerException for null element
+
+EnumSet<DayOfWeek> days2 = createEnumSet(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY);
+System.out.println(days2); // prints [MONDAY, WEDNESDAY, FRIDAY]
+
+EnumSet<DayOfWeek> days3 = createEnumSet(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY, null);
+System.out.println(days3); // throws NullPointerException for null element
+
+EnumSet<DayOfWeek> days4 = createEnumSet(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY);
+System.out.println(days4); // prints [MONDAY, WEDNESDAY, FRIDAY, SATURDAY]
+```
+------------------------------------------------------

@@ -1,0 +1,66 @@
+
+Here's the updated Java method that checks for null inputs when using `java.text.Normalizer.normalize`:
+
+```java
+import java.text.Normalizer;
+import java.util.regex.Pattern;
+
+public class UnicodeToACE {
+    public static String toACE(String input) {
+        if (input == null) {
+            throw new NullPointerException("Input string cannot be null");
+        }
+
+        // Normalize the input string to Unicode NFC form
+        String normalized = null;
+        try {
+            normalized = Normalizer.normalize(input, Normalizer.Form.NFC);
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Input string or normalization form cannot be null");
+        }
+
+        // Split the input string into labels
+        String[] labels = normalized.split("\\.");
+
+        // Convert each label to ACE form
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = toACELabel(labels[i]);
+        }
+
+        // Join the labels back together with dots
+        try {
+            return String.join(".", labels);
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Delimiter or elements cannot be null");
+        }
+    }
+
+    private static String toACELabel(String label) {
+        if (label == null) {
+            throw new NullPointerException("Label string cannot be null");
+        }
+
+        // Convert the label to ASCII Compatible Encoding (ACE)
+        String ace = IDNA.toASCII(label, IDNA.USE_STD3_ASCII_RULES);
+
+        // Replace any remaining non-ASCII characters with hyphens
+        try {
+            ace = Pattern.compile("[^\\p{ASCII}]").matcher(ace).replaceAll("-");
+        } catch (PatternSyntaxException e) {
+            throw new PatternSyntaxException("Invalid regular expression syntax", e.getPattern(), e.getIndex());
+        }
+
+        // Remove any leading or trailing hyphens
+        try {
+            ace = ace.replaceAll("^-|-$", "");
+        } catch (PatternSyntaxException e) {
+            throw new PatternSyntaxException("Invalid regular expression syntax", e.getPattern(), e.getIndex());
+        }
+
+        return ace;
+    }
+}
+```
+
+This updated method checks for null inputs when using `java.text.Normalizer.normalize`, and throws a `NullPointerException` if either the input string or normalization form is null.
+------------------------------------------------------

@@ -1,0 +1,44 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the Java method that includes the necessary checks:
+
+```java
+public static Clock truncatedClock(Clock clock, Duration duration) {
+    Objects.requireNonNull(clock, "Clock must not be null");
+    Objects.requireNonNull(duration, "Duration must not be null");
+
+    return new Clock() {
+        @Override
+        public ZoneId getZone() {
+            return clock.getZone();
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return truncatedClock(clock.withZone(zone), duration);
+        }
+
+        @Override
+        public Instant instant() {
+            Instant instant = clock.instant();
+            long epochSecond = instant.getEpochSecond();
+            long truncatedSecond = epochSecond / duration.getSeconds() * duration.getSeconds();
+            if (truncatedSecond > Instant.MAX.getEpochSecond() || truncatedSecond < Instant.MIN.getEpochSecond()) {
+                throw new DateTimeException("Instant exceeds maximum or minimum instant");
+            }
+            try {
+                return Instant.ofEpochSecond(truncatedSecond, instant.getNano());
+            } catch (ArithmeticException e) {
+                throw new DateTimeException("Numeric overflow occurred for Instant.ofEpochSecond()", e);
+            }
+        }
+    };
+}
+```
+
+This updated method includes the following checks:
+
+- Before creating a new `Instant` object using `Instant.ofEpochSecond()`, it checks if the truncated epoch second exceeds the maximum or minimum instant for `Instant`. If it does, it throws a `DateTimeException`.
+- After creating a new `Instant` object using `Instant.ofEpochSecond()`, it checks if a numeric overflow occurred. If it did, it throws a `DateTimeException` with the original `ArithmeticException` as the cause.
+
+These checks ensure that the method behaves correctly and throws appropriate exceptions when necessary.
+------------------------------------------------------

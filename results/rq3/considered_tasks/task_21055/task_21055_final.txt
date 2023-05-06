@@ -1,0 +1,41 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed result sets:
+
+```java
+public boolean isResultSetOwnUpdatesVisible(int resultSetType) throws SQLException {
+    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+    DatabaseMetaData dbmd = conn.getMetaData();
+    ResultSet rs = dbmd.getTables(null, null, null, new String[] {"TABLE"});
+    boolean ownUpdatesVisible = false;
+    try {
+        while (rs.next()) {
+            String tableName = rs.getString("TABLE_NAME");
+            ResultSet resultSet = conn.createStatement(resultSetType, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM " + tableName);
+            if (resultSet.isClosed()) {
+                throw new SQLException("Result set is closed");
+            }
+            ResultSetMetaData rsmd = resultSet.getMetaData();
+            if (rsmd == null) {
+                throw new SQLException("Result set metadata is null");
+            }
+            ownUpdatesVisible = rsmd.ownUpdatesAreVisible(resultSetType);
+            if (ownUpdatesVisible) {
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error: " + e.getMessage());
+    } finally {
+        if (rs != null) {
+            rs.close();
+        }
+        if (conn != null) {
+            conn.close();
+        }
+    }
+    return ownUpdatesVisible;
+}
+```
+
+This updated method now checks for database access errors and closed result sets by wrapping the code in a try-catch block and checking for the `isClosed()` method on the ResultSet object and the `null` value of the ResultSetMetaData object. If either of these conditions are true, a SQLException is thrown with an appropriate error message. Additionally, the method now closes the ResultSet and Connection objects in a finally block to ensure that they are properly closed regardless of whether an exception is thrown or not.
+------------------------------------------------------

@@ -1,0 +1,34 @@
+
+Sure, here's an updated version of the `setParameterStream` method that checks for a query timeout and attempts to cancel the currently running statement if the timeout has been exceeded:
+
+```java
+public void setParameterStream(int parameterIndex, InputStream inputStream, int queryTimeout) throws SQLException {
+    PreparedStatement preparedStatement = null;
+    try {
+        preparedStatement = connection.prepareStatement("UPDATE my_table SET my_column = ? WHERE id = ?");
+        preparedStatement.setBinaryStream(parameterIndex, inputStream);
+        preparedStatement.setInt(parameterIndex + 1, 1234);
+        preparedStatement.setQueryTimeout(queryTimeout);
+        preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout occurred, attempt to cancel the statement
+            if (preparedStatement != null) {
+                preparedStatement.cancel();
+            }
+        }
+        throw e;
+    } finally {
+        if (preparedStatement != null) {
+            preparedStatement.close();
+        }
+    }
+}
+```
+
+In this updated version, the `setParameterStream` method now takes an additional parameter `queryTimeout` which specifies the maximum time in seconds that the driver will wait for the statement to execute. The method sets the query timeout using the `setQueryTimeout` method of the `PreparedStatement` object.
+
+If a `SQLTimeoutException` is thrown during the execution of the statement, the method attempts to cancel the statement using the `cancel` method of the `PreparedStatement` object. The method then re-throws the exception to the caller.
+
+Note that not all JDBC drivers support statement cancellation, so this may not work in all cases. Additionally, cancelling a statement may not immediately stop its execution, so it's possible that some work may still be done even after the statement has been cancelled.
+------------------------------------------------------

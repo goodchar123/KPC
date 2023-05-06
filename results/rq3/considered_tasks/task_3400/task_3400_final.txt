@@ -1,0 +1,58 @@
+
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public void setExternalSubset(String systemId, String publicId, String externalSubset) throws SAXException, ParserConfigurationException {
+    try {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser parser = factory.newSAXParser();
+        XMLReader reader = parser.getXMLReader();
+        try {
+            reader.setFeature("http://xml.org/sax/features/use-entity-resolver2", true);
+        } catch (SAXNotRecognizedException e) {
+            throw new SAXException("Feature not recognized: http://xml.org/sax/features/use-entity-resolver2", e);
+        } catch (SAXNotSupportedException e) {
+            throw new SAXException("Feature not supported: http://xml.org/sax/features/use-entity-resolver2", e);
+        }
+        try {
+            reader.setProperty("http://xml.org/sax/properties/external-general-entities", true);
+            reader.setProperty("http://xml.org/sax/properties/external-parameter-entities", true);
+        } catch (SAXNotRecognizedException e) {
+            throw new SAXException("Property not recognized: http://xml.org/sax/properties/external-general-entities or http://xml.org/sax/properties/external-parameter-entities", e);
+        } catch (SAXNotSupportedException e) {
+            throw new SAXException("Property not supported: http://xml.org/sax/properties/external-general-entities or http://xml.org/sax/properties/external-parameter-entities", e);
+        }
+        reader.setEntityResolver(new EntityResolver2() {
+            @Override
+            public InputSource getExternalSubset(String name, String baseURI) throws SAXException, IOException {
+                if (name.equals("")) {
+                    return new InputSource(new StringReader(externalSubset));
+                }
+                return null;
+            }
+
+            @Override
+            public InputSource resolveEntity(String name, String publicId, String baseURI, String systemId) throws SAXException, IOException {
+                return null;
+            }
+
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+                return null;
+            }
+        });
+        reader.parse(new InputSource(systemId));
+    } catch (SAXException | IOException e) {
+        throw new SAXException("Error setting external subset", e);
+    } catch (ParserConfigurationException e) {
+        throw new ParserConfigurationException("Error creating SAX parser", e);
+    } catch (SAXException e) {
+        throw new SAXException("SAX error", e);
+    }
+}
+```
+
+This version of the method includes try-catch blocks around the call to `SAXParserFactory.newSAXParser()` to handle the possible exceptions that can be thrown if a parser cannot be created which satisfies the requested configuration. If an exception is caught, the method throws a `ParserConfigurationException` with an appropriate error message.
+
+The method also includes a catch block for `SAXException` to handle any SAX errors that may occur during parsing. If a SAX error is caught, the method throws a `SAXException` with an appropriate error message.
+------------------------------------------------------

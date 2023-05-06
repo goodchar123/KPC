@@ -1,0 +1,66 @@
+
+Here's the updated Java method that includes the requested checks and exceptions:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.security.AccessControlException;
+import java.security.Permission;
+import java.util.Set;
+
+public class ShellInterpretedLinkChecker {
+    public static boolean isShellInterpretedLink(File file) throws IOException {
+        try {
+            Path path = file.toPath();
+            FileSystem fileSystem = path.getFileSystem();
+            Path realPath = fileSystem.getPath(file.getAbsolutePath());
+            Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(realPath);
+            boolean isSymbolicLink = Files.isSymbolicLink(realPath);
+            boolean isExecutable = Files.isExecutable(realPath);
+            boolean hasInterpreterDirective = false;
+
+            if (isSymbolicLink && isExecutable) {
+                SecurityManager securityManager = System.getSecurityManager();
+
+                if (securityManager != null) {
+                    Permission permission = new FilePermission(realPath.toString(), "readlink");
+                    securityManager.checkPermission(permission);
+                }
+
+                Path linkLocation = Files.readSymbolicLink(realPath);
+                String linkTarget = linkLocation.toString();
+
+                if (linkTarget.startsWith("#!")) {
+                    hasInterpreterDirective = true;
+                }
+            }
+
+            return isSymbolicLink && isExecutable && hasInterpreterDirective;
+        } catch (InvalidPathException e) {
+            throw new InvalidPathException("Cannot construct Path object from abstract path", e.getInput());
+        } catch (AccessControlException e) {
+            throw new SecurityException("Access denied by security manager", e);
+        } catch (UnsupportedOperationException e) {
+            throw new UnsupportedOperationException("Symbolic links not supported", e);
+        } catch (NotLinkException e) {
+            throw new NotLinkException("Target could not be read because file is not a symbolic link", e.getFile());
+        } catch (IOException e) {
+            throw new IOException("An I/O error occurred while reading symbolic link", e);
+        }
+    }
+}
+```
+
+This method now includes the following checks and exceptions:
+
+- If a `Path` object cannot be constructed from the abstract path, an `InvalidPathException` is thrown.
+- If a security manager is installed and denies read access to the file, a `SecurityException` is thrown when calling `Files.isSymbolicLink()`.
+- If a security manager is installed and denies execute access to the file, a `SecurityException` is thrown when calling `Files.isExecutable()`.
+- If the implementation does not support symbolic links, an `UnsupportedOperationException` is thrown when calling `Files.readSymbolicLink()`.
+- If the target could otherwise not be read because the file is not a symbolic link, a `NotLinkException` is thrown when calling `Files.readSymbolicLink()`.
+- If a security manager is installed and denies the "readlink" action to read the link, a `SecurityException` is thrown when calling `Files.readSymbolicLink()`.
+------------------------------------------------------

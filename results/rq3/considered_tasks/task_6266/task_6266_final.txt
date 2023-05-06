@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the Java methods that checks for invalid or out-of-range values and throws a `DateTimeException` if necessary:
+
+```java
+public static ZonedDateTime withDayOfMonth(ZonedDateTime zonedDateTime, int dayOfMonth) {
+    int maxDayOfMonth = zonedDateTime.getMonth().length(zonedDateTime.toLocalDate().isLeapYear());
+    if (dayOfMonth < 1 || dayOfMonth > maxDayOfMonth) {
+        throw new DateTimeException("Invalid day of month: " + dayOfMonth);
+    }
+    return zonedDateTime.withDayOfMonth(dayOfMonth);
+}
+
+public static ZonedDateTime of(int year, int month, int dayOfMonth, int hour, int minute, int second, int nanoOfSecond, ZoneId zone) {
+    try {
+        YearMonth.of(year, month);
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Invalid year or month: " + e.getMessage());
+    }
+    int maxDayOfMonth = YearMonth.of(year, month).lengthOfMonth();
+    if (dayOfMonth < 1 || dayOfMonth > maxDayOfMonth) {
+        throw new DateTimeException("Invalid day of month: " + dayOfMonth);
+    }
+    if (hour < 0 || hour > 23) {
+        throw new DateTimeException("Invalid hour: " + hour);
+    }
+    if (minute < 0 || minute > 59) {
+        throw new DateTimeException("Invalid minute: " + minute);
+    }
+    if (second < 0 || second > 59) {
+        throw new DateTimeException("Invalid second: " + second);
+    }
+    if (nanoOfSecond < 0 || nanoOfSecond > 999_999_999) {
+        throw new DateTimeException("Invalid nanoOfSecond: " + nanoOfSecond);
+    }
+    return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond, zone);
+}
+```
+
+The `withDayOfMonth()` method first calculates the maximum number of days in the current month using the `length()` method of the `Month` enum. It then checks if the `dayOfMonth` parameter is within the valid range of 1 to `maxDayOfMonth`. If it's not, a `DateTimeException` is thrown with an appropriate error message. Otherwise, the method returns a copy of the `ZonedDateTime` object with the day-of-month altered to the specified value.
+
+The `of()` method first tries to create a `YearMonth` object with the specified year and month values. If this throws a `DateTimeException`, it means that either the year or month value is invalid, so the method re-throws the exception with an appropriate error message. If the `YearMonth` object is created successfully, the method then calculates the maximum number of days in the specified month using the `lengthOfMonth()` method. It then checks if the `dayOfMonth` parameter is within the valid range of 1 to `maxDayOfMonth`. If it's not, a `DateTimeException` is thrown with an appropriate error message. The method also checks for out-of-range values in the other fields (hour, minute, second, nanoOfSecond) and throws a `DateTimeException` if necessary.
+
+All three methods now have comprehensive error checking to ensure that the input values are valid and within the expected range.
+------------------------------------------------------

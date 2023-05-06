@@ -1,0 +1,30 @@
+
+Here's the updated Java method that checks for the mentioned exceptions:
+
+```java
+public void deleteCurrentRow(ResultSet rs) throws SQLException {
+    if (rs.isClosed()) {
+        throw new SQLException("Result set is closed");
+    }
+    if (rs.getType() == ResultSet.TYPE_FORWARD_ONLY || rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY) {
+        throw new SQLException("Result set is not updatable");
+    }
+    if (rs.isBeforeFirst() || rs.isAfterLast()) {
+        throw new SQLException("Cursor is not on a valid row");
+    }
+    try {
+        rs.deleteRow();
+    } catch (SQLException e) {
+        if (e.getSQLState().equals("S1000")) {
+            throw new SQLFeatureNotSupportedException("Method not supported", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method first checks if the ResultSet object is closed, or if it is not updatable due to its concurrency level. It also checks if the cursor is not on a valid row for deletion. If any of these conditions are met, it throws a SQLException.
+
+If the deleteRow() method throws an SQLException with SQLState "S1000", it means that the JDBC driver does not support this method. In this case, the method throws a SQLFeatureNotSupportedException. Otherwise, it rethrows the original SQLException.
+------------------------------------------------------

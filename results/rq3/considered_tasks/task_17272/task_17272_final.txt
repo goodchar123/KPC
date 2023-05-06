@@ -1,0 +1,52 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed result set, and throws `SQLException` if any occur:
+
+```java
+public int getColumnType(String columnName) throws SQLException {
+    int columnType = -1;
+    ResultSetMetaData metaData;
+    try {
+        if (resultSet.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+        metaData = resultSet.getMetaData();
+        columnCount = metaData.getColumnCount();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving column count", e);
+    }
+    try {
+        for (int i = 1; i <= columnCount; i++) {
+            if (metaData.getColumnName(i).equalsIgnoreCase(columnName)) {
+                columnType = metaData.getColumnType(i);
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving column name", e);
+    }
+    if (columnType == -1) {
+        throw new SQLException("Column not found: " + columnName);
+    }
+    try {
+        if (columnType == Types.NULL) {
+            throw new SQLException("Column type is NULL");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving column type", e);
+    }
+    return columnType;
+}
+```
+
+In this updated code, we have added multiple try-catch blocks to handle different types of exceptions that may occur. 
+
+First, we check if the result set is closed using the `isClosed()` method. If it is closed, we throw a new `SQLException` with a custom error message.
+
+Next, we retrieve the `ResultSetMetaData` object and the column count. If a database access error occurs, we throw a new `SQLException` with a custom error message and the original exception as the cause.
+
+Then, we iterate through each column to find the column with the specified name. If a database access error occurs while retrieving the column name, we throw a new `SQLException` with a custom error message and the original exception as the cause.
+
+If the column is not found, we throw a new `SQLException` with a custom error message.
+
+Finally, we check if the column type is `Types.NULL`. If a database access error occurs while retrieving the column type, we throw a new `SQLException` with a custom error message and the original exception as the cause. If the column type is `Types.NULL`, we throw a new `SQLException` with a custom error message.
+------------------------------------------------------

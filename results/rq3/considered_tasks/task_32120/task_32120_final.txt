@@ -1,0 +1,52 @@
+
+Here's the updated Java method that includes the requested checks:
+
+```java
+import javax.imageio.*;
+import javax.imageio.spi.*;
+import javax.imageio.stream.*;
+import java.awt.image.*;
+import java.util.*;
+
+public Iterator<ImageWriter> getImageWriters(ImageTypeSpecifier imageType, String formatName) {
+    if (formatName == null) {
+        // formatName is null
+        throw new IllegalArgumentException("Format name cannot be null");
+    }
+    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(formatName);
+    if (!writers.hasNext()) {
+        // iteration has no more elements
+        throw new NoSuchElementException("No writers found for the given format");
+    }
+    List<ImageWriter> supportedWriters = new ArrayList<ImageWriter>();
+    while (writers.hasNext()) {
+        ImageWriter writer = writers.next();
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed() && writeParam.canWriteProgressive()) {
+            ImageTypeSpecifier[] imageTypes = writer.getOriginatingProvider().getImageTypes(0);
+            for (ImageTypeSpecifier type : imageTypes) {
+                if (type.equals(imageType)) {
+                    try {
+                        supportedWriters.add(writer);
+                    } catch (UnsupportedOperationException e) {
+                        // add operation not supported by this list
+                        throw new UnsupportedOperationException("Cannot add writer to supported writers list", e);
+                    } catch (ClassCastException e) {
+                        // class of the specified element prevents it from being added to this list
+                        throw new ClassCastException("Cannot add writer to supported writers list: " + e.getMessage());
+                    } catch (NullPointerException e) {
+                        // specified element is null and this list does not permit null elements
+                        throw new NullPointerException("Cannot add null writer to supported writers list");
+                    } catch (IllegalArgumentException e) {
+                        // some property of this element prevents it from being added to this list
+                        throw new IllegalArgumentException("Cannot add writer to supported writers list: " + e.getMessage());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    if (supportedWriters.isEmpty()) {
+        // iteration has no more elements
+        throw new NoSuchElementException("No
+------------------------------------------------------

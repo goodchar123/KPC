@@ -1,0 +1,65 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.chrono.ChronoField;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.Chronology;
+import java.time.chrono.JapaneseChronology;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.JapaneseEra;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.chrono.ChronoZonedDateTimeImpl;
+import java.time.zone.ZoneRulesException;
+
+public class JapaneseChronoZonedDateTime {
+
+    public static ChronoZonedDateTime<JapaneseChronology> fromInstant(Instant instant) {
+        JapaneseChronology chrono = JapaneseChronology.INSTANCE;
+        ZoneId zone = null;
+        try {
+            zone = ZoneId.systemDefault();
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Invalid zone ID format: " + e.getMessage());
+        }
+        if (zone == null) {
+            throw new DateTimeException("Invalid zone ID: null");
+        }
+        if (zone instanceof ZoneOffset) {
+            try {
+                zone = ZoneOffset.ofTotalSeconds(zone.getRules().getOffset(Instant.now()).getTotalSeconds());
+            } catch (DateTimeException e) {
+                throw new DateTimeException("Invalid offset: " + zone, e);
+            }
+        }
+        try {
+            zone.getRules();
+        } catch (ZoneRulesException e) {
+            throw new ZoneRulesException("Invalid zone ID: " + zone, e);
+        }
+        ChronoLocalDateTime<JapaneseChronology> ldt = chrono.localDateTime(Instant.now().atZone(zone).toLocalDateTime());
+        JapaneseDate date = JapaneseDate.from(ldt);
+        JapaneseEra era = date.getEra();
+        int yearOfEra = date.getYearOfEra();
+        int month = date.getMonthValue();
+        int dayOfMonth = date.getDayOfMonth();
+        int hour = instant.atZone(zone).getHour();
+        int minute = instant.atZone(zone).getMinute();
+        int second = instant.atZone(zone).getSecond();
+        int nano = instant.getNano();
+        ChronoZonedDateTime<JapaneseChronology> czdt = new ChronoZonedDateTimeImpl<>(chrono, instant, zone, era, yearOfEra, month, dayOfMonth, hour, minute, second, nano);
+        if (!czdt.toLocalDateTime().isSupported(ChronoField.INSTANT_SECONDS)) {
+            throw new DateTimeException("Result exceeds supported range for Instant: " + czdt);
+        }
+        return czdt;
+    }
+}
+```
+
+This updated version includes the following error checking:
+
+- It checks if the resulting `ChronoZonedDateTime` exceeds the supported range for `Instant`, and throws a new `DateTimeException` with an appropriate error message if
+------------------------------------------------------

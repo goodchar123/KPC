@@ -1,0 +1,72 @@
+Please write a java method that Returns a lexicographic-order comparator with a function that extracts a long sort key.
+Here's an example Java method that returns a lexicographic-order comparator with a function that extracts a long sort key:
+
+```java
+import java.util.Comparator;
+import java.util.function.Function;
+
+public class SortKeyComparator {
+    public static Comparator<String> getComparator(Function<String, Long> keyExtractor) {
+        return Comparator.comparing(keyExtractor, Long::compare);
+    }
+}
+```
+
+This method takes a `Function<String, Long>` as a parameter, which is used to extract a long sort key from a given string. It then returns a comparator that compares strings based on their extracted long sort keys in lexicographic order.
+
+Here's an example usage of this method:
+
+```java
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] strings = {"123", "456", "789", "101112"};
+        Comparator<String> comparator = SortKeyComparator.getComparator(s -> Long.parseLong(s));
+        Arrays.sort(strings, comparator);
+        System.out.println(Arrays.toString(strings));
+    }
+}
+```
+
+This code creates an array of strings, and then sorts them using the `getComparator` method with a lambda function that extracts a long sort key from each string by parsing it as a long. The sorted array is then printed to the console.
+------------------------------------------------------
+Please check if the string does not contain a             parsable long. for java.lang.Long.parseLong(java.lang.String) in the code snippet you provided, otherwise throw NumberFormatException.
+Sure, here's an updated version of the `getComparator` method that checks if the string can be parsed as a long before extracting the sort key. If the string cannot be parsed as a long, it throws a `NumberFormatException`:
+
+```java
+import java.util.Comparator;
+import java.util.function.Function;
+
+public class SortKeyComparator {
+    public static Comparator<String> getComparator(Function<String, Long> keyExtractor) {
+        return Comparator.comparing(s -> {
+            try {
+                return keyExtractor.apply(s);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("String does not contain a parsable long: " + s);
+            }
+        }, Long::compare);
+    }
+}
+```
+
+This updated version of the method uses a lambda expression to wrap the `keyExtractor` function in a try-catch block. If the function throws a `NumberFormatException`, it is caught and re-thrown with a more descriptive error message that includes the original string that caused the exception.
+
+Here's an example usage of this updated method:
+
+```java
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] strings = {"123", "456", "789", "101112", "not_a_long"};
+        Comparator<String> comparator = SortKeyComparator.getComparator(s -> Long.parseLong(s));
+        Arrays.sort(strings, comparator);
+        System.out.println(Arrays.toString(strings));
+    }
+}
+```
+
+This code creates an array of strings that includes a string that cannot be parsed as a long. When the `getComparator` method is called with a lambda function that uses `Long.parseLong` to extract the sort key, it throws a `NumberFormatException` for the "not_a_long" string. The error message includes the original string that caused the exception.
+------------------------------------------------------

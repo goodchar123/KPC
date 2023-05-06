@@ -1,0 +1,25 @@
+
+Sure, here's an updated version of the method that includes the additional error checking for `IllegalArgumentException` and `SecurityException`:
+
+```java
+public void bindSocketToAddress(Socket socket, InetAddress localAddress, int port) throws IOException {
+    try {
+        socket.bind(new InetSocketAddress(localAddress, port));
+    } catch (SocketException e) {
+        if (e.getMessage().contains("already bound")) {
+            throw new IOException("Socket is already bound to a different address/port");
+        } else if (e.getMessage().contains("not supported")) {
+            throw new IllegalArgumentException("Bindpoint is not a supported SocketAddress subclass");
+        } else {
+            throw new IOException("Failed to bind socket to local address/port", e);
+        }
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager doesn't allow binding to local port");
+    }
+}
+```
+
+This updated method first tries to bind the socket to the specified local address and port using the `bind()` method. If an exception is thrown, it checks the exception message to determine the cause of the error. If the message contains "already bound", it throws an `IOException` indicating that the socket is already bound to a different address/port. If the message contains "not supported", it throws an `IllegalArgumentException` indicating that the specified bindpoint is not a supported `SocketAddress` subclass. If the exception is not of these types, it is re-thrown as a new `IOException` with a message indicating that the bind operation failed, along with the original exception as the cause.
+
+If a `SecurityException` is thrown during the binding process, it is caught and re-thrown as a new `SecurityException` indicating that the security manager doesn't allow binding to the local port.
+------------------------------------------------------

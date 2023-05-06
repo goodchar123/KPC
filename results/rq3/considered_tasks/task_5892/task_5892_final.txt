@@ -1,0 +1,38 @@
+
+Here's the updated Java method that includes the requested exception handling:
+
+```java
+import java.io.IOException;
+import java.net.*;
+import javax.net.ssl.*;
+
+public class CertificateChainFromCache {
+    public static void main(String[] args) throws Exception {
+        URL url = new URL("https://www.example.com");
+        HttpsURLConnection conn;
+        try {
+            conn = (HttpsURLConnection) url.openConnection();
+        } catch (IOException e) {
+            throw new IOException("Error opening connection: " + e.getMessage());
+        }
+        conn.setUseCaches(true);
+        conn.connect();
+        SSLSession session = conn.getSSLSession();
+        if (session == null) {
+            throw new IllegalStateException("SSL session not established");
+        }
+        Certificate[] certs;
+        try {
+            certs = session.getPeerCertificates();
+        } catch (SSLPeerUnverifiedException e) {
+            throw new SSLPeerUnverifiedException("Peer identity not verified: " + e.getMessage());
+        }
+        for (Certificate cert : certs) {
+            System.out.println(cert);
+        }
+    }
+}
+```
+
+This updated method includes exception handling for the three scenarios you mentioned. If an `IOException` occurs when opening the connection, the method throws a new `IOException` with a descriptive error message. If `getSSLSession()` is called before the connection has been established, the method throws an `IllegalStateException`. If `getPeerCertificates()` is called and the peer's identity has not been verified, the method throws an `SSLPeerUnverifiedException` with a descriptive error message.
+------------------------------------------------------

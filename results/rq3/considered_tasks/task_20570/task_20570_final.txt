@@ -1,0 +1,76 @@
+
+Here's the updated Java method that includes additional error checking and exception handling:
+
+```java
+public OutputStream getBlobOutputStream(Blob blob) throws SQLException, IOException {
+    if (blob == null) {
+        throw new NullPointerException("Blob object is null");
+    }
+
+    // Check if the JDBC driver supports getBinaryStream() method
+    if (!blob.getBlob().getClass().getName().equals("oracle.sql.BLOB")) {
+        throw new SQLFeatureNotSupportedException("JDBC driver does not support getBinaryStream() method");
+    }
+
+    // Get the binary stream of the BLOB object
+    InputStream binaryStream = blob.getBinaryStream();
+
+    if (binaryStream == null) {
+        throw new SQLException("Error accessing the BLOB value");
+    }
+
+    // Create a ByteArrayOutputStream to hold the contents of the BLOB
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+    // Read the contents of the BLOB into the ByteArrayOutputStream
+    byte[] buffer = new byte[4096];
+    int bytesRead = -1;
+    try {
+        while ((bytesRead = binaryStream.read(buffer)) != -1) {
+            try {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            } catch (NullPointerException e) {
+                throw new NullPointerException("Byte array is null");
+            } catch (IndexOutOfBoundsException e) {
+                throw new IndexOutOfBoundsException("Offset or length is out of bounds");
+            }
+        }
+    } catch (IOException e) {
+        throw new IOException("Error reading from input stream", e);
+    } finally {
+        try {
+            binaryStream.close();
+        } catch (IOException e) {
+            throw new IOException("Error closing input stream", e);
+        }
+    }
+
+    // Get the byte array from the ByteArrayOutputStream
+    byte[] bytes = byteArrayOutputStream.toByteArray();
+
+    // Create a new ByteArrayOutputStream to hold the contents of the new BLOB
+    ByteArrayOutputStream newByteArrayOutputStream = new ByteArrayOutputStream();
+
+    // Write the contents of the old BLOB to the new ByteArrayOutputStream
+    try {
+        newByteArrayOutputStream.write(bytes, 0, bytes.length);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Byte array is null");
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Offset or length is out of bounds");
+    }
+
+    // Return an OutputStream that can be used to write to the new BLOB
+    return newByteArrayOutputStream;
+}
+```
+
+This updated method includes additional error checking and exception handling for the following scenarios:
+
+- If there is an error accessing the BLOB value, a SQLException is thrown.
+- If the byte array is null, a NullPointerException is thrown.
+- If the offset or length is negative or greater than the length of the byte array, an IndexOutOfBoundsException is thrown.
+- If there is an error reading from the input stream, an IOException is thrown.
+- If the input stream cannot be closed or there is an error closing the input stream, an IOException is thrown.
+- If there is an error writing to the byte array output stream, a NullPointerException or IndexOutOfBoundsException is thrown.
+------------------------------------------------------

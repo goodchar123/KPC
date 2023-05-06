@@ -1,0 +1,28 @@
+
+Sure, here's an updated version of the `setParameter` method that checks for a query timeout and attempts to cancel the currently running statement if the timeout has been exceeded:
+
+```
+public void setParameter(String parameterName, String parameterValue, int queryTimeout) throws SQLException {
+    // code to set the designated parameter to the given value
+    // for example, if using JDBC:
+    try {
+        PreparedStatement statement = connection.prepareStatement("UPDATE my_table SET " + parameterName + " = ?");
+        statement.setString(1, parameterValue);
+        statement.setQueryTimeout(queryTimeout);
+        statement.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // timeout occurred - attempt to cancel the statement
+            statement.cancel();
+        }
+        throw e;
+    }
+}
+```
+
+This version of the method takes an additional parameter `queryTimeout`, which specifies the maximum number of seconds that the statement should be allowed to run before timing out. The method sets this timeout value on the prepared statement using the `setQueryTimeout` method.
+
+If a `SQLTimeoutException` is thrown during the execution of the statement, the method catches it and attempts to cancel the statement using the `cancel` method. If the statement cannot be cancelled for some reason, the exception is re-thrown to the calling code.
+
+Note that this implementation assumes that the `statement` variable is in scope and accessible from the catch block - you may need to adjust the code to match your specific implementation.
+------------------------------------------------------

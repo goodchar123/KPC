@@ -1,0 +1,32 @@
+
+Here's the updated Java method that checks for a security manager and the required permission before starting the local JMX management agent:
+
+```
+import java.lang.management.ManagementFactory;
+import java.security.Permission;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JMXManagementAgent {
+
+    public static void startLocalAgent() throws Exception {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Permission perm = new javax.management.MBeanServerPermission("createMBeanServer");
+            sm.checkPermission(perm);
+        }
+        String agentArgs = "-Dcom.sun.management.jmxremote";
+        Map<String, String> agentProperties = new HashMap<String, String>();
+        agentProperties.put("com.sun.management.jmxremote.authenticate", "false");
+        agentProperties.put("com.sun.management.jmxremote.ssl", "false");
+        agentProperties.put("com.sun.management.jmxremote.port", "1099");
+        agentProperties.put("com.sun.management.jmxremote.rmi.port", "1099");
+        agentProperties.put("java.rmi.server.hostname", "localhost");
+        ManagementFactory.getPlatformMBeanServer();
+        com.sun.management.jmxremote.ConnectorBootstrap.startup(agentArgs, agentProperties);
+    }
+}
+```
+
+This updated method first checks if there is a security manager using `System.getSecurityManager()`. If there is a security manager, it checks if the caller has the required permission to create an
+------------------------------------------------------

@@ -1,0 +1,35 @@
+
+Here's an updated version of the Java method that checks for all the conditions you mentioned:
+
+```java
+public static String replaceWithMatcherResult(Matcher matcher, Function<MatchResult, String> replacer) {
+    StringBuffer sb = new StringBuffer();
+    while (matcher.find()) {
+        if (matcher.hitEnd() || matcher.requireEnd()) {
+            throw new IllegalStateException("No match has yet been attempted, or previous match operation failed");
+        }
+        try {
+            matcher.appendReplacement(sb, replacer.apply(matcher.toMatchResult()));
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().startsWith("No group with name")) {
+                throw new IllegalArgumentException("Replacement string refers to a named capturing group that does not exist in the pattern", e);
+            } else {
+                throw e;
+            }
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Replacement string refers to a capturing group that does not exist in the pattern");
+        }
+    }
+    matcher.appendTail(sb);
+    return sb.toString();
+}
+```
+
+This updated method checks for the following conditions:
+
+- If no match has yet been attempted, or if the previous match operation failed, it throws an `IllegalStateException`.
+- If the replacement string refers to a named capturing group that does not exist in the pattern, it throws an `IllegalArgumentException`.
+- If the replacement string refers to a capturing group that does not exist in the pattern, it throws an `IndexOutOfBoundsException`.
+
+The method uses the `hitEnd()` and `requireEnd()` methods of the `Matcher` object to check if a match has been attempted and if the previous match operation failed. It also catches `IllegalArgumentException` and `IndexOutOfBoundsException` thrown by the `appendReplacement()` method and rethrows them with more specific error messages.
+------------------------------------------------------

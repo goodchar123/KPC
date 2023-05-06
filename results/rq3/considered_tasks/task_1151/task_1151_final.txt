@@ -1,0 +1,62 @@
+
+Here is the updated Java method that includes the requested error checking:
+
+```
+public boolean isInstanceOfMBean(String name, String className) throws InstanceNotFoundException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new ManagementPermission("control"));
+    }
+    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+    ObjectName objectName;
+    try {
+        objectName = new ObjectName(name);
+    } catch (MalformedObjectNameException e) {
+        throw new InstanceNotFoundException("Invalid object name: " + name);
+    }
+    if (objectName == null) {
+        throw new RuntimeOperationsException(new IllegalArgumentException("The object name in parameter is null."));
+    }
+    if (!mbs.isRegistered(objectName)) {
+        throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server: " + name);
+    }
+    MBeanInfo info;
+    try {
+        info = mbs.getMBeanInfo(objectName);
+    } catch (IntrospectionException | ReflectionException e) {
+        throw new InstanceNotFoundException("Failed to get MBean info: " + name);
+    }
+    if (!info.getClassName().equals(className)) {
+        ClassLoader cl = info.getClass().getClassLoader();
+        try {
+            Class<?> clazz = Class.forName(className, false, cl);
+            ObjectInstance instance;
+            try {
+                instance = mbs.getObjectInstance(objectName);
+            } catch (InstanceNotFoundException e) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server: " + name);
+            }
+            if (instance == null) {
+                throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server: " + name);
+            }
+            if (!clazz.isInstance(instance)) {
+                throw new ClassCastException("The MBean specified is not an instance of the specified class: " + className);
+            }
+            return true;
+        } catch (ClassNotFoundException e) {
+            throw new LinkageError("Failed to load class: " + className);
+        } catch (ExceptionInInitializerError e) {
+            throw new ExceptionInInitializerError("Failed to initialize class: " + className);
+        } catch (SecurityException e) {
+            throw new SecurityException("Security manager present, and the loader is null, and the caller's class loader is not null, and the caller does not have the RuntimePermission(\"getClassLoader\")");
+        }
+    }
+    return true;
+}
+```
+
+The method now checks for the following errors:
+
+- If there is a security manager and the caller does not have the permission required by `ManagementFactory.getPlatformMBeanServer()`, it throws a `SecurityException` with a message indicating that the caller does not have the required permission.
+- If the `ObjectName` is null, it throws a `RuntimeOperationsException` with an `IllegalArgumentException`.
+------------------------------------------------------

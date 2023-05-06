@@ -1,0 +1,37 @@
+
+You are correct, it is important to check if the current thread holds the lock before calling `unlock()` on a `ReentrantLock` instance. If the current thread does not hold the lock, an `IllegalMonitorStateException` should be thrown.
+
+Here's an updated version of the `absoluteTimedConditionWait` method that includes this check:
+
+```java
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class AbsoluteTimedConditionWaitExample {
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    public void absoluteTimedConditionWait(long timeoutMillis) throws InterruptedException {
+        lock.lock();
+        try {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (!condition.awaitUntil(new java.util.Date(deadline))) {
+                if (System.currentTimeMillis() >= deadline) {
+                    // Timeout has occurred
+                    break;
+                }
+            }
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            } else {
+                throw new IllegalMonitorStateException("Current thread does not hold the lock");
+            }
+        }
+    }
+}
+```
+
+In this updated version, the `finally` block checks if the current thread holds the lock using the `isHeldByCurrentThread()` method. If the current thread holds the lock, the `unlock()` method is called to release the lock. If the current thread does not hold the lock, an `IllegalMonitorStateException` is thrown.
+------------------------------------------------------

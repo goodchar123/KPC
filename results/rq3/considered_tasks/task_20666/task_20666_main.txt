@@ -1,0 +1,175 @@
+Please write a java method that Retrieves the value of the designated NCHAR, NVARCHAR or LONGNVARCHAR parameter as a String in the Java programming language.
+Here's an example Java method that retrieves the value of a designated NCHAR, NVARCHAR or LONGNVARCHAR parameter as a String:
+
+```java
+public String getNCharParameter(Connection conn, String query, int parameterIndex) throws SQLException {
+    String result = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        stmt = conn.prepareStatement(query);
+        stmt.setFetchSize(1);
+        stmt.setQueryTimeout(30);
+        stmt.setEscapeProcessing(true);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        stmt.setNull(parameterIndex, Types.NVARCHAR);
+        rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            result = rs.getNString(parameterIndex);
+        }
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (rs != null) {
+            rs.close();
+        }
+        if (stmt != null) {
+            stmt.close();
+        }
+    }
+    
+    return result;
+}
+```
+
+This method takes in a `Connection` object, a SQL query string, and the index of the NCHAR, NVARCHAR or LONGNVARCHAR parameter to retrieve. It then creates a `PreparedStatement` object with the given query, sets some properties on the statement, sets the parameter to null, executes the query, and retrieves the value of the parameter as a `String` using the `ResultSet.getNString()` method. Finally, it closes the result set and statement objects and returns the retrieved value as a `String`.
+------------------------------------------------------
+Please check when the driver has determined that the timeout value that was specified by the setQueryTimeout method has been exceeded and has at least attempted to cancel the currently running Statement for java.sql.PreparedStatement.executeQuery() in the code snippet you provided, otherwise throw SQLTimeoutException.
+Please check if a database access error occurs or this method is         called on a closed result set for java.sql.ResultSet.next() in the code snippet you provided, otherwise throw SQLException.
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public String getNCharParameter(Connection conn, String query, int parameterIndex) throws SQLException {
+    String result = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        stmt = conn.prepareStatement(query);
+        stmt.setFetchSize(1);
+        stmt.setQueryTimeout(30);
+        stmt.setEscapeProcessing(true);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        stmt.setNull(parameterIndex, Types.NVARCHAR);
+        rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            result = rs.getNString(parameterIndex);
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout exceeded, attempt to cancel statement
+            if (stmt != null) {
+                stmt.cancel();
+            }
+        }
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+    }
+    
+    return result;
+}
+```
+
+This updated method now checks for two specific types of `SQLException` that can occur during the execution of the method. If a `SQLTimeoutException` is caught, it attempts to cancel the statement using the `PreparedStatement.cancel()` method. If any other type of `SQLException` is caught, it is re-thrown.
+
+Additionally, the `finally` block now includes try-catch statements to handle any `SQLException` that may occur when closing the result set or statement objects. If an exception is caught during the closing process, it is re-thrown.
+------------------------------------------------------
+Please check if a database access error occurs or this method is called on a closed connection for java.sql.Connection.prepareStatement(java.lang.String) in the code snippet you provided, otherwise throw SQLException.
+Please check if parameterIndex does not correspond to a parameter marker in the SQL statement; if a database access error occurs or this method is called on a closed PreparedStatement for java.sql.PreparedStatement.setNull(int,int) in the code snippet you provided, otherwise throw SQLException.
+Please check if sqlType is a ARRAY, BLOB, CLOB, DATALINK, JAVA_OBJECT, NCHAR, NCLOB, NVARCHAR, LONGNVARCHAR,  REF, ROWID, SQLXML or  STRUCT data type and the JDBC driver does not support this data type for java.sql.PreparedStatement.setNull(int,int) in the code snippet you provided, otherwise throw SQLFeatureNotSupportedException.
+Please check if a database access error occurs or this method is         called on a closed result set for java.sql.ResultSet.next() in the code snippet you provided, otherwise throw SQLException.
+Please check if the columnIndex is not valid; if a database access error occurs or this method is called on a closed result set for java.sql.ResultSet.getNString(int) in the code snippet you provided, otherwise throw SQLException.
+Please check if the JDBC driver does not support this method for java.sql.ResultSet.getNString(int) in the code snippet you provided, otherwise throw SQLFeatureNotSupportedException.
+Please check if the JDBC driver does not support this method for java.sql.Statement.cancel() in the code snippet you provided, otherwise throw SQLFeatureNotSupportedException.
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public String getNCharParameter(Connection conn, String query, int parameterIndex) throws SQLException {
+    String result = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        stmt = conn.prepareStatement(query);
+        if (stmt == null) {
+            throw new SQLException("Failed to create PreparedStatement");
+        }
+        stmt.setFetchSize(1);
+        stmt.setQueryTimeout(30);
+        stmt.setEscapeProcessing(true);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        try {
+            stmt.setNull(parameterIndex, Types.NVARCHAR);
+        } catch (SQLException e) {
+            throw new SQLException("Failed to set parameter value", e);
+        }
+        rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            try {
+                result = rs.getNString(parameterIndex);
+            } catch (SQLException e) {
+                throw new SQLException("Failed to retrieve parameter value", e);
+            }
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout exceeded, attempt to cancel statement
+            if (stmt != null) {
+                try {
+                    stmt.cancel();
+                } catch (SQLException ex) {
+                    throw new SQLFeatureNotSupportedException("Failed to cancel statement", ex);
+                }
+            }
+        }
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Failed to close ResultSet", e);
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Failed to close PreparedStatement", e);
+            }
+        }
+    }
+    
+    return result;
+}
+```
+
+This updated method now includes additional error handling for the following scenarios:
+
+- If `conn.prepareStatement(query)` returns `null`, a `SQLException` is thrown with a message indicating that the `PreparedStatement` failed to be created.
+- If `stmt.setNull(parameterIndex, Types.NVARCHAR)` throws a `SQLException`, a new `SQLException` is thrown with a message indicating that the parameter value failed to be set.
+- If `rs.getNString(parameterIndex)` throws a `SQLException`, a new `SQLException` is thrown with a message indicating that the parameter value failed to be retrieved.
+- If `stmt.cancel()` throws a `SQLException`, a new `SQLFeatureNotSupportedException` is thrown with a message indicating that the statement failed to be cancelled.
+
+In each of these cases, the original exception is included as the cause of the new exception being thrown.
+
+Additionally, the `finally` block now includes try-catch statements to handle any `SQLException` that may occur when closing the result set or statement objects. If an exception is caught during the closing process, it is re-thrown with a message indicating which object failed to be closed.
+------------------------------------------------------

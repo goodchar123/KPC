@@ -1,0 +1,366 @@
+Please write a java method that Reflectively invokes the bootstrap method with the specified arguments, and return the resulting CallSite
+Here's an example Java method that reflectively invokes the bootstrap method with the specified arguments and returns the resulting CallSite:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        return (CallSite) bootstrapMethod.invokeWithArguments(args);
+    }
+}
+```
+
+This method takes a `MethodHandles.Lookup` object, the name of the bootstrap method, the method type of the bootstrap method, and any arguments to pass to the bootstrap method. It then uses the `lookup` object to find the static bootstrap method with the specified name and method type, and invokes it with the specified arguments using `invokeWithArguments()`. The resulting object is cast to a `CallSite` and returned.
+------------------------------------------------------
+Please check if an argument cannot be converted by reference casting for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw ClassCastException.
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that checks for the two conditions you mentioned:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (args.length != actualType.parameterCount()) {
+            throw new WrongMethodTypeException("Wrong number of arguments for bootstrap method");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        return (CallSite) bootstrapMethod.invokeWithArguments(args);
+    }
+}
+```
+
+This version first retrieves the actual method type of the bootstrap method using `MethodHandle.type()`. It then checks if the number of arguments passed to the method matches the number of parameters in the actual method type. If not, it throws a `WrongMethodTypeException`.
+
+Next, it iterates over each argument and checks if it can be cast to the expected type for that parameter. If not, it throws a `ClassCastException`.
+
+Finally, if both checks pass, it invokes the bootstrap method with the specified arguments using `invokeWithArguments()` and returns the resulting `CallSite`.
+------------------------------------------------------
+Please check if an argument cannot be converted by reference casting for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw ClassCastException.
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Please check anything thrown by the target method invocation for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw Throwable.
+Here's an updated version of the `invokeBootstrap` method that includes the additional error checking you requested:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (args.length != actualType.parameterCount()) {
+            throw new WrongMethodTypeException("Wrong number of arguments for bootstrap method");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version includes a `try-catch` block around the `invokeWithArguments()` call to catch any exceptions thrown by the target method invocation. It then checks if the exception has a cause, and if so, throws the cause instead of the original exception.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " + i + " cannot be cast to " + expectedType.getName());
+            }
+        }
+        try {
+            return (CallSite) bootstrapMethod.invokeWithArguments(args);
+        } catch (Throwable t) {
+            throw t.getCause() != null ? t.getCause() : t;
+        }
+    }
+}
+```
+
+This version checks if the actual method type of the bootstrap method is equal to the specified `methodType`. If not, it throws a `WrongMethodTypeException`.
+
+With this additional error checking, the method now throws `Throwable` instead of just `Exception`.
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to take the given number of Object arguments for java.lang.invoke.MethodHandle.invokeWithArguments(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " +
+------------------------------------------------------

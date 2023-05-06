@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the `getMBeanCount()` method that checks for a `CommunicationException` when calling `queryNames()` and throws an `IOException` if one is caught:
+
+```java
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.QueryExp;
+import javax.management.CommunicationException;
+import java.io.IOException;
+import java.util.Set;
+
+public class MBeanServerConnectionHandler {
+    private MBeanServerConnection mbsc;
+
+    public MBeanServerConnectionHandler(MBeanServerConnection mbsc) {
+        this.mbsc = mbsc;
+    }
+
+    public int getMBeanCount() throws IOException {
+        ObjectName objectName = null;
+        int count = 0;
+        try {
+            objectName = new ObjectName("*:*");
+            Set<ObjectName> names = mbsc.queryNames(objectName, null);
+            count = names.size();
+        } catch (CommunicationException e) {
+            throw new IOException("Communication problem occurred when talking to the MBean server", e);
+        } catch (Exception e) {
+            throw new IOException("Failed to get MBean count", e);
+        }
+        return count;
+    }
+}
+```
+
+This version of the method catches a `CommunicationException` specifically, which is thrown when there is a problem communicating with the MBean server. If this exception is caught, the method throws an `IOException` with a message indicating the communication problem. If any other exception is caught, the method throws an `IOException` with a generic error message.
+
+Note that you may want to handle the `IOException` in your code to provide appropriate error handling.
+------------------------------------------------------

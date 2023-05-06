@@ -1,0 +1,61 @@
+
+Here is the updated Java method that includes the security check:
+
+```java
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
+
+public static void launchAndConnectToVM(String mainClass) throws Exception {
+    // Check if a security manager is installed and denies AttachPermission
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new AttachPermission("attachVirtualMachine"));
+    }
+    
+    // Find the process ID of the running application
+    VirtualMachineDescriptor vmDescriptor = null;
+    for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
+        if (descriptor.displayName().contains(mainClass)) {
+            vmDescriptor = descriptor;
+            break;
+        }
+    }
+    if (vmDescriptor == null) {
+        throw new Exception("Could not find running application with main class " + mainClass);
+    }
+    
+    // Attach to the VM and get its instrumentation object
+    VirtualMachine vm = null;
+    try {
+        String id = vmDescriptor.id();
+        if (id == null) {
+            throw new NullPointerException("VM ID is null");
+        }
+        vm = VirtualMachine.attach(id);
+    } catch (AttachNotSupportedException e) {
+        throw e;
+    } catch (IOException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new Exception("Failed to attach to VM", e);
+    }
+    Instrumentation instrumentation = vm.getInstrumentation();
+    
+    // Do something with the instrumentation object, such as adding a transformer
+    // or setting up a JMX connection
+    // ...
+    
+    // Detach from the VM when finished
+    try {
+        vm.detach();
+    } catch (IOException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new IOException("Failed to detach from VM", e);
+    }
+}
+```
+
+This updated method checks if a security manager is installed and denies the `AttachPermission`. If so, it throws a `SecurityException`.
+------------------------------------------------------

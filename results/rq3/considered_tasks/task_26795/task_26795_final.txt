@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that checks if the AbstractFormatter is not able to format the current value for JFormattedTextField.commitEdit() and if the currently edited value couldn't be committed for JSpinner.commitEdit(), and throws a ParseException if necessary:
+
+```java
+public void commitSpinnerValue(JSpinner spinner) throws ParseException {
+    JComponent editor = spinner.getEditor();
+    if (editor instanceof DefaultEditor) {
+        DefaultEditor defaultEditor = (DefaultEditor) editor;
+        JFormattedTextField textField = defaultEditor.getTextField();
+        try {
+            textField.commitEdit();
+            spinner.commitEdit();
+        } catch (ParseException e) {
+            if (textField.getFormatter() != null && !textField.getFormatter().stringToValue(textField.getText()).equals(spinner.getValue())) {
+                throw new ParseException("Invalid value", 0);
+            } else {
+                if (spinner.getEditor().getComponent(0) instanceof JFormattedTextField) {
+                    JFormattedTextField ftf = (JFormattedTextField) spinner.getEditor().getComponent(0);
+                    ftf.setValue(spinner.getValue());
+                }
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This method first checks if the AbstractFormatter for the JFormattedTextField is not able to format the current value using the stringToValue() method. If it is not able to format the value, it throws a ParseException with an appropriate message.
+
+If the commit fails for any other reason, the method checks if the editor component is a JFormattedTextField. If it is, it sets the text field's value to the spinner's current value. This is necessary because the commitEdit() method may leave the text field in an inconsistent state if the commit fails.
+
+The method then re-throws the ParseException to indicate that the commit failed.
+------------------------------------------------------

@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the method that checks for database access errors and closed result sets when calling `next()` on the `ResultSet`:
+
+```
+public void setAndValidateShardingKeys(Connection conn, String shardingKey1, String shardingKey2, int queryTimeout) throws SQLException {
+    // Set the sharding keys for the connection
+    conn.setShardingKey(shardingKey1.getBytes(), shardingKey2.getBytes());
+
+    // Validate the sharding keys by executing a query
+    PreparedStatement stmt = conn.prepareStatement("SELECT 1");
+    stmt.setQueryTimeout(queryTimeout);
+    ResultSet rs = stmt.executeQuery();
+    try {
+        if (!rs.next()) {
+            // Attempt to cancel the statement if the query timeout was exceeded
+            try {
+                if (stmt.isWrapperFor(com.mysql.cj.jdbc.Statement.class)) {
+                    com.mysql.cj.jdbc.Statement mysqlStmt = stmt.unwrap(com.mysql.cj.jdbc.Statement.class);
+                    if (mysqlStmt != null) {
+                        mysqlStmt.cancel();
+                    }
+                } else {
+                    throw new SQLFeatureNotSupportedException("Cancel not supported");
+                }
+            } catch (SQLException e) {
+                // Ignore any errors that occur while canceling the statement
+            }
+            throw new SQLTimeoutException("Query timeout exceeded");
+        }
+    } catch (SQLException e) {
+        // Check for database access errors or closed result sets
+        if (e instanceof SQLTimeoutException || e instanceof SQLTransientException || e instanceof SQLNonTransientException) {
+            throw e;
+        } else if (rs.isClosed()) {
+            throw new SQLException("Result set is closed");
+        } else {
+            throw new SQLException("Database access error", e);
+        }
+    }
+}
+```
+
+This version of the method wraps the call to `rs.next()` in a try-catch block to catch any `SQLException` that may occur. If an exception is caught, the method checks if it is a `SQLTimeoutException`, `SQLTransientException`, or `SQLNonTransientException`, and re-throws it if it is. If the result set is closed, the method throws a `SQLException` indicating that the result set is closed. Otherwise, the method throws a `SQLException` indicating a database access error, and includes the original exception as the cause.
+------------------------------------------------------

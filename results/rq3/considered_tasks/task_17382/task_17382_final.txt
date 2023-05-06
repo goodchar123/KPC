@@ -1,0 +1,42 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the Java method that includes error handling for the scenarios you mentioned:
+
+```java
+public void writeSQLXMLValue(SQLXML xmlValue, OutputStream outputStream) throws SQLException, IOException {
+    if (xmlValue == null) {
+        throw new SQLException("SQLXML value is null");
+    }
+    try {
+        InputStream inputStream = xmlValue.getBinaryStream();
+        if (inputStream == null) {
+            throw new SQLException("SQLXML value is not readable");
+        }
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            if (outputStream == null) {
+                throw new NullPointerException("Output stream is null");
+            }
+            outputStream.write(buffer, 0, bytesRead);
+        }
+        inputStream.close();
+    } catch (SQLFeatureNotSupportedException e) {
+        throw e;
+    } catch (SQLException e) {
+        throw e;
+    } catch (IOException e) {
+        throw e;
+    } catch (NullPointerException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error writing SQLXML value to stream", e);
+    }
+}
+```
+
+This updated method first checks if the SQLXML value is null and throws a SQLException if it is. It then attempts to retrieve the binary stream from the SQLXML value and checks if it is null or not readable, throwing a SQLException if either of these conditions are met. 
+
+Next, the method reads the binary stream into a buffer and writes it to the output stream, checking for a null output stream and throwing a NullPointerException if it is null. 
+
+Finally, the method includes catch blocks for specific exceptions that may be thrown during this process, such as SQLFeatureNotSupportedException, SQLException, IOException, and NullPointerException. If any of these exceptions are caught, they are re-thrown as a SQLException with a descriptive error message.
+------------------------------------------------------

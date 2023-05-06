@@ -1,0 +1,38 @@
+
+Sure, here's the updated Java method that checks for database access errors and closed connections when calling `getMetaData()`:
+
+```java
+public boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException {
+    if (connection == null || connection.isClosed()) {
+        throw new SQLException("Connection is null or closed.");
+    }
+    
+    DatabaseMetaData metaData = null;
+    try {
+        metaData = connection.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting database metadata: " + e.getMessage());
+    }
+    
+    try {
+        if (!metaData.supportsStoredFunctionsUsingCallSyntax()) {
+            throw new SQLException("Database does not support invoking user-defined or vendor functions using the stored procedure escape syntax.");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking database metadata: " + e.getMessage());
+    }
+    
+    return true;
+}
+```
+
+This updated method first checks if the `connection` object is `null` or closed using the `isClosed()` method. If it is, then a `SQLException` is thrown with an appropriate error message.
+
+Next, the method attempts to retrieve the `DatabaseMetaData` object using the `getMetaData()` method on the `connection` object. If a `SQLException` occurs during this process, then a new `SQLException` is thrown with an appropriate error message.
+
+If the `DatabaseMetaData` object is successfully retrieved, then the method attempts to check if the database supports invoking user-defined or vendor functions using the stored procedure escape syntax using the `supportsStoredFunctionsUsingCallSyntax()` method. If a `SQLException` occurs during this process, then a new `SQLException` is thrown with an appropriate error message.
+
+If the `supportsStoredFunctionsUsingCallSyntax()` method returns `false`, then a `SQLException` is thrown with an appropriate error message.
+
+If no errors occur, then the method returns `true`.
+------------------------------------------------------

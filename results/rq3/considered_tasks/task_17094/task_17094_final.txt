@@ -1,0 +1,44 @@
+
+Sure, here's the updated code snippet that includes the error handling and exception throwing:
+
+```java
+public boolean hasDeletedRows(ResultSet resultSet) throws SQLException {
+    boolean hasDeletedRows = false;
+    try {
+        if (resultSet.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                if (resultSet.rowDeleted()) {
+                    hasDeletedRows = true;
+                    break;
+                }
+            }
+            if (hasDeletedRows) {
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw e;
+    } catch (SQLFeatureNotSupportedException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Database access error", e);
+    }
+    return hasDeletedRows;
+}
+```
+
+This updated method includes try-catch blocks to handle potential exceptions that may occur during the execution of the method. 
+
+First, it checks if the result set is closed using the `isClosed()` method and throws a `SQLException` if it is. 
+
+Next, it calls `getMetaData()` to retrieve the metadata for the result set and checks for any database access errors that may occur during this call. If an error occurs, it throws a `SQLException`.
+
+Then, it uses a `while` loop to iterate over each row in the result set and a `for` loop to iterate over each column in the row. It checks if the row has been marked for deletion using the `rowDeleted()` method and sets the `hasDeletedRows` flag to true if it finds any deleted rows. If an error occurs during the `next()` or `rowDeleted()` method calls, it throws a `SQLException`.
+
+Finally, if the JDBC driver does not support the `rowDeleted()` method, it throws a `SQLFeatureNotSupportedException`.
+------------------------------------------------------

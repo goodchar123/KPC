@@ -1,0 +1,31 @@
+
+Here is the updated Java method that checks if the name is null before getting the logger, and also checks if a security manager exists, if the logger is not anonymous, and if the caller has the LoggingPermission("control") before setting the useParentHandlers property. If any of these conditions are not met, a NullPointerException or SecurityException is thrown:
+
+```java
+public void setUseParentHandlers(boolean useParentHandlers) throws SecurityException, NullPointerException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check if the caller has LoggingPermission("control")
+        sm.checkPermission(new LoggingPermission("control"));
+    }
+    Logger logger;
+    if (name == null) {
+        throw new NullPointerException("Logger name is null");
+    } else {
+        logger = Logger.getLogger(name);
+    }
+    if (logger.getAnonymous() || logger == null) {
+        throw new SecurityException("Logger is anonymous or null");
+    }
+    logger.setUseParentHandlers(useParentHandlers);
+}
+```
+
+This method first checks if a security manager exists by calling `System.getSecurityManager()`. If a security manager exists, it checks if the caller has the `LoggingPermission("control")` by calling `SecurityManager.checkPermission()`. If the caller does not have this permission, a `SecurityException` is thrown.
+
+Next, the method checks if the logger name is null. If it is null, a `NullPointerException` is thrown. Otherwise, the method gets the logger by calling `Logger.getLogger(name)`.
+
+After getting the logger, the method checks if the logger is anonymous or null by calling `Logger.getAnonymous()` and checking if the logger is equal to null. If the logger is anonymous or null, a `SecurityException` is thrown.
+
+Finally, if all the security checks pass and the logger name is not null, the method sets the `useParentHandlers` property of the logger by calling `Logger.setUseParentHandlers()`.
+------------------------------------------------------

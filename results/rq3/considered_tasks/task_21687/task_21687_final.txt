@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the code snippet that checks for errors loading assistive technologies and for a headless environment:
+
+```java
+import java.awt.*;
+import java.awt.datatransfer.*;
+
+public class ClipboardHelper {
+    public static boolean isDataFlavorAvailable(DataFlavor flavor) {
+        try {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if (GraphicsEnvironment.isHeadless() || !toolkit.areExtraMouseButtonsEnabled()) {
+                throw new AWTError("Assistive technologies not loaded");
+            }
+            Clipboard clipboard = toolkit.getSystemClipboard();
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Transferable contents = clipboard.getContents(null);
+            if (contents != null && contents.isDataFlavorSupported(flavor)) {
+                return true;
+            }
+        } catch (HeadlessException | AWTError e) {
+            throw e;
+        }
+        return false;
+    }
+}
+```
+
+This version of the method first checks if the environment is headless before calling `areExtraMouseButtonsEnabled()` and `getSystemClipboard()`. If the environment is headless, it throws a `HeadlessException`.
+
+If the environment is not headless, the method proceeds to check if extra mouse buttons are enabled, which is an indication that assistive technologies are loaded. If they are not enabled, it throws an `AWTError` with a message indicating that assistive technologies are not loaded.
+
+If there are no errors, the method proceeds to get the system clipboard and check if the contents are available in the specified `DataFlavor`. If they are available, it returns `true`. If there are no errors but the contents are not available, it returns `false`.
+------------------------------------------------------

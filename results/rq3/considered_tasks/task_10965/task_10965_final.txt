@@ -1,0 +1,45 @@
+
+Here's an updated version of the Java method that includes the requested exception handling:
+
+```
+public boolean isAcceptable(SelectionKey key) throws IOException {
+    if (key.isAcceptable()) {
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+        if (key.isCancelled()) {
+            throw new CancelledKeyException();
+        }
+        try {
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            if (socketChannel != null) {
+                // Connection accepted
+                return true;
+            }
+        } catch (ClosedChannelException e) {
+            throw e;
+        } catch (AsynchronousCloseException e) {
+            throw e;
+        } catch (ClosedByInterruptException e) {
+            throw e;
+        } catch (NotYetBoundException e) {
+            throw e;
+        } catch (SecurityException e) {
+            throw e;
+        } catch (IOException e) {
+            // Handle other exceptions
+        }
+    }
+    return false;
+}
+```
+
+This updated method includes exception handling for the following scenarios:
+
+- If the key has been cancelled, a `CancelledKeyException` is thrown.
+- If the channel is closed, a `ClosedChannelException` is thrown.
+- If another thread closes the channel while the accept operation is in progress, an `AsynchronousCloseException` is thrown.
+- If another thread interrupts the current thread while the accept operation is in progress, a `ClosedByInterruptException` is thrown.
+- If the channel's socket has not yet been bound, a `NotYetBoundException` is thrown.
+- If a security manager denies access to the remote endpoint of the new connection, a `SecurityException` is thrown.
+
+Note that the `IOException` thrown by the `accept()` method is caught and handled separately, as it may indicate other types of exceptions not covered by the specific scenarios listed above.
+------------------------------------------------------

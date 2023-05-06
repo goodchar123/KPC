@@ -1,0 +1,34 @@
+
+Sure, here's an updated version of the `setParameterStream` method that checks for a query timeout and attempts to cancel the currently running statement if the timeout has been exceeded:
+
+```java
+public void setParameterStream(int parameterIndex, InputStream inputStream, int queryTimeout) throws SQLException {
+    PreparedStatement preparedStatement = null;
+    try {
+        preparedStatement = connection.prepareStatement("UPDATE my_table SET my_column = ? WHERE id = ?");
+        preparedStatement.setBinaryStream(parameterIndex, inputStream);
+        preparedStatement.setInt(parameterIndex + 1, 1234);
+        preparedStatement.setQueryTimeout(queryTimeout);
+        preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout occurred, attempt to cancel the statement
+            if (preparedStatement != null) {
+                preparedStatement.cancel();
+            }
+        }
+        throw e;
+    } finally {
+        if (preparedStatement != null) {
+            preparedStatement.close();
+        }
+    }
+}
+```
+
+In this updated version, a new parameter `queryTimeout` has been added to specify the maximum time in seconds that the `executeUpdate` method should wait for the statement to complete. The `setQueryTimeout` method is called to set the query timeout on the prepared statement.
+
+If a `SQLTimeoutException` is caught, it means that the timeout has been exceeded. In this case, the method attempts to cancel the statement by calling the `cancel` method on the prepared statement object. The original exception is then re-thrown to indicate that a timeout occurred.
+
+In the `finally` block, the prepared statement is closed as before to ensure that it is always closed, even if an exception occurs.
+------------------------------------------------------

@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the Java method that includes all the necessary error checking:
+
+```java
+public void moveToPreviousRow(ResultSet rs) throws SQLException {
+    if (rs.isClosed()) {
+        throw new SQLException("The result set is closed.");
+    }
+    int type;
+    try {
+        type = rs.getType();
+    } catch (SQLException e) {
+        throw new SQLException("A database access error occurred while getting the result set type.", e);
+    }
+    if (type == ResultSet.TYPE_FORWARD_ONLY) {
+        throw new SQLException("The result set type is TYPE_FORWARD_ONLY.");
+    }
+    try {
+        if (rs.previous()) {
+            // do something with the current row
+        } else {
+            // handle case where there is no previous row
+        }
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("The JDBC driver does not support moving the cursor to the previous row.");
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This method first checks if the ResultSet object is closed using the `isClosed()` method. If the ResultSet is closed, it throws a `SQLException`. Next, it gets the type of the ResultSet using the `getType()` method inside a try-catch block to catch any `SQLException` that may occur. If a `SQLException` is caught, it throws a new `SQLException` with a message indicating that a database access error occurred while getting the result set type.
+
+If the ResultSet is not closed and the type is not `TYPE_FORWARD_ONLY`, the method uses the `previous()` method to move the cursor to the previous row. If there is a previous row, the method can perform some action on that row. If there is no previous row, the method can handle that case appropriately.
+
+If a `SQLException` is thrown while executing the method, it checks if the error code is 0, which indicates that the JDBC driver does not support the `previous()` method. In this case, it throws a `SQLFeatureNotSupportedException`. If the error code is not 0, it rethrows the `SQLException`.
+------------------------------------------------------

@@ -1,0 +1,31 @@
+
+Sure, here's the updated Java method that checks for the conditions you mentioned:
+
+```java
+public void setRowSetParameter(RowSet rowSet, int parameterIndex, Reader reader) throws SQLException {
+    PreparedStatement command = rowSet.getCommand();
+    if (command == null) {
+        throw new SQLException("RowSet command is null");
+    }
+    try {
+        command.setCharacterStream(parameterIndex, reader);
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support setCharacterStream method");
+        } else {
+            throw e;
+        }
+    } catch (NullPointerException e) {
+        throw new SQLException("Parameter index is invalid or reader is null");
+    } catch (Exception e) {
+        throw new SQLException("Error setting character stream parameter: " + e.getMessage());
+    }
+}
+```
+
+This method first checks if the RowSet object's command is null. If it is, it throws a SQLException with an appropriate message.
+
+Next, it calls the `setCharacterStream` method on the PreparedStatement object, passing in the parameter index and reader object as arguments. If a SQLException is thrown, it checks if the error code is 0 (indicating that the JDBC driver does not support the method), and throws a SQLFeatureNotSupportedException in that case. Otherwise, it propagates the SQLException up to the calling method.
+
+If a NullPointerException is thrown (indicating that the parameter index is invalid or the reader is null), it throws a SQLException with an appropriate message. If any other exception is thrown, it throws a SQLException with an error message that includes the exception's message.
+------------------------------------------------------

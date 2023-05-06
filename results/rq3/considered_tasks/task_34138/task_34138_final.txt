@@ -1,0 +1,50 @@
+
+Sure, here's the updated code snippet that checks for the mentioned exception:
+
+```java
+public void writeContentToStream(Document doc, OutputStream out) throws TransformerException {
+    try {
+        // Create a transformer factory
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        
+        // Check for service configuration error or if the implementation is not available or cannot be instantiated
+        if (transformerFactory == null) {
+            throw new TransformerFactoryConfigurationError("Unable to create transformer factory");
+        }
+
+        // Create a transformer
+        Transformer transformer = null;
+        try {
+            transformer = transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            // When it is not possible to create a Transformer instance
+            throw new TransformerConfigurationException("Unable to create transformer", e);
+        }
+
+        // Set the output properties
+        try {
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        } catch (IllegalArgumentException e) {
+            // Check if the property is not supported, and is not qualified with a namespace
+            throw new IllegalArgumentException("Invalid output property", e);
+        }
+
+        // Create a DOM source from the document
+        DOMSource source = new DOMSource(doc);
+
+        // Create a stream result for the output
+        StreamResult result = new StreamResult(out);
+
+        // Transform the DOM source to the stream result
+        transformer.transform(source, result);
+    } catch (TransformerException e) {
+        throw new TransformerException("Error while transforming document", e);
+    }
+}
+```
+
+This updated code snippet checks for the `TransformerConfigurationException` exception when creating the transformer instance, and throws it if it occurs. 
+
+Additionally, the method catches any `TransformerException` that occurs during the transformation process and re-throws it with a more descriptive error message.
+------------------------------------------------------

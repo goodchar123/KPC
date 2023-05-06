@@ -1,0 +1,48 @@
+
+Sure, here's an updated version of the `getAnnotations()` method that includes the checks you requested:
+
+```java
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+
+public class AnnotationHelper {
+    
+    public static Annotation[] getAnnotations(AnnotatedElement element, String fieldName) throws NoSuchFieldException, NullPointerException, SecurityException {
+        if (fieldName == null) {
+            throw new NullPointerException("Field name cannot be null.");
+        }
+        
+        Field field = element.getDeclaredField(fieldName);
+        
+        if (field == null) {
+            throw new NoSuchFieldException("Field " + fieldName + " not found.");
+        }
+        
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Class<?> callerClass = Reflection.getCallerClass();
+            ClassLoader callerClassLoader = callerClass.getClassLoader();
+            ClassLoader fieldClassLoader = field.getDeclaringClass().getClassLoader();
+            
+            if (callerClassLoader != fieldClassLoader && !callerClassLoader.isAncestorOf(fieldClassLoader)) {
+                sm.checkPermission(new RuntimePermission("accessDeclaredMembers"));
+                sm.checkPackageAccess(field.getDeclaringClass().getPackage().getName());
+            }
+        }
+        
+        return field.getAnnotations();
+    }
+    
+}
+```
+
+This updated method includes the following checks:
+
+- It checks if the `fieldName` parameter is null and throws a `NullPointerException` if it is.
+- It uses the `getDeclaredField()` method to retrieve the field with the specified name. If the field is not found, it throws a `NoSuchFieldException`.
+- It checks if a security manager is present and if the caller's class loader is not the same as the class loader of the field's declaring class. If this is the case, it checks if the security manager denies access to the declared members or package of the field's declaring class. If access is denied, it throws a `SecurityException`.
+- Finally, it returns the annotations associated with the field.
+
+Note that the `Reflection.getCallerClass()` method is used to get the class of the caller of the `getAnnotations()` method. This is necessary because the `getDeclaredField()` method requires permission to access the declared members of the class, and this permission is only granted if the caller's class loader is the same as or an ancestor of the class loader for the current class. By using `Reflection.getCallerClass()`, we can ensure that we are checking the permissions of the correct caller.
+------------------------------------------------------

@@ -1,0 +1,28 @@
+
+Sure, here's the updated Java method that checks for database access errors and unsupported methods:
+
+```java
+public String getSQLTypeName(Ref ref) throws SQLException {
+    Struct struct = ref.getStruct();
+    if (struct == null) {
+        throw new SQLException("Error retrieving Struct object");
+    }
+    try {
+        String typeName = struct.getSQLTypeName();
+        return typeName;
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("Method not supported by JDBC driver", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This method first calls the `getStruct()` method on the `Ref` object to retrieve the `Struct` object that the `Ref` references. If the `Struct` object is `null`, it throws a `SQLException` with an error message indicating that there was an error retrieving the `Struct` object.
+
+Next, the method tries to call the `getSQLTypeName()` method on the `Struct` object to retrieve the fully-qualified SQL name of the structured type. If this method call throws a `SQLException` with an error code of 0, it means that the JDBC driver does not support this method, so the method throws a `SQLFeatureNotSupportedException` with the original exception as the cause. Otherwise, the method re-throws the original `SQLException`.
+
+Note that this method now handles both database access errors and unsupported methods, and throws the appropriate exceptions in each case.
+------------------------------------------------------

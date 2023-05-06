@@ -1,0 +1,26 @@
+
+Sure, here's an updated version of the method that includes error handling for the `write` method:
+
+```java
+public int writeBytesToBlob(Blob blob, byte[] bytes, int pos) throws SQLException, IOException {
+    OutputStream out = blob.setBinaryStream(pos + 1);
+    try {
+        out.write(bytes);
+    } catch (IOException e) {
+        throw new IOException("Error writing bytes to BLOB", e);
+    } finally {
+        try {
+            out.close();
+        } catch (IOException e) {
+            throw new IOException("Error closing output stream", e);
+        }
+    }
+    if (out.checkError()) {
+        throw new IOException("Error writing bytes to output stream");
+    }
+    return bytes.length;
+}
+```
+
+This version checks for I/O errors after the `write` operation and throws an `IOException` with a descriptive message if an error occurs.
+------------------------------------------------------

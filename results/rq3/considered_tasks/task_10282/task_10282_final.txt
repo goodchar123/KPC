@@ -1,0 +1,42 @@
+
+I apologize for the confusion in my previous response. You are correct that the `read` method of `java.io.InputStream` should include checks for `NullPointerException` and `IndexOutOfBoundsException`. Here is an updated version of the method that includes these checks:
+
+```
+/**
+ * Reads up to len bytes of data from the input stream into an array of bytes.
+ * An attempt is made to read as many as len bytes, but a smaller number may be read.
+ * The number of bytes actually read is returned as an integer.
+ * 
+ * @param b the buffer into which the data is read
+ * @param off the start offset in the destination array b
+ * @param len the maximum number of bytes to read
+ * @return the total number of bytes read into the buffer, or -1 if there is no more data because the end of the stream has been reached
+ * @throws IOException if an I/O error occurs while reading from the input stream
+ * @throws NullPointerException if b is null
+ * @throws IndexOutOfBoundsException if off is negative, len is negative, or len is greater than b.length - off
+ */
+public int read(byte[] b, int off, int len) throws IOException {
+    Objects.requireNonNull(b, "byte array cannot be null");
+    if (off < 0 || len < 0 || len > b.length - off) {
+        throw new IndexOutOfBoundsException();
+    }
+    int n = 0;
+    while (n < len) {
+        int count = in.read(b, off + n, len - n);
+        if (count < 0) {
+            if (n == 0) {
+                return -1;
+            }
+            break;
+        }
+        n += count;
+    }
+    return n;
+}
+```
+
+This updated method checks for the following conditions:
+
+- If `b` is `null`, a `NullPointerException` is thrown.
+- If `off` is negative, `len` is negative, or `len` is greater than `b.length - off`, an `IndexOutOfBoundsException` is thrown.
+------------------------------------------------------

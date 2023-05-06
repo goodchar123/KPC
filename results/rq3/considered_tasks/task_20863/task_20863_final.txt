@@ -1,0 +1,42 @@
+
+Sure, here's the updated Java method that checks for database access errors when calling `getSQLKeywords()`:
+
+```java
+public String convertToNativeSQL(String sqlStatement) throws SQLException {
+    Connection conn = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata");
+        }
+        String sqlKeywords = metaData.getSQLKeywords();
+        if (sqlKeywords == null) {
+            throw new SQLException("Failed to retrieve SQL keywords");
+        }
+        String nativeSQL = sqlKeywords + " " + sqlStatement;
+        return nativeSQL;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw e;
+    } finally {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+This updated method first checks if the connection is closed using the `isClosed()` method of the `Connection` object. If the connection is closed, it throws a `SQLException` with an appropriate message. It also checks if the `getMetaData()` method returns `null`, indicating a failure to retrieve the database metadata, and throws a `SQLException` in that case as well.
+
+After retrieving the SQL keywords using `getSQLKeywords()`, the method checks if the returned value is `null` and throws a `SQLException` if it is.
+
+If a `SQLException` is caught, it is re-thrown after printing the stack trace. Finally, the method closes the database connection and returns the native SQL statement.
+------------------------------------------------------

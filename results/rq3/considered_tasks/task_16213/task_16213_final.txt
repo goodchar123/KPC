@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the Java method that checks if the cipher mode is supported before initializing it:
+
+```java
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.spec.PKCS8EncodedKeySpec;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+public static Key unwrapKey(byte[] wrappedKey, byte[] privateKey, String algorithm) throws Exception {
+    // Get the private key from the encoded bytes
+    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
+    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+    Key privateKey = keyFactory.generatePrivate(keySpec);
+
+    // Create a cipher object and initialize it with the private key
+    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+    if (cipher.getProvider().getService("Cipher", "RSA/ECB/PKCS1Padding") == null) {
+        throw new UnsupportedOperationException("Cipher mode not supported");
+    }
+    cipher.init(Cipher.UNWRAP_MODE, privateKey);
+
+    // Unwrap the key using the cipher object
+    Key unwrappedKey = cipher.unwrap(wrappedKey, algorithm, Cipher.SECRET_KEY);
+
+    return unwrappedKey;
+}
+```
+
+This updated method checks if the cipher mode is supported by the underlying `CipherSpi` implementation before initializing it. If the mode is not supported, it throws an `UnsupportedOperationException`. This helps to ensure that the method will only be used with supported cipher modes, and avoids any potential errors or security issues that could arise from using an unsupported mode.
+------------------------------------------------------

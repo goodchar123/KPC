@@ -1,0 +1,47 @@
+
+Sure, here's the updated code snippet that includes the requested checks:
+
+```java
+public static void copyActiveThreads(Thread[] threads) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("modifyThreadGroup"));
+    }
+    ThreadGroup currentGroup = Thread.currentThread().getThreadGroup();
+    while (currentGroup.getParent() != null) {
+        currentGroup = currentGroup.getParent();
+    }
+    int numThreads = currentGroup.activeCount();
+    while (numThreads == threads.length) {
+        int newLength = numThreads * 2;
+        if (newLength < 0) {
+            throw new NegativeArraySizeException();
+        }
+        Thread[] newThreads = Arrays.copyOf(threads, newLength);
+        if (threads == null) {
+            throw new NullPointerException();
+        }
+        numThreads = currentGroup.enumerate(newThreads, numThreads, newLength);
+        threads = newThreads;
+    }
+    numThreads = currentGroup.enumerate(threads, numThreads);
+    Thread[] result = new Thread[numThreads];
+    try {
+        System.arraycopy(threads, 0, result, 0, numThreads);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds.");
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("An element in the src array could not be stored into the dest array because of a type mismatch.");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Either src or dest is null.");
+    }
+    threads = result;
+}
+```
+
+The updated code first checks if the current thread has permission to modify the thread group using a `SecurityManager`. If not, it throws a `SecurityException`.
+
+Next, when doubling the size of the `threads` array, it checks if the new length is negative and throws a `NegativeArraySizeException` if so. It also checks if the original array is null and throws a `NullPointerException` if so.
+
+When copying the threads using `System.arraycopy()`, it now catches `IndexOutOfBoundsException`, `ArrayStoreException`, and `NullPointerException` and throws more specific exceptions with descriptive error messages. This ensures that the method is being used safely and prevent potential errors or security issues.
+------------------------------------------------------

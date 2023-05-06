@@ -1,0 +1,56 @@
+
+You are correct, it is important to check if a security manager is present and if it denies access to the declared fields within the class or the package of the class. Here's an updated version of the method that includes the necessary checks:
+
+```java
+public Collection<Thread> getWaitingThreads(Condition condition) throws InaccessibleObjectException, SecurityException {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        // Check if the caller's class loader is not the same as the class loader of this class
+        Class<?> thisClass = getClass();
+        ClassLoader thisClassLoader = thisClass.getClassLoader();
+        ClassLoader callerClassLoader = Thread.currentThread().getContextClassLoader();
+        if (callerClassLoader != thisClassLoader && securityManager.checkPermission(new RuntimePermission("accessDeclaredMembers"))) {
+            throw new SecurityException("Access denied to declared fields within this class");
+        }
+
+        // Check if the caller's class loader is not the same as or an ancestor of the class loader for the current class
+        Package thisPackage = thisClass.getPackage();
+        if (thisPackage != null && callerClassLoader != null && !callerClassLoader.equals(thisClassLoader) && !callerClassLoader.getParent().equals(thisClassLoader) && securityManager.checkPackageAccess(thisPackage.getName())) {
+            throw new SecurityException("Access denied to package of this class");
+        }
+    }
+
+    // Get the lock associated with the condition
+    Lock lock = condition.newCondition().getClass().getDeclaredFields()[0];
+    lock.setAccessible(true);
+
+    // Check if access was granted
+    if (!lock.tryLock()) {
+        throw new InaccessibleObjectException("Cannot access lock");
+    }
+
+    try {
+        // Get the waiting threads from the lock's queue
+        Collection<Thread> waitingThreads = new ArrayList<>();
+        Thread currentThread = Thread.currentThread();
+        for (Object queuedThread : ((AbstractQueuedSynchronizer) lock.get(condition.newCondition())).getQueuedThreads()) {
+            if (queuedThread instanceof Thread && queuedThread != currentThread) {
+                waitingThreads.add((Thread) queuedThread);
+            }
+        }
+
+        return waitingThreads;
+    } catch (SecurityException e) {
+        throw new SecurityException("Access denied for setAccessible", e);
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+This updated version includes the following changes:
+
+- The method now checks if a security manager is present and if it denies access to the declared fields within the class or the package of the class.
+- If access is denied, the method throws a `SecurityException` with a more informative message.
+- The rest of the method remains the same as before.
+------------------------------------------------------

@@ -1,0 +1,53 @@
+
+Sure, here's an updated version of the `setParameter` method that checks for database access errors, closed connections, and unsupported methods:
+
+```java
+public void setParameter(String parameterName, String parameterValue, int queryTimeout) throws SQLException {
+    // code to set the designated parameter to the given String object
+    // for example, if using JDBC to set a parameter in a prepared statement:
+    try {
+        PreparedStatement ps = conn.prepareStatement("UPDATE my_table SET my_column = ? WHERE id = ?");
+        ps.setString(1, parameterValue);
+        ps.setInt(2, 1234); // example ID value
+        ps.setQueryTimeout(queryTimeout);
+        ps.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // attempt to cancel the statement if it has exceeded the timeout value
+            Statement stmt = null;
+            try {
+                stmt = conn.createStatement();
+                if (stmt != null) {
+                    stmt.cancel();
+                } else {
+                    throw new SQLException("Statement is null");
+                }
+            } catch (SQLException ex) {
+                if (ex instanceof SQLFeatureNotSupportedException) {
+                    throw (SQLFeatureNotSupportedException) ex;
+                } else {
+                    ex.printStackTrace();
+                }
+            } finally {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            }
+        } else {
+            if (e instanceof SQLNonTransientConnectionException || e instanceof SQLTransientConnectionException) {
+                throw e;
+            } else {
+                e.printStackTrace();
+            }
+        }
+        throw e;
+    }
+}
+```
+
+This version of the method adds additional exception handling to check for database access errors and closed connections. If a `SQLNonTransientConnectionException` or `SQLTransientConnectionException` is caught, it is re-thrown to be handled by the calling code.
+
+The method also checks for unsupported methods by catching a `SQLFeatureNotSupportedException` when attempting to cancel the statement. If this exception is caught, it is re-thrown to be handled by the calling code.
+
+Finally, the `cancel` method is called on the statement only if it is not null. If it is null, a new `SQLException` is thrown with a message indicating that the statement is null.
+------------------------------------------------------

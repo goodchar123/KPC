@@ -1,0 +1,42 @@
+
+Sure, here's an updated version of the method that checks for a query timeout and attempts to cancel the statement if it has exceeded the timeout value:
+
+```java
+public void setInputStreamParameter(int parameterIndex, InputStream inputStream, int queryTimeout) throws SQLException {
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+        pstmt = conn.prepareStatement("UPDATE mytable SET input_stream = ? WHERE id = ?");
+        pstmt.setBinaryStream(parameterIndex, inputStream);
+        pstmt.setInt(parameterIndex + 1, 123); // set the ID parameter
+        pstmt.setQueryTimeout(queryTimeout); // set the query timeout
+        int updateCount = pstmt.executeUpdate();
+        if (updateCount == 0) {
+            throw new SQLException("No rows were updated");
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // attempt to cancel the statement if it has exceeded the timeout value
+            if (pstmt != null) {
+                pstmt.cancel();
+            }
+        }
+        throw e;
+    } finally {
+        if (pstmt != null) {
+            pstmt.close();
+        }
+        if (conn != null) {
+            conn.close();
+        }
+    }
+}
+```
+
+In this updated version, the method takes an additional parameter `queryTimeout` which specifies the maximum number of seconds that the statement should be allowed to run before timing out. The method sets the query timeout using the `setQueryTimeout` method of the prepared statement.
+
+If a `SQLTimeoutException` is thrown during the execution of the statement, the method attempts to cancel the statement using the `cancel` method of the prepared statement. The exception is then re-thrown to the calling code.
+
+Note that the `setQueryTimeout` method may not be supported by all JDBC drivers, so you should check the documentation for your specific driver to see if it is supported.
+------------------------------------------------------

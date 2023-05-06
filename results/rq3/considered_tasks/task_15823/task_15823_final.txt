@@ -1,0 +1,46 @@
+
+Here's an updated version of the Java method that checks if the watch service is closed or interrupted while waiting for the next key:
+
+```
+import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
+
+public class WatchServiceExample {
+    public static void main(String[] args) throws Exception {
+        Path path = Paths.get("C:/example");
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+
+        // Wait for the next watch key for up to 10 seconds
+        try {
+            watchKey = watchService.poll(10, TimeUnit.SECONDS);
+        } catch (ClosedWatchServiceException e) {
+            // Watch service is closed
+            System.out.println("Watch service is closed.");
+            return;
+        } catch (InterruptedException e) {
+            // Thread is interrupted
+            System.out.println("Thread is interrupted.");
+            return;
+        }
+
+        if (watchKey != null) {
+            // Retrieve and remove the next watch key
+            try {
+                watchKey = watchService.take();
+            } catch (ClosedWatchServiceException e) {
+                // Watch service is closed
+                System.out.println("Watch service is closed.");
+                return;
+            } catch (InterruptedException e) {
+                // Thread is interrupted
+                System.out.println("Thread is interrupted.");
+                return;
+            }
+        }
+    }
+}
+```
+
+In this updated version, we use try-catch blocks to handle the `ClosedWatchServiceException` and `InterruptedException` that may occur while waiting for the next key or taking the key from the watch service. If the watch service is closed or the thread is interrupted, we print a message and return from the method.
+------------------------------------------------------

@@ -1,0 +1,68 @@
+Please write a java method that Waits if necessary for the computation to complete, and then retrieves its result.
+Here is an example of a Java method that waits for a computation to complete and retrieves its result:
+
+```
+public static <T> T getResult(Future<T> future) throws InterruptedException, ExecutionException {
+    T result = future.get(); // waits for the computation to complete and retrieves the result
+    return result;
+}
+```
+
+This method takes a `Future` object as its parameter, which represents a computation that may not have completed yet. The `get()` method of the `Future` object blocks until the computation is complete and returns the result.
+
+If the computation is interrupted or encounters an exception, the `get()` method will throw an `InterruptedException` or an `ExecutionException`, respectively. Therefore, the `getResult()` method also declares these exceptions in its signature.
+------------------------------------------------------
+Please check if the computation was cancelled for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw CancellationException.
+Sure, here's an updated version of the `getResult()` method that checks if the computation was cancelled and throws a `CancellationException` if it was:
+
+```
+public static <T> T getResult(Future<T> future) throws InterruptedException, ExecutionException, CancellationException {
+    T result = future.get(); // waits for the computation to complete and retrieves the result
+    if (future.isCancelled()) {
+        throw new CancellationException("Computation was cancelled");
+    }
+    return result;
+}
+```
+
+This version of the method first calls `future.get()` to wait for the computation to complete and retrieve the result. Then it checks if the computation was cancelled by calling `future.isCancelled()`. If it was, it throws a `CancellationException` with an appropriate message.
+
+Note that the `CancellationException` is a checked exception, so it needs to be declared in the method signature along with `InterruptedException` and `ExecutionException`.
+------------------------------------------------------
+Please check if the computation was cancelled for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw CancellationException.
+Please check if the computation threw an exception for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw ExecutionException.
+Please check if the current thread was interrupted while waiting for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw InterruptedException.
+Sure, here's an updated version of the `getResult()` method that checks for all the possible exceptions that can be thrown by `Future.get()`:
+
+```
+public static <T> T getResult(Future<T> future) throws InterruptedException, ExecutionException, CancellationException {
+    try {
+        T result = future.get(); // waits for the computation to complete and retrieves the result
+        if (future.isCancelled()) {
+            throw new CancellationException("Computation was cancelled");
+        }
+        return result;
+    } catch (CancellationException e) {
+        throw e;
+    } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        } else if (cause instanceof Error) {
+            throw (Error) cause;
+        } else {
+            throw new ExecutionException(cause);
+        }
+    } catch (InterruptedException e) {
+        future.cancel(true); // cancel the computation if the thread was interrupted
+        throw e;
+    }
+}
+```
+
+This version of the method first calls `future.get()` to wait for the computation to complete and retrieve the result. Then it checks if the computation was cancelled by calling `future.isCancelled()`. If it was, it throws a `CancellationException` with an appropriate message.
+
+If the computation threw an exception, the method checks the type of the exception and rethrows it as a `RuntimeException` or an `Error` if it is one of those types, or as an `ExecutionException` otherwise.
+
+Finally, if the current thread was interrupted while waiting for the computation to complete, the method cancels the computation by calling `future.cancel(true)` and throws an `InterruptedException`.
+------------------------------------------------------

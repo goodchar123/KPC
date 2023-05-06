@@ -1,0 +1,56 @@
+
+Sure, here's the updated code snippet with the requested error handling for `setQueryTimeout()` and `executeQuery()`:
+
+```java
+public double getDoubleParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    try {
+        statement.setDouble(parameterIndex, 123.45); // set the parameter value
+    } catch (SQLException e) {
+        throw new SQLException("Error setting double parameter", e);
+    }
+    
+    ResultSet resultSet;
+    try {
+        resultSet = statement.executeQuery(); // execute the query
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            throw (SQLTimeoutException) e;
+        } else {
+            throw new SQLException("Error executing query", e);
+        }
+    }
+    
+    double result = 0.0;
+    try {
+        if (resultSet.next()) {
+            result = resultSet.getDouble(1); // retrieve the result as a double
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error retrieving double result", e);
+    } finally {
+        try {
+            resultSet.close();
+        } catch (SQLException e) {
+            throw new SQLException("Error closing result set", e);
+        }
+    }
+    
+    return result;
+}
+
+try {
+    // Set query timeout in seconds
+    statement.setQueryTimeout(10);
+} catch (SQLException e) {
+    throw new SQLException("Error setting query timeout", e);
+}
+
+try {
+    double result = getDoubleParameter(statement, 1);
+} catch (SQLTimeoutException e) {
+    throw new SQLTimeoutException("Query timeout exceeded", e);
+}
+```
+
+This updated code snippet now includes error handling for the scenario where the driver has determined that the timeout value specified by `setQueryTimeout()` has been exceeded and has at least attempted to cancel the currently running `Statement`. In this case, a `SQLTimeoutException` is thrown with an appropriate error message and the original exception as the cause. The `executeQuery()` method now checks if the exception thrown is an instance of `SQLTimeoutException`, and if so, it re-throws the exception.
+------------------------------------------------------

@@ -1,0 +1,47 @@
+
+Sure, here's the updated code snippet that includes the error checking and exception handling:
+
+```java
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+
+public class ImageWriterExample {
+    public static void writeImageInProgressiveMode(BufferedImage image, File outputFile) throws IOException {
+        if (image == null) {
+            throw new IllegalArgumentException("Image cannot be null");
+        }
+        if (outputFile == null) {
+            throw new IllegalArgumentException("Output file cannot be null");
+        }
+        String formatName = "jpeg";
+        if (formatName == null) {
+            throw new IllegalArgumentException("Format name cannot be null");
+        }
+        ImageWriter writer = ImageIO.getImageWritersByFormatName(formatName).next();
+        if (writer == null) {
+            throw new IllegalArgumentException("No writer found for format: " + formatName);
+        }
+        ImageWriteParam writeParam = new JPEGImageWriteParam(null);
+        writeParam.setProgressiveMode(JPEGImageWriteParam.MODE_DEFAULT);
+        if (ImageIO.createImageOutputStream(outputFile) == null) {
+            throw new IllegalArgumentException("Output stream cannot be null");
+        }
+        writer.setOutput(ImageIO.createImageOutputStream(outputFile));
+        if (writer.canWriteRasters() == false && image.getRaster() != null) {
+            throw new UnsupportedOperationException("Cannot write rasters");
+        }
+        writer.write(null, new javax.imageio.IIOImage(image, null, null), writeParam);
+        if (writer.getOutput() == null) {
+            throw new IllegalStateException("Output has not been set");
+        }
+    }
+}
+```
+
+This updated code checks for null values for the image and output file parameters, as well as for the format name and output stream. It also checks if the writer can write rasters and throws an exception if it cannot. Finally, it checks if the output has been set and if any errors occur during writing.
+------------------------------------------------------

@@ -1,0 +1,46 @@
+
+Thank you for the feedback. Here's the updated code snippet that includes the requested error handling:
+
+```
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+
+public class XmlHelper {
+
+    public static void writeXmlToFile(Document document, String uri) throws TransformerException, IOException {
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            DOMSource source = new DOMSource(document);
+            File file = new File(uri);
+            FileOutputStream fos = new FileOutputStream(file);
+            StreamResult result = new StreamResult(fos);
+            transformer.transform(source, result);
+            fos.close();
+        } catch (TransformerFactoryConfigurationError e) {
+            throw new TransformerException("Service configuration error or implementation not available or cannot be instantiated", e);
+        } catch (TransformerConfigurationException e) {
+            throw new TransformerException("Unable to create a Transformer instance", e);
+        } catch (IllegalArgumentException e) {
+            throw new TransformerException("Unsupported property or property not qualified with a namespace", e);
+        }
+    }
+}
+```
+
+In this updated code, we've added try-catch blocks to handle the potential exceptions that can be thrown by the `TransformerFactory.newInstance()`, `TransformerFactory.newTransformer()`, and `Transformer.setOutputProperty()` methods. If any of these exceptions are thrown, we throw a `TransformerException` with a custom error message and the original exception as the cause.
+------------------------------------------------------

@@ -1,0 +1,46 @@
+
+Sure, here's the updated code snippet that checks for errors loading assistive technologies and if the environment is headless:
+
+```java
+import java.awt.*;
+import java.awt.datatransfer.*;
+
+public class ClipboardHelper {
+    public static DataFlavor[] getAvailableDataFlavors() {
+        try {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if (GraphicsEnvironment.isHeadless() || !toolkit.areExtraMouseButtonsEnabled()) {
+                throw new AWTError("Assistive technologies not loaded");
+            }
+            Clipboard clipboard = toolkit.getSystemClipboard();
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Transferable transferable = clipboard.getContents(null);
+            if (transferable != null) {
+                return transferable.getTransferDataFlavors();
+            } else {
+                return new DataFlavor[0];
+            }
+        } catch (HeadlessException e) {
+            throw e;
+        } catch (AWTError e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AWTError("Error getting clipboard data flavors: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method first checks if the environment is headless by calling the `isHeadless` method on the `GraphicsEnvironment` class. If the environment is headless, it throws a `HeadlessException`.
+
+Next, it checks if assistive technologies are enabled by calling the `areExtraMouseButtonsEnabled` method on the `Toolkit` object. If assistive technologies are not enabled or the environment is headless, it throws an `AWTError` with a message indicating that assistive technologies are not loaded.
+
+It then gets the system clipboard by calling the `getSystemClipboard` method on the `Toolkit` object. If the environment is headless, it throws a `HeadlessException`.
+
+Finally, it gets the clipboard data flavors as before and returns them. If there are any other exceptions thrown while getting the clipboard data flavors, the method catches them and throws an `AWTError` with a message indicating the error.
+------------------------------------------------------

@@ -1,0 +1,25 @@
+
+Sure, here's an updated version of the `getClassLoader()` method that includes the check you requested:
+
+```java
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.Security;
+
+public class ClassLoaderHelper {
+    
+    public static ClassLoader getClassLoader(Class<?> clazz) throws SecurityException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Class<?> callerClass = Reflection.getCallerClass();
+            ClassLoader callerClassLoader = callerClass.getClassLoader();
+            ClassLoader requestedClassLoader = clazz.getClassLoader();
+            
+            if (callerClassLoader != null && !callerClassLoader.isAncestorOf(requestedClassLoader)) {
+                sm.checkPermission(new RuntimePermission("getClassLoader"));
+            }
+        }
+        
+        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public Class
+------------------------------------------------------

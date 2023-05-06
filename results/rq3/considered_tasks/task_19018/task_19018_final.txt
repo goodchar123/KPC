@@ -1,0 +1,69 @@
+
+Sure, here's an updated version of the `deleteCurrentRow()` method that includes the additional checks for unsupported methods:
+
+```java
+public void deleteCurrentRow(ResultSet rs) throws SQLException {
+    if (rs.isClosed()) {
+        throw new SQLException("Result set is closed");
+    }
+    int concurrency;
+    try {
+        concurrency = rs.getConcurrency();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting result set concurrency", e);
+    }
+    if (concurrency == ResultSet.CONCUR_READ_ONLY) {
+        throw new SQLException("Result set concurrency is CONCUR_READ_ONLY");
+    }
+    boolean beforeFirst;
+    try {
+        beforeFirst = rs.isBeforeFirst();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 && e.getSQLState().equals("S1009")) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support isBeforeFirst()");
+        } else {
+            throw new SQLException("Error checking if cursor is before first row", e);
+        }
+    }
+    if (beforeFirst) {
+        throw new SQLException("Cursor is before first row");
+    }
+    boolean afterLast;
+    try {
+        afterLast = rs.isAfterLast();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 && e.getSQLState().equals("S1009")) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support isAfterLast()");
+        } else {
+            throw new SQLException("Error checking if cursor is after last row", e);
+        }
+    }
+    if (afterLast) {
+        throw new SQLException("Cursor is after last row");
+    }
+    if (rs.isInsertRow()) {
+        throw new SQLException("Cursor is on the insert row");
+    }
+    DatabaseMetaData metaData;
+    try {
+        metaData = rs.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting result set metadata", e);
+    }
+    if (!metaData.supportsResultSetConcurrency(ResultSet.CONCUR_UPDATABLE)) {
+        throw new SQLFeatureNotSupportedException("JDBC driver does not support updatable result sets");
+    }
+    try {
+        rs.deleteRow();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 && e.getSQLState().equals("S1009")) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support deleteRow()");
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method checks for unsupported methods and throws a `SQLFeatureNotSupportedException` if any of them are encountered. Note that we need to catch the `SQLException` thrown by the unsupported method and check its error code and SQL state to determine if it's an unsupported method exception.
+------------------------------------------------------

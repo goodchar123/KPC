@@ -1,0 +1,31 @@
+
+Sure, here's the updated code snippet that checks if there are no rules available for the given `ZoneId` and throws a `ZoneRulesException` if that's the case:
+
+```java
+import java.time.*;
+import java.time.temporal.*;
+
+public static ZonedDateTime adjustForOverlap(ZonedDateTime dateTime) {
+    ZoneId zone = dateTime.getZone();
+    try {
+        if (!zone.getRules().isFixedOffset()) {
+            LocalDateTime localDateTime = dateTime.toLocalDateTime();
+            ZoneOffsetTransition transition = zone.getRules().getTransition(localDateTime);
+            if (transition != null && transition.isOverlap()) {
+                ZoneOffset laterOffset = transition.getOffsetAfter();
+                return dateTime.withLaterOffsetAtOverlap().withOffsetSameInstant(laterOffset);
+            }
+        }
+    } catch (ZoneRulesException e) {
+        throw e;
+    }
+    return dateTime;
+}
+```
+
+In this updated version of the method, we first try to get the `ZoneRules` for the given `ZoneId` and check if they are fixed offset using the `isFixedOffset()` method. If they are fixed offset, we don't need to adjust for any local time-line overlap, so we simply return the input `ZonedDateTime` object.
+
+If the `ZoneRules` are not fixed offset, we proceed to get the `LocalDateTime` and `ZoneOffsetTransition` as before. If there is an overlap at the local date-time, we get the later offset and adjust the date-time using the `withLaterOffsetAtOverlap()` and `withOffsetSameInstant()` methods.
+
+However, if there are no rules available for the given `ZoneId`, the `getRules()` method will throw a `ZoneRulesException`. In this case, we catch the exception and re-throw it to indicate that there are no rules available for the given `ZoneId`.
+------------------------------------------------------

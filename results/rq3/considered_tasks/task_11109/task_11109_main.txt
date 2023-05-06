@@ -1,0 +1,61 @@
+Please write a java method that Shuts down the group and closes all open channels in the group.
+Here's a Java method that shuts down a group and closes all open channels in the group:
+
+```java
+import java.nio.channels.AsynchronousChannelGroup;
+import java.util.concurrent.TimeUnit;
+
+public class GroupShutdown {
+
+    public static void shutdownGroup(AsynchronousChannelGroup group) {
+        try {
+            group.shutdown();
+            group.awaitTermination(30, TimeUnit.SECONDS);
+            group.shutdownNow();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This method takes an `AsynchronousChannelGroup` as a parameter and calls the `shutdown()` method to initiate the shutdown process. It then waits for up to 30 seconds for all channels in the group to close using the `awaitTermination()` method. Finally, it calls the `shutdownNow()` method to force the closure of any remaining channels in the group. If an exception occurs during the shutdown process, it will be printed to the console.
+------------------------------------------------------
+Please check If interrupted while waiting for java.nio.channels.AsynchronousChannelGroup.awaitTermination(long,java.util.concurrent.TimeUnit) in the code snippet you provided, otherwise throw InterruptedException.
+Please check If an I/O error occurs for java.nio.channels.AsynchronousChannelGroup.shutdownNow() in the code snippet you provided, otherwise throw IOException.
+Here's the updated Java method that checks for `InterruptedException` and `IOException`:
+
+```java
+import java.io.IOException;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.util.concurrent.TimeUnit;
+
+public class GroupShutdown {
+
+    public static void shutdownGroup(AsynchronousChannelGroup group) throws InterruptedException, IOException {
+        try {
+            group.shutdown();
+            if (!group.awaitTermination(30, TimeUnit.SECONDS)) {
+                group.shutdownNow();
+                if (!group.awaitTermination(30, TimeUnit.SECONDS)) {
+                    throw new IOException("Could not terminate channels");
+                }
+            }
+        } catch (InterruptedException e) {
+            group.shutdownNow();
+            Thread.currentThread().interrupt();
+            throw e;
+        } catch (IOException e) {
+            group.shutdownNow();
+            throw e;
+        }
+    }
+}
+```
+
+This updated method now throws `InterruptedException` if the thread is interrupted while waiting for the channels to terminate. It also throws `IOException` if an I/O error occurs during the `shutdownNow()` method call.
+
+To handle the `InterruptedException`, we catch it and call `shutdownNow()` to force the closure of any remaining channels in the group. We also re-interrupt the thread to ensure that the interrupted status is preserved.
+
+To handle the `IOException`, we catch it and call `shutdownNow()` to force the closure of any remaining channels in the group. We then re-throw the exception to indicate that the channels could not be terminated.
+------------------------------------------------------

@@ -1,0 +1,54 @@
+
+Sure, here's the updated code snippet that includes the requested exception handling:
+
+```java
+import java.lang.management.ManagementFactory;
+import java.lang.management.PlatformManagedObject;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import java.lang.reflect.Proxy;
+import java.io.IOException;
+import javax.management.RuntimeOperationsException;
+import javax.management.MBeanServerFactory;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
+public static <T extends PlatformManagedObject> T getPlatformMXBeanProxy(MBeanServerConnection connection, String mxbeanName, Class<T> mxbeanInterface) throws Exception {
+    try {
+        AccessController.checkPermission(new RuntimePermission("createMBeanServer"));
+    } catch (SecurityException e) {
+        throw new SecurityException("The caller does not have the permission required by MBeanServerFactory.createMBeanServer().", e);
+    }
+    try {
+        ObjectName objectName = new ObjectName(mxbeanName);
+        boolean isRegistered;
+        try {
+            isRegistered = connection.isRegistered(objectName);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(new IllegalArgumentException("The object name in parameter is null."));
+        } catch (IOException e) {
+            throw new IOException("A communication problem occurred when talking to the MBean server.", e);
+        }
+        if (!isRegistered) {
+            throw new IllegalArgumentException("The named MXBean is not registered in the MBeanServerConnection.");
+        }
+        T mxbeanProxy = ManagementFactory.newPlatformMXBeanProxy(connection, objectName.toString(), mxbeanInterface);
+        if (!mxbeanInterface.isInstance(mxbeanProxy)) {
+            throw new IllegalArgumentException("The named MXBean is not an instance of the given mxbeanInterface.");
+        }
+        return mxbeanProxy;
+    } catch (IOException e) {
+        throw new IOException("A communication problem occurred when accessing the MBeanServerConnection.", e);
+    } catch (IllegalArgumentException | NullPointerException | SecurityException e) {
+        throw e;
+    }
+}
+```
+
+This updated method includes the following exception handling:
+
+1. If there is a security manager and the caller does not have the permission required by `MBeanServerFactory.createMBeanServer()`, a `SecurityException` is thrown.
+2. If the object name in parameter is null, a `RuntimeOperationsException` is thrown.
+3. If a communication problem occurred when talking to the MBean server, an `IOException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,48 @@
+
+Apologies for the oversight in my previous response. Here's an updated version of the `createMBean` method that checks for the `MBeanRegistrationException` when the `preRegister` method of the MBean throws an exception:
+
+```
+import javax.management.*;
+
+public class MBeanServerConnectionHandler {
+    
+    private MBeanServerConnection mbsc;
+    
+    // Constructor that initializes the MBeanServerConnection object
+    public MBeanServerConnectionHandler(MBeanServerConnection mbsc) {
+        this.mbsc = mbsc;
+    }
+    
+    // Method that handles the createMBean method
+    public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName, Object[] params, String[] signature) throws Exception {
+        try {
+            return mbsc.createMBean(className, name, loaderName, params, signature);
+        } catch (ClassNotFoundException e) {
+            throw new ReflectionException(e, "Class not found: " + className);
+        } catch (InstanceAlreadyExistsException e) {
+            throw e;
+        } catch (NotCompliantMBeanException e) {
+            throw e;
+        } catch (InstanceNotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(e, "Invalid arguments: " + e.getMessage());
+        } catch (IOException e) {
+            throw e;
+        } catch (MBeanRegistrationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanException(e, "Error creating MBean: " + e.getMessage());
+        } catch (RuntimeException e) {
+            if (e instanceof Error) {
+                throw new RuntimeErrorException((Error) e, "Error creating MBean: " + e.getMessage());
+            } else {
+                throw new RuntimeMBeanException(e, "Error creating MBean: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This updated method checks for the `MBeanRegistrationException` and throws it if the `preRegister` method of the MBean throws an exception.
+------------------------------------------------------

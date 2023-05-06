@@ -1,0 +1,36 @@
+
+Sure, here's the updated Java method that checks for the conditions you mentioned and throws the appropriate exceptions:
+
+```java
+public static Type[] getDirectlyImplementedInterfaces(Class<?> clazz) {
+    try {
+        Type[] interfaces = clazz.getGenericInterfaces();
+        for (Type type : interfaces) {
+            if (!(type instanceof Class)) {
+                String signature = type.toString();
+                if (!signature.matches("L[a-zA-Z0-9/$]+(;[IJFDV])?")) {
+                    throw new GenericSignatureFormatError(signature);
+                }
+                String className = signature.substring(1, signature.length() - 1).replace('/', '.');
+                try {
+                    SecurityManager sm = System.getSecurityManager();
+                    if (sm != null) {
+                        ClassLoader callerClassLoader = getCallerClassLoader();
+                        ClassLoader parentClassLoader = clazz.getClassLoader().getParent();
+                        if (callerClassLoader != null && !isAncestorClassLoader(parentClassLoader, callerClassLoader)) {
+                            sm.checkPermission(new RuntimePermission("getClassLoader"));
+                        }
+                        if (callerClassLoader != null && !isAncestorClassLoader(callerClassLoader, clazz.getClassLoader())) {
+                            sm.checkPermission(new RuntimePermission("getClassLoader"));
+                        }
+                    }
+                    Class.forName(className, true, clazz.getClassLoader());
+                } catch (ClassNotFoundException e) {
+                    throw new TypeNotPresentException(className, e);
+                } catch (LinkageError | ExceptionInInitializerError e) {
+                    throw e;
+                } catch (SecurityException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new MalformedParameterized
+------------------------------------------------------

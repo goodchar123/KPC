@@ -1,0 +1,35 @@
+
+Sure, here's an updated version of the Java method that checks for the exceptions you mentioned:
+
+```java
+import javax.management.*;
+import javax.management.AttributeValueExp;
+import javax.management.ObjectName;
+
+public class MBeanHelper {
+    public static Object getAttributeValue(MBeanServerConnection mbsc, ObjectName objectName, String attributeName) throws Exception {
+        AttributeValueExp attributeValueExp = new AttributeValueExp(new AttributeExp(attributeName));
+        QueryExp queryExp = Query.eq(attributeValueExp, Boolean.TRUE);
+        ObjectName[] objectNames = mbsc.queryNames(objectName, queryExp);
+        if (objectNames.length == 0) {
+            throw new InstanceNotFoundException("No MBean found with attribute " + attributeName);
+        }
+        try {
+            return mbsc.getAttribute(objectNames[0], attributeName);
+        } catch (AttributeNotFoundException e) {
+            throw e;
+        } catch (MBeanException e) {
+            throw e;
+        } catch (InstanceNotFoundException e) {
+            throw e;
+        } catch (ReflectionException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new RuntimeOperationsException(e, "Error getting attribute " + attributeName);
+        }
+    }
+}
+```
+
+This updated method now catches the exceptions you mentioned and throws the appropriate exceptions instead. If the attribute is not accessible, an `AttributeNotFoundException` is thrown. If there's an exception thrown by the MBean's getter, a `MBeanException` is thrown. If the MBean is not registered in the MBean server, an `InstanceNotFoundException` is thrown. If there's an exception thrown when trying to invoke the setter, a `ReflectionException` is thrown. If the object name or attribute is null, a `RuntimeOperationsException` is thrown.
+------------------------------------------------------

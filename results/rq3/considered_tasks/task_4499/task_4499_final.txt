@@ -1,0 +1,55 @@
+
+Here's the updated Java method that includes the error handling you requested:
+
+```java
+public static Schema getSchemaFromXMLProcessor(XMLStreamReader xmlStreamReader) throws FactoryConfigurationError, IllegalArgumentException, XMLStreamException, NoSuchElementException, SAXException, NullPointerException, XMLStreamException, IllegalArgumentException, NullPointerException, SchemaFactoryConfigurationError {
+    Schema schema = null;
+    try {
+        if (xmlStreamReader.getEventType() == XMLStreamConstants.START_DOCUMENT) {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            if (factory.isPropertySupported(XMLInputFactory.SUPPORT_DTD)) {
+                factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            }
+            if (factory.isPropertySupported(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES)) {
+                factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+            }
+            if (factory.isPropertySupported(XMLInputFactory.IS_NAMESPACE_AWARE)) {
+                factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+            }
+            if (factory.isPropertySupported(XMLInputFactory.IS_VALIDATING)) {
+                factory.setProperty(XMLInputFactory.IS_VALIDATING, false);
+            }
+            XMLEventReader eventReader = factory.createXMLEventReader(xmlStreamReader);
+            while (eventReader.hasNext()) {
+                XMLEvent event = eventReader.nextEvent();
+                if (event.isStartElement()) {
+                    StartElement startElement = event.asStartElement();
+                    QName schemaLocation = startElement.getAttributeByName(new QName("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation"));
+                    if (schemaLocation != null) {
+                        String schemaLocationValue = schemaLocation.getValue();
+                        String[] schemaLocationValues = schemaLocationValue.split("\\s+");
+                        if (schemaLocationValues.length > 1) {
+                            String schemaLocationURI = schemaLocationValues[1];
+                            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                            schema = schemaFactory.newSchema(new URL(schemaLocationURI));
+                        }
+                    }
+                    break;
+                }
+            }
+            eventReader.close();
+        }
+    } catch (FactoryConfigurationError | IllegalArgumentException | XMLStreamException | NoSuchElementException | SAXException | NullPointerException | IllegalArgumentException | NullPointerException | SchemaFactoryConfigurationError e) {
+        throw e;
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    if (schema == null) {
+        throw new NullPointerException("Schema is null");
+    }
+    return schema;
+}
+```
+
+This
+------------------------------------------------------

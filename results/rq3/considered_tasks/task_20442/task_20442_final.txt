@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the method that includes the additional error checking:
+
+```java
+public void setTimestampParameter(PreparedStatement statement, int parameterIndex, Timestamp timestampValue) throws SQLException {
+    if (statement.isClosed()) {
+        throw new SQLException("PreparedStatement is closed");
+    }
+    ParameterMetaData parameterMetaData = null;
+    try {
+        parameterMetaData = statement.getParameterMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter metadata: " + e.getMessage());
+    }
+    int parameterCount = 0;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter count: " + e.getMessage());
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index: " + parameterIndex);
+    }
+    try {
+        statement.setTimestamp(parameterIndex, timestampValue);
+    } catch (SQLException e) {
+        throw new SQLException("Error setting timestamp parameter: " + e.getMessage());
+    }
+}
+```
+
+This updated method first checks if the `PreparedStatement` object is closed, and throws a `SQLException` with an appropriate message if it is. It then tries to get the `ParameterMetaData` object for the `PreparedStatement` using the `getParameterMetaData` method, and catches any `SQLException` that may occur. If an error occurs, it throws a new `SQLException` with an appropriate message.
+
+Next, it tries to get the total number of parameters in the SQL statement using the `getParameterCount` method of the `ParameterMetaData` object, and catches any `SQLException` that may occur. If an error occurs, it throws a new `SQLException` with an appropriate message.
+
+It then checks if the specified `parameterIndex` is within the valid range of 1 to `parameterCount`. If it is not, it throws a `SQLException` with an appropriate message.
+
+If all checks pass, the method tries to set the parameter to the specified `Timestamp` value using the `setTimestamp` method of the `PreparedStatement` object, and catches any `SQLException` that may occur. If an error occurs, it throws a new `SQLException` with an appropriate message.
+------------------------------------------------------

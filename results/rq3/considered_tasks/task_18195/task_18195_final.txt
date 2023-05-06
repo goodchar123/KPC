@@ -1,0 +1,45 @@
+
+Here's an updated version of the `startManagementAgent()` method that checks for a security manager and the required permission before calling `ManagementFactory.getPlatformMBeanServer()`:
+
+```
+import java.lang.management.ManagementFactory;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JMXManagementAgent {
+
+    public static void startManagementAgent() throws Exception {
+        String agentArgs = "-Dcom.sun.management.jmxremote";
+        Map<String, Object> agentProperties = new HashMap<>();
+        agentProperties.put("com.sun.management.jmxremote.authenticate", "false");
+        agentProperties.put("com.sun.management.jmxremote.ssl", "false");
+        agentProperties.put("com.sun.management.jmxremote.port", "1099");
+        
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                    public Void run() throws SecurityException {
+                        ManagementFactory.getPlatformMBeanServer();
+                        return null;
+                    }
+                });
+            } catch (PrivilegedActionException e) {
+                throw (SecurityException) e.getCause();
+            }
+        } else {
+            ManagementFactory.getPlatformMBeanServer();
+        }
+        
+        com.sun.management.jmxremote.ConnectorBootstrap.startup(agentArgs, agentProperties);
+    }
+}
+```
+
+This version uses `AccessController.doPrivileged()` to execute the `ManagementFactory.getPlatformMBeanServer()` call with the privileges of the caller, and catches any `PrivilegedActionException` that may be thrown. If a security manager is present and the caller does not have the required permission, a `SecurityException` is thrown. If there is no security manager, the call is made directly.
+
+Note that this method still requires the `com.sun.management.jmxremote` package to be available on the classpath.
+------------------------------------------------------

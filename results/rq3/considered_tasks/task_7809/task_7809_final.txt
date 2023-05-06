@@ -1,0 +1,41 @@
+
+Here's the updated Java method that checks for the presence of a security manager and validates the caller's class loader and resource name:
+
+```java
+public static URL findResource(String resourceName) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("getClassLoader"));
+    }
+
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader callerClassLoader = findResource.class.getClassLoader();
+
+    if (callerClassLoader != null && !callerClassLoader.equals(contextClassLoader) && !isAncestor(callerClassLoader, contextClassLoader)) {
+        throw new SecurityException("Caller class loader is not allowed to access the resource");
+    }
+
+    if (resourceName == null) {
+        throw new NullPointerException("Resource name cannot be null");
+    }
+
+    URL resourceUrl = contextClassLoader.getResource(resourceName);
+    return resourceUrl;
+}
+
+private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader current = descendant;
+    while (current != null) {
+        if (current.equals(ancestor)) {
+            return true;
+        }
+        current = current.getParent();
+    }
+    return false;
+}
+```
+
+This method first checks for the presence of a security manager and validates the caller's class loader and resource name. If the caller's class loader is not allowed to access the resource or the resource name is null, it throws a SecurityException or NullPointerException respectively. 
+
+The `isAncestor` method is used to check if the caller's class loader is an ancestor of the context class loader. If it is, then the caller is allowed to access the resource.
+------------------------------------------------------

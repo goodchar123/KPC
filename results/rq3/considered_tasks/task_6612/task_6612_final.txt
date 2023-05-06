@@ -1,0 +1,39 @@
+
+Sure, here's the updated Java method that checks if either field value is invalid for `java.time.YearMonth.of(int,int)`, and throws a `DateTimeException` if that's the case:
+
+```java
+public static Temporal adjustToYearMonth(Temporal temporal, YearMonth yearMonth) {
+    int year = yearMonth.getYear();
+    int month = yearMonth.getMonthValue();
+    if (year < Year.MIN_VALUE || year > Year.MAX_VALUE || month < 1 || month > 12) {
+        throw new DateTimeException("Invalid year or month value for YearMonth: " + yearMonth);
+    }
+    if (temporal instanceof LocalDate) {
+        return yearMonth.atDay(((LocalDate) temporal).getDayOfMonth());
+    } else if (temporal instanceof LocalDateTime) {
+        return yearMonth.atDay(((LocalDateTime) temporal).getDayOfMonth())
+                .atTime(((LocalDateTime) temporal).toLocalTime());
+    } else if (temporal instanceof ZonedDateTime) {
+        return yearMonth.atDay(((ZonedDateTime) temporal).getDayOfMonth())
+                .atTime(((ZonedDateTime) temporal).toLocalTime())
+                .atZone(((ZonedDateTime) temporal).getZone());
+    } else {
+        throw new UnsupportedOperationException("Temporal type not supported: " + temporal.getClass());
+    }
+}
+```
+
+This method first extracts the year and month values from the `YearMonth` object, and checks if they are within the valid range for `YearMonth` using the `Year.MIN_VALUE`, `Year.MAX_VALUE`, and `Month` constants. If either value is invalid, it throws a `DateTimeException` with a descriptive error message.
+
+If both values are valid, the method proceeds to adjust the temporal object to the specified year-month, as before.
+
+You can call this updated method like this:
+
+```java
+LocalDate date = LocalDate.of(2021, 5, 15);
+YearMonth yearMonth = YearMonth.of(2022, 13);
+Temporal adjusted = adjustToYearMonth(date, yearMonth); // throws DateTimeException
+``` 
+
+In this example, the `YearMonth` object has an invalid month value of 13, which causes the method to throw a `DateTimeException`.
+------------------------------------------------------

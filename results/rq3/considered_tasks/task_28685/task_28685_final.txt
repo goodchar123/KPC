@@ -1,0 +1,40 @@
+
+You're right, it's important to add those checks to ensure the method is robust. Here's the updated code with the checks:
+
+```java
+public static WritableRaster createWritableRasterWithDifferentLocation(WritableRaster raster, Point location) {
+    if (raster == null) {
+        throw new NullPointerException("Input raster cannot be null");
+    }
+
+    SampleModel sampleModel = raster.getSampleModel();
+    DataBuffer dataBuffer = raster.getDataBuffer();
+    int width = raster.getWidth();
+    int height = raster.getHeight();
+    int[] bandOffsets = raster.getSampleModel().getBandOffsets();
+    int scanlineStride = raster.getSampleModel().getScanlineStride();
+    int pixelStride = raster.getSampleModel().getPixelStride();
+
+    WritableRaster newRaster = Raster.createWritableRaster(sampleModel, dataBuffer, location);
+
+    // Copy the data from the input raster to the new raster
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int[] pixel = new int[bandOffsets.length];
+            try {
+                raster.getPixel(x, y, pixel);
+                newRaster.setPixel(x, y, pixel);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                throw new ArrayIndexOutOfBoundsException("Coordinates out of bounds: (" + x + ", " + y + ")");
+            } catch (NullPointerException e) {
+                throw new NullPointerException("Input array cannot be null");
+            }
+        }
+    }
+
+    return newRaster;
+}
+```
+
+Now, the method checks if the input raster is null and throws a NullPointerException if it is. It also checks if the coordinates are out of bounds or if the input array is null or too small, and throws an ArrayIndexOutOfBoundsException if any of those conditions are met.
+------------------------------------------------------

@@ -1,0 +1,72 @@
+
+Here is the updated Java method that includes the requested error checking:
+
+```java
+public Object getOutParameter(CallableStatement cs, String parameterName, int sqlType, Class<?> javaType) throws SQLException {
+    if (parameterName == null || parameterName.isEmpty()) {
+        throw new SQLException("Parameter name cannot be null or empty");
+    }
+    if (cs.isClosed()) {
+        throw new SQLException("CallableStatement is closed");
+    }
+    try {
+        cs.registerOutParameter(parameterName, sqlType);
+    } catch (SQLException e) {
+        if (sqlType == Types.ARRAY || sqlType == Types.BLOB || sqlType == Types.CLOB || sqlType == Types.DATALINK || sqlType == Types.JAVA_OBJECT || sqlType == Types.NCHAR || sqlType == Types.NCLOB || sqlType == Types.NVARCHAR || sqlType == Types.LONGNVARCHAR || sqlType == Types.REF || sqlType == Types.ROWID || sqlType == Types.SQLXML || sqlType == Types.STRUCT) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support data type " + sqlType);
+        } else {
+            throw e;
+        }
+    }
+    cs.execute();
+    try {
+        Object value = cs.getObject(parameterName);
+        if (value == null) {
+            return null;
+        }
+        if (javaType == null) {
+            throw new NullPointerException("Java type cannot be null");
+        }
+        if (javaType.isAssignableFrom(value.getClass())) {
+            return value;
+        }
+        if (javaType == String.class) {
+            return value.toString();
+        }
+        if (javaType == Integer.class) {
+            return ((Number) value).intValue();
+        }
+        if (javaType == Long.class) {
+            return ((Number) value).longValue();
+        }
+        if (javaType == Double.class) {
+            return ((Number) value).doubleValue();
+        }
+        if (javaType == Float.class) {
+            return ((Number) value).floatValue();
+        }
+        if (javaType == Boolean.class) {
+            return ((Number) value).intValue() != 0;
+        }
+        if (javaType == Date.class) {
+            return new Date(((java.sql.Date) value).getTime());
+        }
+        if (javaType == Time.class) {
+            return new Time(((java.sql.Time) value).getTime());
+        }
+        if (javaType == Timestamp.class) {
+            return new Timestamp(((java.sql.Timestamp) value).getTime());
+        }
+        throw new SQLException("Unsupported conversion from SQL type " + sqlType + " to Java type " + javaType.getName());
+    } catch (SQLException e) {
+        if (e.getMessage().contains("JDBC driver does not support this method")) {
+            throw new SQLFeatureNotSupportedException(e.getMessage());
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method checks if the parameter name is null or empty, and if the `CallableStatement` is closed before attempting to register the OUT parameter. If the SQL type is not supported by the JDBC driver, it throws a `SQLFeatureNotSupportedException`. It also checks if the requested Java data type is null before attempting to perform any conversions, and throws a `NullPointerException` if it is. Finally, it checks if the JDBC driver supports the `getObject()` method, and throws a `SQLFeatureNotSupportedException` if it does not.
+------------------------------------------------------

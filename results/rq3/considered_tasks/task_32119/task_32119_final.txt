@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that checks if the input is not an instance of one of the classes returned by the originating service provider's `getInputTypes` method, or is not an `ImageInputStream`, and throws an `IllegalArgumentException` if either of these conditions is true:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.ImageWriter;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
+import java.io.IOException;
+import java.util.Iterator;
+
+public static ImageReader getImageReaderForWriter(ImageWriter writer, Object input) throws IOException, IllegalArgumentException {
+    ImageWriterSpi writerSpi = writer.getOriginatingProvider();
+    Iterator<ImageReaderSpi> readerSpiIter = ImageIO.getImageReadersBySpi(writerSpi);
+    if (readerSpiIter.hasNext()) {
+        ImageReaderSpi readerSpi = readerSpiIter.next();
+        try {
+            ImageReader reader = readerSpi.createReaderInstance();
+            if (input != null) {
+                Class<?>[] inputTypes = readerSpi.getInputTypes();
+                boolean validInput = false;
+                for (Class<?> inputType : inputTypes) {
+                    if (inputType.isInstance(input)) {
+                        validInput = true;
+                        break;
+                    }
+                }
+                if (!validInput && !(input instanceof ImageInputStream)) {
+                    throw new IllegalArgumentException("Invalid input type");
+                }
+           
+------------------------------------------------------

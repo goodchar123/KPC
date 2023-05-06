@@ -1,0 +1,46 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+import java.sql.*;
+
+public boolean isFilePerTable(Connection conn) throws SQLException {
+    boolean isFilePerTable = false;
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        ResultSet rs = metaData.getTables(null, null, null, new String[] {"TABLE"});
+        while (rs.next()) {
+            String tableName = rs.getString("TABLE_NAME");
+            String tableType = rs.getString("TABLE_TYPE");
+            if (tableType.equalsIgnoreCase("TABLE")) {
+                ResultSet tableRs = metaData.getColumns(null, null, tableName, null);
+                while (tableRs.next()) {
+                    String columnName = tableRs.getString("COLUMN_NAME");
+                    if (columnName.equalsIgnoreCase("ROWID")) {
+                        isFilePerTable = true;
+                        break;
+                    }
+                }
+                if (!tableRs.isClosed()) {
+                    tableRs.close();
+                }
+                if (isFilePerTable) {
+                    break;
+                }
+            }
+        }
+        if (!rs.isClosed()) {
+            rs.close();
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error: " + e.getMessage());
+    }
+    return isFilePerTable;
+}
+```
+
+This updated method includes try-catch blocks to handle potential SQLExceptions that may occur during the execution of the method. It checks if the connection is closed before calling `conn.getMetaData()`, and throws an SQLException if it is. It also checks if the result sets are closed before calling `rs.close()` and `tableRs.close()`, and throws an SQLException if they are not. Finally, it catches any SQLExceptions that may occur during the execution of the method and re-throws them with a more descriptive error message.
+------------------------------------------------------

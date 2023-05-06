@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the Java method that includes error handling for the scenarios you mentioned:
+
+```
+public static void writeXMLValue(SQLXML sqlxml, OutputStream outputStream) throws SQLException, IOException {
+    if (sqlxml == null || outputStream == null) {
+        throw new IllegalArgumentException("SQLXML and OutputStream cannot be null");
+    }
+    try {
+        OutputStream xmlOutputStream = sqlxml.setBinaryStream();
+        if (xmlOutputStream == null) {
+            throw new SQLException("SQLXML state is not writable");
+        }
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = outputStream.read(buffer)) != -1) {
+            xmlOutputStream.write(buffer, 0, bytesRead);
+        }
+        xmlOutputStream.close();
+        outputStream.close();
+    } catch (SQLException e) {
+        throw e;
+    } catch (IOException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error writing XML value: " + e.getMessage());
+    }
+}
+```
+
+This updated method first checks if the SQLXML and OutputStream parameters are not null. It then retrieves the binary stream from the SQLXML instance using the `setBinaryStream()` method, and throws a SQLException if the stream is null (indicating that the SQLXML state is not writable). If the JDBC driver does not support this method, a SQLFeatureNotSupportedException will be thrown instead.
+
+The method then reads from the input OutputStream and writes to the binary stream until there is no more data to read. If an IOException occurs during this process (e.g. if the output stream is closed), it will be caught and re-thrown as an IOException.
+
+Finally, any other exceptions that occur during the method execution will be caught and re-thrown as a SQLException with a descriptive error message.
+
+You can call this updated method in the same way as before:
+
+```
+SQLXML sqlxml = resultSet.getSQLXML("xml_column");
+OutputStream outputStream = new FileOutputStream("output.xml");
+writeXMLValue(sqlxml, outputStream);
+```
+------------------------------------------------------

@@ -1,0 +1,45 @@
+
+Here is the updated Java method that includes the requested exception handling:
+
+```java
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.ExportException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class RemoteObjectExporter {
+
+    private static final Logger LOGGER = Logger.getLogger(RemoteObjectExporter.class.getName());
+
+    public static void export(Remote remoteObject, int port, String filter) throws RemoteException, AlreadyBoundException {
+        try {
+            // Create a new instance of the UnicastRemoteObject class
+            UnicastRemoteObject exportedObject = UnicastRemoteObject.exportObject(remoteObject, port);
+
+            // Create a new instance of the Registry class
+            Registry registry = LocateRegistry.createRegistry(port);
+
+            // Bind the exported object to the registry using the specified filter
+            registry.bind(filter, exportedObject);
+
+            LOGGER.log(Level.INFO, "Remote object exported successfully on port {0} with filter {1}", new Object[]{port, filter});
+        } catch (ExportException e) {
+            LOGGER.log(Level.SEVERE, "Error exporting remote object: {0}", e.getMessage());
+            throw new RemoteException("Export failed", e);
+        } catch (AlreadyBoundException e) {
+            LOGGER.log(Level.SEVERE, "Error binding remote object: {0}", e.getMessage());
+            throw e;
+        } catch (AccessException e) {
+            LOGGER.log(Level.SEVERE, "Access denied to registry: {0}", e.getMessage());
+            throw new RemoteException("Access denied to registry", e);
+        } catch (RemoteException e) {
+            LOGGER.log(Level.SEVERE, "Error communicating with registry: {0}", e.getMessage());
+            throw e;
+        } catch (NullPointerException e
+------------------------------------------------------

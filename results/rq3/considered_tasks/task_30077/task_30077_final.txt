@@ -1,0 +1,52 @@
+
+Sure, here's the updated code snippet that checks for the security manager and headless environment:
+
+```java
+public void printPages(int startPage, int endPage) throws SecurityException, HeadlessException {
+    // Check for security manager
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPrintJobAccess();
+    }
+    // Check for headless environment
+    if (GraphicsEnvironment.isHeadless()) {
+        throw new HeadlessException("Printing is not supported in a headless environment.");
+    }
+    // Get the default printer
+    PrinterJob printerJob = PrinterJob.getPrinterJob();
+    // Set the page range to be printed
+    printerJob.setPrintable(new Printable() {
+        @Override
+        public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+            // Check if the page index is within the range to be printed
+            if (pageIndex >= startPage && pageIndex <= endPage) {
+                // Print the page
+                Graphics2D g2d = (Graphics2D) graphics;
+                g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+                // Draw the content of the page
+                // ...
+                return Printable.PAGE_EXISTS;
+            } else {
+                // No more pages to print
+                return Printable.NO_SUCH_PAGE;
+            }
+        }
+    });
+    // Show the print dialog
+    if (printerJob.printDialog()) {
+        try {
+            // Start the printing process
+            printerJob.print();
+        } catch (PrinterException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+In this updated code, we first check if a security manager exists using `System.getSecurityManager()`. If it does, we call `SecurityManager.checkPrintJobAccess()` to check if the current thread is allowed to create a print job request. If not, we throw a `SecurityException`.
+
+Next, we check if the environment is headless using `GraphicsEnvironment.isHeadless()`. If it is, we throw a `HeadlessException` with a message indicating that printing is not supported in a headless environment.
+
+These checks ensure that the code is executed only in a secure and supported environment.
+------------------------------------------------------

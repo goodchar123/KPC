@@ -1,0 +1,54 @@
+
+Sure, here's an updated version of the code snippet that includes the requested error checking:
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+
+public class TaskExecutor {
+
+    public static List<Future<?>> executeTasks(List<Callable<?>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        if (tasks == null) {
+            throw new NullPointerException("Task list cannot be null");
+        }
+        if (timeout < 0) {
+            throw new IllegalArgumentException("Timeout value cannot be negative");
+        }
+        if (tasks.size() <= 0) {
+            throw new IllegalArgumentException("Task list cannot be empty");
+        }
+
+        int nThreads = tasks.size();
+        if (nThreads <= 0) {
+            throw new IllegalArgumentException("Number of threads must be positive");
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+        List<Future<?>> futures = new ArrayList<>();
+
+        try {
+            for (Callable<?> task : tasks) {
+                if (task == null) {
+                    throw new NullPointerException("Task cannot be null");
+                }
+                futures.add(executor.submit(task));
+            }
+
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(timeout, unit)) {
+                    throw new TimeoutException("Timeout occurred while waiting for tasks to complete");
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        } catch (SecurityException e) {
+            executor.shutdownNow();
+            throw e;
+        } finally {
+            if (!executor.isTerminated()) {
+               
+------------------------------------------------------

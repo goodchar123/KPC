@@ -1,0 +1,933 @@
+Please write a java method that Returns an IIOMetadata object representing the metadata associated with the input source as a whole (i.e., not associated with any particular image).
+Here's an example Java method that returns an IIOMetadata object representing the metadata associated with the input source as a whole:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        ImageInputStream iis = ImageIO.createImageInputStream(file);
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        IIOMetadata metadata = reader.getImageMetadata(0);
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This method takes a `File` object as input and returns an `IIOMetadata` object representing the metadata associated with the input source as a whole. It uses the `ImageIO` class to create an `ImageInputStream` from the input file, and then gets an iterator over the available `ImageReader` objects. If there are no readers available, it throws an `IOException`. Otherwise, it gets the first reader from the iterator and sets its input to the `ImageInputStream`. It then gets the metadata associated with the first image in the input source (which represents the input source as a whole) and returns it. Finally, it closes the `ImageInputStream`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if a cache file is needed but cannot be created. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IOException.
+Please check if the input source has not been set. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the supplied index is out of bounds. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IndexOutOfBoundsException.
+Please check if an error occurs during reading. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IOException.
+Please check if an I/O error occurs. for javax.imageio.stream.ImageInputStream.close() in the code snippet you provided, otherwise throw IOException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getNumImages(true) == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following errors:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+- If a cache file is needed but cannot be created, it throws an `IOException`.
+- If the input source has no images, it throws an `IOException`.
+- If the supplied index is out of bounds, it throws an `IndexOutOfBoundsException`.
+- If the input source has not been set, it throws an `IllegalStateException`.
+- If an error occurs during reading, it throws an `IOException`.
+- If an I/O error occurs while closing the `ImageInputStream`, it throws an `IOException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the input source has not been set, or if the input has been specified with seekForwardOnly set to true. for javax.imageio.ImageReader.getNumImages(boolean) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if an error occurs reading the information from the input source. for javax.imageio.ImageReader.getNumImages(boolean) in the code snippet you provided, otherwise throw IOException.
+Thank you for the additional feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following errors:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+- If a cache file is needed but cannot be created, it throws an `IOException`.
+- If the input source has no images, it throws an `IOException`.
+- If the input source has not been set or is seek forward only, it throws an `IllegalStateException`.
+- If an error occurs reading information from the input source, it throws an `IOException`.
+- If the supplied index is out of bounds, it throws an `IndexOutOfBoundsException`.
+- If the input source has not been set, it throws an `IllegalStateException`.
+- If an error occurs during reading, it throws an `IOException`.
+- If an I/O error occurs while closing the `ImageInputStream`, it throws an `IOException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following error:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following error:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please write a java method that Returns an IIOMetadata object representing the metadata associated with the input source as a whole (i.e., not associated with any particular image).
+Here's an example Java method that returns an IIOMetadata object representing the metadata associated with the input source as a whole:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        ImageInputStream iis = ImageIO.createImageInputStream(file);
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        IIOMetadata metadata = reader.getImageMetadata(0);
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This method takes a `File` object as input and returns an `IIOMetadata` object representing the metadata associated with the input source as a whole. It uses the `ImageIO` class to create an `ImageInputStream` from the input file, and then gets an iterator over the available `ImageReader` objects. If there are no readers available, it throws an `IOException`. Otherwise, it gets the first reader from the iterator and sets its input to the `ImageInputStream`. It then gets the metadata associated with the first image in the input source (which represents the input source as a whole) and returns it. Finally, it closes the `ImageInputStream`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if a cache file is needed but cannot be created. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IOException.
+Please check if the input source has not been set. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the supplied index is out of bounds. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IndexOutOfBoundsException.
+Please check if an error occurs during reading. for javax.imageio.ImageReader.getImageMetadata(int) in the code snippet you provided, otherwise throw IOException.
+Please check if an I/O error occurs. for javax.imageio.stream.ImageInputStream.close() in the code snippet you provided, otherwise throw IOException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getNumImages(true) == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following errors:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+- If a cache file is needed but cannot be created, it throws an `IOException`.
+- If the input source has no images, it throws an `IOException`.
+- If the supplied index is out of bounds, it throws an `IndexOutOfBoundsException`.
+- If the input source has not been set, it throws an `IllegalStateException`.
+- If an error occurs during reading, it throws an `IOException`.
+- If an I/O error occurs while closing the `ImageInputStream`, it throws an `IOException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the input source has not been set, or if the input has been specified with seekForwardOnly set to true. for javax.imageio.ImageReader.getNumImages(boolean) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if an error occurs reading the information from the input source. for javax.imageio.ImageReader.getNumImages(boolean) in the code snippet you provided, otherwise throw IOException.
+Thank you for the additional feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following errors:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+- If a cache file is needed but cannot be created, it throws an `IOException`.
+- If the input source has no images, it throws an `IOException`.
+- If the input source has not been set or is seek forward only, it throws an `IllegalStateException`.
+- If an error occurs reading information from the input source, it throws an `IOException`.
+- If the supplied index is out of bounds, it throws an `IndexOutOfBoundsException`.
+- If the input source has not been set, it throws an `IllegalStateException`.
+- If an error occurs during reading, it throws an `IOException`.
+- If an I/O error occurs while closing the `ImageInputStream`, it throws an `IOException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following error:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following error:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated code checks for the following error:
+
+- If the input file is null, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please check if input is null. for javax.imageio.ImageIO.createImageInputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Thank you for the feedback. Here's the updated code snippet that includes the requested error checking:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class MetadataHelper {
+
+    public static IIOMetadata getMetadata(File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(file);
+        } catch (IOException e) {
+            throw new IOException("Failed to create ImageInputStream", e);
+        }
+
+        if (iis == null) {
+            throw new IOException("Failed to create ImageInputStream");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            iis.close();
+            throw new IOException("No reader available for the input source");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (reader.getInput() == null || reader.isSeekForwardOnly()) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only");
+        }
+
+        int numImages = 0;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred reading information from the input source", e);
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set or is seek forward only", e);
+        }
+
+        if (numImages == 0) {
+            iis.close();
+            throw new IOException("Input source has no images");
+        }
+
+        IIOMetadata metadata = null;
+        try {
+            metadata = reader.getImageMetadata(0);
+        } catch (IndexOutOfBoundsException e) {
+            iis.close();
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalStateException e) {
+            iis.close();
+            throw new IllegalStateException("Input source has not been set", e);
+        } catch (IOException e) {
+            iis.close();
+            throw new IOException("Error occurred during reading", e);
+        }
+
+
+------------------------------------------------------

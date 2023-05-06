@@ -1,0 +1,46 @@
+
+Sure, here's an updated version of the Java method that checks for security manager and throws `SecurityException` if access is denied:
+
+```java
+import java.io.File;
+import java.security.AccessControlException;
+import java.security.Permission;
+
+public class FileHelper {
+    public static File[] getFilesInDirectory(String directoryPath) {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            try {
+                securityManager.checkRead(directoryPath);
+            } catch (AccessControlException e) {
+                throw new SecurityException("Access denied to read directory: " + directoryPath, e);
+            }
+        }
+        
+        File directory = new File(directoryPath);
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException("Path is not a directory: " + directoryPath);
+        }
+        
+        if (securityManager != null) {
+            try {
+                Permission permission = new FilePermission(directoryPath, "read");
+                securityManager.checkPermission(permission);
+            } catch (AccessControlException e) {
+                throw new SecurityException("Access denied to list files in directory: " + directoryPath, e);
+            }
+        }
+        
+        return directory.listFiles();
+    }
+}
+```
+
+This updated method first checks if a security manager is present using `System.getSecurityManager()`. If it's present, it calls `SecurityManager.checkRead(directoryPath)` to check if read access is allowed for the directory. If access is denied, it throws a `SecurityException` with a message indicating the access was denied.
+
+Next, it checks if the given path represents a directory using `File.isDirectory()`. If it's not a directory, it throws an `IllegalArgumentException`.
+
+Then, it checks for security manager again and calls `SecurityManager.checkPermission(permission)` to check if permission is allowed to list files in the directory. If access is denied, it throws a `SecurityException` with a message indicating the access was denied.
+
+Finally, it returns the array of `File` objects representing the files in the directory using `File.listFiles()`.
+------------------------------------------------------

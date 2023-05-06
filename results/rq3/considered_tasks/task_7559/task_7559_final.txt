@@ -1,0 +1,34 @@
+
+Here's the updated Java method that includes the requested error handling for the `String.split()` method:
+
+```java
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.PatternSyntaxException;
+
+public static List<Integer> getDirectChildren() throws PatternSyntaxException {
+    List<Integer> children = new ArrayList<>();
+    RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+    String pid = runtime.getName().split("@")[0];
+    try {
+        ProcessHandle currentProcess = ProcessHandle.of(Long.parseLong(pid)).orElse(null);
+        if (currentProcess != null) {
+            currentProcess.children().forEach(child -> children.add((int) child.pid()));
+        }
+    } catch (NumberFormatException e) {
+        throw new NumberFormatException("The string does not contain a parsable long.");
+    } catch (SecurityException e) {
+        throw new SecurityException("A security manager has been installed and it denies RuntimePermission(\"manageProcess\").");
+    } catch (UnsupportedOperationException e) {
+        throw new UnsupportedOperationException("The implementation does not support this operation.");
+    } catch (PatternSyntaxException e) {
+        throw new PatternSyntaxException("The regular expression's syntax is invalid.", e.getPattern(), e.getIndex());
+    }
+    return children;
+}
+```
+
+This updated method includes an additional try-catch block to handle the possible `PatternSyntaxException` that may occur when calling `String.split()`. If the regular expression's syntax is invalid, we throw a new `PatternSyntaxException` with a descriptive message, the faulty regular expression, and the index at which the error occurred. We also include the previous error handling for `ProcessHandle.of()` and `ProcessHandle.children()`. If a `NumberFormatException` is thrown, it means that the string passed to `Long.parseLong()` is not parsable, so we throw a new `NumberFormatException` with a descriptive message. If a `SecurityException` is thrown, it means that a security manager has been installed and it denies the required permission, so we throw a new `SecurityException` with a descriptive message. If an `UnsupportedOperationException` is thrown, it means that the implementation does not support the operation, so we throw a new `UnsupportedOperationException` with a descriptive message.
+------------------------------------------------------

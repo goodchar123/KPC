@@ -1,0 +1,37 @@
+
+Sure, here's an updated version of the Java method that checks for the existence of a security manager and the caller's permissions before calling `getInputArguments()`:
+
+```java
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.security.AccessControlException;
+import java.security.Permission;
+import java.util.List;
+
+public class VMOptionHelper {
+    public static VMOption getVMOption(String optionName) {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            try {
+                securityManager.checkPermission(new ManagementPermission("monitor"));
+            } catch (AccessControlException e) {
+                throw new SecurityException("Caller does not have permission to monitor the JVM", e);
+            }
+        }
+        
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        List<VMOption> vmOptions = runtimeMXBean.getInputArguments();
+        for (VMOption vmOption : vmOptions) {
+            if (vmOption.getName().equals(optionName)) {
+                return vmOption;
+            }
+        }
+        return null;
+    }
+}
+```
+
+This updated method first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it then checks if the caller has the `ManagementPermission("monitor")` permission using `SecurityManager.checkPermission()`. If the caller does not have the required permission, a `SecurityException` is thrown.
+
+If the caller has the required permission, the method proceeds to call `getInputArguments()` and iterate through the list of VM options to find the one with the given name. If a matching option is found, it is returned. If no matching option is found, `null` is returned.
+------------------------------------------------------

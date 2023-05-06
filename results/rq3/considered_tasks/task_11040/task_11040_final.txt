@@ -1,0 +1,85 @@
+
+Sure, here's the updated code snippet that includes the necessary error checking and exception handling:
+
+```java
+public void selectKeys() throws IOException {
+    Selector selector = null;
+    try {
+        selector = Selector.open();
+    } catch (IOException e) {
+        // Handle I/O error
+        throw new IOException("Error opening selector", e);
+    }
+
+    try {
+        // Register channels with selector
+        if (!channel1.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        if (!channel2.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        if (!channel3.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        if (!channel1.provider().equals(selector.provider())) {
+            throw new IllegalSelectorException();
+        }
+        if (channel1.isBlocking() || channel2.isBlocking() || channel3.isBlocking()) {
+            throw new IllegalBlockingModeException();
+        }
+        channel1.register(selector, SelectionKey.OP_READ);
+        channel2.register(selector, SelectionKey.OP_WRITE);
+        channel3.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+    } catch (ClosedChannelException | IllegalSelectorException | IllegalBlockingModeException e) {
+        // Handle channel registration error
+        throw new IOException("Error registering channel with selector", e);
+    }
+
+    while (true) {
+        // Select keys whose corresponding channels are ready for I/O operations
+        try {
+            selector.select();
+        } catch (ClosedSelectorException e) {
+            // Handle selector closed error
+            throw new IOException("Selector closed", e);
+        }
+
+        // Get the selected keys
+        Set<SelectionKey> selectedKeys = selector.selectedKeys();
+
+        // Iterate over the selected keys and process them
+        for (SelectionKey key : selectedKeys) {
+            try {
+                if (key.isReadable()) {
+                    if (key.isCancelled()) {
+                        throw new CancelledKeyException();
+                    }
+                    // Handle read operation
+                    // ...
+                } else if (key.isWritable()) {
+                    if (key.isCancelled()) {
+                        throw new CancelledKeyException();
+                    }
+                    // Handle write operation
+                    // ...
+                }
+            } catch (CancelledKeyException e) {
+                // Handle cancelled key error
+                throw new IOException("Cancelled key", e);
+            }
+        }
+
+        // Remove the selected keys from the set
+        try {
+            selectedKeys.clear();
+        } catch (UnsupportedOperationException e) {
+            // Handle clear error
+            throw new IOException("Error clearing selected keys", e);
+        }
+    }
+}
+```
+
+In this updated code snippet, we handle various error scenarios that may occur during the selector and channel operations. We throw appropriate exceptions to indicate the error and provide more information about the cause of the error.
+------------------------------------------------------

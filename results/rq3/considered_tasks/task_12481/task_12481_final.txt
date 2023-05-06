@@ -1,0 +1,17 @@
+
+Here's an example Java code snippet that checks if a security manager is present, and the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested, and the caller does not have the `RuntimePermission("getClassLoader")` for `java.lang.Class.getClassLoader()`:
+
+```java
+SecurityManager s = System.getSecurityManager();
+if (s != null) {
+    Class<?> callerClass = Reflection.getCallerClass();
+    ClassLoader callerClassLoader = callerClass.getClassLoader();
+    ClassLoader requestedClassLoader = MyClass.class.getClassLoader();
+    if (callerClassLoader != null && !callerClassLoader.equals(requestedClassLoader) && !callerClassLoader.isAncestor(requestedClassLoader) && s.checkPermission(new RuntimePermission("getClassLoader")) != null) {
+        throw new SecurityException("Access to class loader denied");
+    }
+}
+```
+
+This code snippet first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it gets the caller's class, the caller's class loader, and the class loader for the class whose class loader is requested. It then checks if the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested, and if the caller does not have the `RuntimePermission("getClassLoader")` for `java.lang.Class.getClassLoader()`. If any of these conditions is true, it throws a `SecurityException` with an appropriate message.
+------------------------------------------------------

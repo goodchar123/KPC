@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the `findVirtual` method that includes the requested checks:
+
+```java
+private MethodHandle findVirtual(Class<?> clazz, String methodName, MethodType methodType) throws NoSuchMethodException, IllegalAccessException {
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    MethodHandle handle = lookup.findVirtual(clazz, methodName, methodType);
+
+    // Check if the target's type can be adjusted to the caller's symbolic type descriptor
+    if (!handle.type().equals(methodType)) {
+        MethodType adjustedType = handle.type().changeReturnType(methodType.returnType());
+        if (!adjustedType.equals(methodType)) {
+            throw new WrongMethodTypeException("Cannot adjust target type to caller's symbolic type descriptor");
+        }
+        handle = handle.asType(methodType);
+    }
+
+    // Check if a reference cast fails
+    if (handle.isVarargsCollector() && !methodType.isVarargsCollector()) {
+        MethodType varargsType = handle.type().asVarargsCollector(methodType.parameterType(methodType.parameterCount() - 1));
+        try {
+            handle = handle.asType(varargsType);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Reference cast failed");
+        }
+    }
+
+    return handle;
+}
+```
+
+In this updated version, we first call `lookup.findVirtual` to get the `MethodHandle`, and then perform the requested checks.
+
+The first check is to see if the target's type can be adjusted to the caller's symbolic type descriptor. We do this by comparing the `MethodType` of the `MethodHandle` to the `MethodType` passed in as an argument. If they are not equal, we try to create a new `MethodType` with the same parameter types as the original `MethodType`, but with the return type of the `MethodHandle`. If this new `MethodType` is still not equal to the original `MethodType`, we throw a `WrongMethodTypeException`. Otherwise, we adjust the `MethodHandle` to the new `MethodType` using the `asType` method.
+
+The second check is to see if a reference cast fails. We do this by checking if the `MethodHandle` is a varargs collector (i.e. it takes a variable number of arguments), but the `MethodType` passed in as an argument is not. If this is the case, we create a new `MethodType` with the same parameter types as the original `MethodType`, but with the last parameter type as a varargs array type. We then try to adjust the `MethodHandle` to the new `MethodType` using the `asType` method. If this throws a `ClassCastException`, we throw a new `ClassCastException`.
+
+Finally, we return the adjusted `MethodHandle`. If anything is thrown by the underlying method during the method handle call, it will propagate unchanged through the `invoke` method.
+------------------------------------------------------

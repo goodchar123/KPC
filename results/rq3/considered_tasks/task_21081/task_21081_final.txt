@@ -1,0 +1,52 @@
+
+Here's an updated version of the Java method that includes the requested error handling:
+
+```java
+public boolean isLOBUpdatedOnCopy(Connection conn, String tableName, String lobColumnName, String primaryKeyColumn, Object primaryKeyValue, int queryTimeout) throws SQLException {
+    boolean isUpdatedOnCopy = false;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    try {
+        pstmt = conn.prepareStatement("SELECT " + lobColumnName + " FROM " + tableName + " WHERE " + primaryKeyColumn + " = ?");
+        pstmt.setObject(1, primaryKeyValue);
+        pstmt.setQueryTimeout(queryTimeout);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            Blob lob = rs.getBlob(lobColumnName);
+            if (lob != null) {
+                isUpdatedOnCopy = lob.isWritable();
+            }
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            pstmt.cancel();
+        }
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (pstmt != null) {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+    }
+    return isUpdatedOnCopy;
+}
+```
+
+This updated method includes a `queryTimeout` parameter that specifies the maximum number of seconds that the `executeQuery()` method should wait for the query to complete before timing out. If the timeout value is exceeded, the method attempts to cancel the currently running statement using the `cancel()` method of the `PreparedStatement` object.
+
+In the `try` block, the `setQueryTimeout()` method is called on the `PreparedStatement` object to set the query timeout value. The `executeQuery()` method is then called to execute the query and retrieve the result set. The `while` loop is used to iterate through the result set and retrieve the LOB value for each row. If the LOB is not null, the `isWritable()` method is called to determine whether updates are made on a copy or directly to the LOB.
+
+In the `catch` block, the method checks whether the exception thrown is an instance of `SQLTimeoutException`. If it is, the method attempts to cancel the currently running statement using the `cancel()` method of the `PreparedStatement` object. The exception is then re-thrown.
+
+In the `finally` block, the method closes the `ResultSet` and `PreparedStatement` objects. If a database access error occurs or the method is called on a closed result set, a `SQLException` is thrown.
+------------------------------------------------------

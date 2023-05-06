@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the Java method that includes error checking and throws `DOMException` if any of the specified errors occur:
+
+```java
+public void insertHtmlAfterElement(String elementId, String html) throws DOMException {
+    // Get the element by its ID
+    Element element = document.getElementById(elementId);
+    
+    // Create a new element to hold the HTML
+    Element newElement = document.createElement("div");
+    try {
+        newElement.innerHTML = html;
+    } catch (DOMException e) {
+        throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid HTML string");
+    }
+    
+    // Insert the new element after the original element
+    try {
+        element.parentNode.insertBefore(newElement, element.nextSibling);
+    } catch (DOMException e) {
+        if (e.code == DOMException.HIERARCHY_REQUEST_ERR) {
+            throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, "Invalid element hierarchy");
+        } else if (e.code == DOMException.WRONG_DOCUMENT_ERR) {
+            throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, "New element created from different document");
+        } else if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR) {
+            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Node or parent is read-only");
+        } else if (e.code == DOMException.NOT_FOUND_ERR) {
+            throw new DOMException(DOMException.NOT_FOUND_ERR, "Reference child not found");
+        } else if (e.code == DOMException.NOT_SUPPORTED_ERR) {
+            throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Unsupported node type");
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method includes a `try-catch` block around the setting of the `innerHTML` property to catch any `DOMException` with the `INVALID_CHARACTER_ERR` code, and throws a new `DOMException` with the same code and a custom error message if this occurs.
+
+It also includes a `try-catch` block around the `insertBefore` method call to catch any `DOMException` that may occur, and throws a new `DOMException` with the appropriate error code and message if any of the specified errors occur.
+------------------------------------------------------

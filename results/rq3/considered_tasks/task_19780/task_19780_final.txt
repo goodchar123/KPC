@@ -1,0 +1,36 @@
+
+Here's an updated version of the Java method that includes the additional security checks you requested:
+
+```java
+public void restrictUnloading(String regex) throws SecurityException {
+    // Check if a security manager is present
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        // Check if the caller's class loader is not null and is not an ancestor of the new class loader
+        ClassLoader callerClassLoader = getClass().getClassLoader().getParent();
+        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+        if (currentClassLoader != null && !isAncestor(callerClassLoader, currentClassLoader)) {
+            // Check if the caller has the RuntimePermission("getClassLoader")
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+
+        // Check if the caller's class loader is not the same as or an ancestor of the context class loader
+        ClassLoader callerContextClassLoader = Thread.currentThread().getContextClassLoader().getParent();
+        if (callerContextClassLoader != null && !isAncestor(callerClassLoader, callerContextClassLoader)) {
+            // Check if the caller has the RuntimePermission("getClassLoader")
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+
+    // Create a new class loader with a custom class unloading policy
+    ClassLoader restrictedClassLoader = new ClassLoader(getClass().getClassLoader().getParent()) {
+        @Override
+        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            // Check if the class name matches the restricted regular expression
+            if (name.matches(regex)) {
+                throw new ClassNotFoundException("Class unloading is restricted for " + name);
+            }
+
+            // Load the class using the parent class loader
+
+------------------------------------------------------

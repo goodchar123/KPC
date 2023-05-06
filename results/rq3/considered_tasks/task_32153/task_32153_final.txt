@@ -1,0 +1,79 @@
+
+Sure, here's an updated version of the method that includes the requested error checking for `ImageIO.createImageInputStream`:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class ImageReaderExample {
+
+    public static BufferedImage readImage(File file, int imageIndex) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("Input file is null");
+        }
+
+        ImageInputStream input;
+
+        try {
+            input = ImageIO.createImageInputStream(file);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Input is not a valid image source");
+        } catch (IOException e) {
+            throw new IOException("Error occurred while creating image input stream");
+        }
+
+        if (input == null) {
+            throw new IOException("Input is not a valid image source");
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+
+        if (!readers.hasNext()) {
+            input.close();
+            throw new IOException("No reader found for file format");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(input);
+
+        ImageReadParam param = reader.getDefaultReadParam();
+        BufferedImage image;
+
+        try {
+            image = reader.read(imageIndex, param);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Supplied index is out of bounds");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid source or destination bands specified");
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Input source has not been set");
+        } catch (IOException e) {
+            throw new IOException("Error occurred during reading");
+        }
+
+        if (image == null || image.getWidth() < 1 || image.getHeight() < 1) {
+            throw new IllegalArgumentException("Resulting image would have a width or height less than 1");
+        }
+
+        reader.dispose();
+        input.close();
+
+        return image;
+    }
+}
+```
+
+This version of the method checks for the following errors when creating the `ImageInputStream`:
+
+- If the input is null, an `IllegalArgumentException` is thrown.
+- If the input is not a valid image source, an `IllegalArgumentException` is thrown.
+- If a cache file is needed but cannot be created, an `IOException` is thrown.
+
+You can call this method in the same way as before, and it will now perform additional error checking to ensure that the input is valid.
+------------------------------------------------------

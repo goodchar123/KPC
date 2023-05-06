@@ -1,0 +1,42 @@
+
+Sure, here's the updated code snippet that includes the additional exception handling you requested:
+
+```java
+import java.net.*;
+
+public void leaveMulticastGroup(String groupAddress, String interfaceAddress) throws Exception {
+    try {
+        InetAddress group = InetAddress.getByName(groupAddress);
+        InetAddress ifaceAddress = InetAddress.getByName(interfaceAddress);
+        if (ifaceAddress == null) {
+            throw new NullPointerException("Interface address is null");
+        }
+        NetworkInterface iface = NetworkInterface.getByInetAddress(ifaceAddress);
+        if (iface == null) {
+            throw new SocketException("No network interface found for address " + ifaceAddress);
+        }
+        MulticastSocket socket = new MulticastSocket();
+        socket.setNetworkInterface(iface);
+        socket.leaveGroup(group);
+        socket.close();
+    } catch (UnknownHostException e) {
+        // No IP address for the host could be found, or if a scope_id was specified for a global IPv6 address
+        throw e;
+    } catch (SecurityException e) {
+        // A security manager exists and its checkConnect method doesn't allow the operation
+        throw e;
+    } catch (SocketException e) {
+        // An I/O error occurs
+        throw e;
+    } catch (NullPointerException e) {
+        // The specified address is null
+        throw e;
+    } catch (Exception e) {
+        // Other exceptions
+        throw e;
+    }
+}
+```
+
+This updated code snippet includes additional try-catch blocks to handle the `SocketException` and `NullPointerException` that may be thrown by the `NetworkInterface.getByInetAddress()` method. If either of these exceptions occur, they are re-thrown to be handled by the calling code.
+------------------------------------------------------

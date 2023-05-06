@@ -1,0 +1,21 @@
+
+You're right, the `javax.swing.undo.UndoableEdit.undo()` method can throw a `CannotUndoException` if the edit cannot be undone. Here's an updated implementation that checks for this exception and throws it if necessary:
+
+```java
+public void undoAll(UndoManager undoManager) throws CannotUndoException {
+    int count = undoManager.getEdits().size();
+    for (int i = count - 1; i >= 0; i--) {
+        UndoableEdit edit = undoManager.getEdits().get(i);
+        if (edit.canUndo()) {
+            try {
+                edit.undo();
+            } catch (CannotUndoException e) {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This version of the method adds a `throws CannotUndoException` clause to the signature to indicate that it can throw this exception. Inside the loop, it tries to undo each edit as before, but now it catches the `CannotUndoException` and re-throws it to the caller. This ensures that the caller is aware of any edits that cannot be undone and can handle the exception appropriately.
+------------------------------------------------------

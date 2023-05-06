@@ -1,0 +1,38 @@
+Please write a java method that Sends undo to all contained UndoableEdits in the reverse of the order in which they were added.
+Here's a possible implementation of the requested method:
+
+```java
+public void undoAll(UndoManager undoManager) {
+    int count = undoManager.getEdits().size();
+    for (int i = count - 1; i >= 0; i--) {
+        UndoableEdit edit = undoManager.getEdits().get(i);
+        if (edit.canUndo()) {
+            edit.undo();
+        }
+    }
+}
+```
+
+This method takes an `UndoManager` as input and iterates over all the contained `UndoableEdit`s in reverse order. For each edit, it checks if it can be undone (`canUndo()` method) and if so, it calls the `undo()` method to revert the changes made by that edit. Note that this method assumes that all the contained edits are undoable, so it doesn't check for that explicitly. If some edits are not undoable, they will be skipped silently.
+------------------------------------------------------
+Please check if this edit can not be undone for javax.swing.undo.UndoableEdit.undo() in the code snippet you provided, otherwise throw CannotUndoException.
+You're right, the `javax.swing.undo.UndoableEdit.undo()` method can throw a `CannotUndoException` if the edit cannot be undone. Here's an updated implementation that checks for this exception and throws it if necessary:
+
+```java
+public void undoAll(UndoManager undoManager) throws CannotUndoException {
+    int count = undoManager.getEdits().size();
+    for (int i = count - 1; i >= 0; i--) {
+        UndoableEdit edit = undoManager.getEdits().get(i);
+        if (edit.canUndo()) {
+            try {
+                edit.undo();
+            } catch (CannotUndoException e) {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This version of the method adds a `throws CannotUndoException` clause to the signature to indicate that it can throw this exception. Inside the loop, it tries to undo each edit as before, but now it catches the `CannotUndoException` and re-throws it to the caller. This ensures that the caller is aware of any edits that cannot be undone and can handle the exception appropriately.
+------------------------------------------------------

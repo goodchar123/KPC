@@ -1,0 +1,38 @@
+
+Here's an updated version of the Java method that checks for various exceptions:
+
+```java
+public void updateRowId(Connection conn, String tableName, String columnName, int rowId, RowId value, int timeoutSeconds) throws SQLException {
+    String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE ROWID = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        if (pstmt.isClosed()) {
+            throw new SQLException("PreparedStatement is closed");
+        }
+        pstmt.setRowId(1, value);
+        pstmt.setInt(2, rowId);
+        pstmt.setQueryTimeout(timeoutSeconds); // set query timeout
+        pstmt.executeUpdate(); // execute update
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // timeout occurred, attempt to cancel statement
+            pstmt.cancel();
+        }
+        throw e; // re-throw exception
+    } catch (NullPointerException e) {
+        throw new SQLException("Connection is closed");
+    } catch (IndexOutOfBoundsException e) {
+        throw new SQLException("Invalid parameter index");
+    } catch (SQLFeatureNotSupportedException e) {
+        throw e;
+    }
+}
+```
+
+This updated method checks for the following exceptions:
+
+- If the `PreparedStatement` is closed, a `SQLException` is thrown with the message "PreparedStatement is closed".
+- If the `Connection` is closed, a `SQLException` is thrown with the message "Connection is closed".
+- If the parameter index is invalid, an `IndexOutOfBoundsException` is thrown, which is caught and re-thrown as a `SQLException` with the message "Invalid parameter index".
+- If the JDBC driver does not support the `setRowId()` method, a `SQLFeatureNotSupportedException` is thrown, which is caught and re-thrown as is.
+- If any other `SQLException` is thrown during the update, the method checks if it is an instance of `SQLTimeoutException`, attempts to cancel the statement, and re-throws the exception to be handled by the calling code.
+------------------------------------------------------

@@ -1,0 +1,72 @@
+
+Sure, here's the updated Java method that includes error handling and exception throwing for the scenarios you mentioned:
+
+```java
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
+
+public class XmlStreamWriterExample {
+    public static void writeXmlToResult(Result result) throws XMLStreamException {
+        // Create a new XMLOutputFactory
+        XMLOutputFactory factory;
+        try {
+            factory = XMLOutputFactory.newInstance();
+        } catch (Exception e) {
+            throw new XMLStreamException("Error creating XMLOutputFactory", e);
+        }
+
+        // Create a new XMLStreamWriter that writes to the JAXP result
+        XMLStreamWriter writer;
+        try {
+            writer = factory.createXMLStreamWriter(result);
+        } catch (UnsupportedOperationException e) {
+            throw new UnsupportedOperationException("createXMLStreamWriter not supported by this XMLOutputFactory", e);
+        } catch (XMLStreamException e) {
+            throw new XMLStreamException("Error creating XMLStreamWriter", e);
+        }
+
+        // Write some XML to the writer
+        try {
+            writer.writeStartDocument();
+            writer.writeStartElement("root");
+            writer.writeStartElement("child");
+            writer.writeAttribute("attribute", "value");
+            writer.writeCharacters("Some text");
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.writeEndDocument();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Current state does not allow attribute writing", e);
+        } catch (XMLStreamException e) {
+            throw new XMLStreamException("Error writing XML", e);
+        }
+
+        // Close the writer
+        try {
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new XMLStreamException("Error closing XMLStreamWriter", e);
+        }
+    }
+
+    public static void main(String[] args) throws XMLStreamException {
+        // Create a new StreamResult that writes to System.out
+        Result result = new StreamResult(System.out);
+
+        // Write some XML to the result
+        try {
+            writeXmlToResult(result);
+        } catch (XMLStreamException e) {
+            System.err.println("Error writing XML: " + e.getMessage());
+        }
+    }
+}
+```
+
+In this updated example, we've added error handling and exception throwing for the scenarios you mentioned. If the `XMLOutputFactory.newInstance()` method fails to create a new instance, we throw a `XMLStreamException` with a message indicating the error. If an error occurs while writing an attribute, we throw an `XMLStreamException` with a message indicating the error.
+
+In the `main` method, we catch any `XMLStreamException` that may be thrown by the `writeXmlToResult` method and print an error message to `System.err`.
+------------------------------------------------------

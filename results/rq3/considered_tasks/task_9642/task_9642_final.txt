@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the `formatDate` method that includes the requested error checking for the `LocalDate.of` method, the `DateTimeFormatter.ofPattern` method, and the `LocalDate.format` method:
+
+```java
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
+
+public class DateFormatter {
+    public static String formatDate(LocalDate date, String format) {
+        try {
+            LocalDate.of(date.getYear(), date.getMonth(), date.getDayOfMonth());
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Invalid date: " + date, e);
+        }
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+            return date.format(formatter);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid pattern: " + format, e);
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Error formatting date: " + date, e);
+        }
+    }
+    
+    public static String formatDate(int year, Month month, int dayOfMonth, String format) {
+        try {
+            LocalDate date = LocalDate.of(year, month, dayOfMonth);
+            return formatDate(date, format);
+        } catch (DateTimeException e) {
+            throw new DateTimeException("Invalid date: " + year + "-" + month + "-" + dayOfMonth, e);
+        }
+    }
+}
+```
+
+This updated method includes two overloaded versions of the `formatDate` method. The first version takes a `LocalDate` object and a format string, and the second version takes the year, month, day of month, and format string as separate arguments.
+
+Both versions of the method first check if the date is valid by calling the `LocalDate.of` method with the appropriate arguments. If any of the fields are out of range or if the day of month is invalid for the month year, a `DateTimeException` is thrown with a helpful error message.
+
+Next, the method tries to create a `DateTimeFormatter` object using the specified format string. If the format string is invalid, an `IllegalArgumentException` is thrown with a helpful error message. If an error occurs during formatting, a `DateTimeException` is thrown with a helpful error message.
+
+Here's an example usage of the updated method:
+
+```java
+String formattedDate = DateFormatter.formatDate(2021, Month.FEBRUARY, 31, "dd/MM/yyyy");
+```
+
+In this example, the method is called with the year 2021, the month of February, the day of month 31 (which is invalid), and the format string "dd/MM/yyyy". The method will throw a `DateTimeException` with the message "Invalid date: 2021-FEBRUARY-31".
+------------------------------------------------------

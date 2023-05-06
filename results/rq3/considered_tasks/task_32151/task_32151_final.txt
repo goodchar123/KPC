@@ -1,0 +1,84 @@
+
+Sure, here's the updated Java method that checks for the conditions you mentioned:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+
+public class ImageMetadataHelper {
+
+    public static IIOMetadata getImageMetadata(File imageFile) throws IOException {
+        if (imageFile == null) {
+            throw new IllegalArgumentException("Input file cannot be null");
+        }
+
+        ImageInputStream iis = null;
+        try {
+            iis = ImageIO.createImageInputStream(imageFile);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Input is not a valid image format", e);
+        } catch (IOException e) {
+            throw new IOException("Error occurred while creating image input stream", e);
+        }
+
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+        if (!readers.hasNext()) {
+            throw new IOException("No reader available for image format");
+        }
+
+        ImageReader reader = readers.next();
+        reader.setInput(iis);
+
+        if (!reader.canReadRaster()) {
+            throw new IOException("Reader does not support raster reading");
+        }
+
+        IIOMetadata metadata = null;
+
+        if (reader.getInput() == null) {
+            throw new IllegalStateException("Input source has not been set");
+        }
+
+        if (reader.isSeekForwardOnly()) {
+            throw new IllegalStateException("Input has been specified with seekForwardOnly set to true");
+        }
+
+        int numImages;
+        try {
+            numImages = reader.getNumImages(true);
+        } catch (IOException e) {
+            throw new IOException("Error occurred while reading image information", e);
+        }
+
+        if (numImages == 0) {
+            throw new IndexOutOfBoundsException("No images available in input source");
+        }
+
+        if (reader.getImageMetadata(0) == null) {
+            throw new IllegalStateException("Input source has not been set");
+        }
+
+        if (reader.hasImageMetadata()) {
+            try {
+                metadata = reader.getImageMetadata(0);
+            } catch (IOException e) {
+                throw new IOException("Error occurred during reading", e);
+            }
+        }
+
+        reader.dispose();
+        iis.close();
+
+        return metadata;
+    }
+}
+```
+
+This updated method checks if the input source has not been set, if the input has been specified with seekForwardOnly set to true, if an error occurs reading the information from the input source, if the supplied index is out of bounds, and if the input source has not been set. It throws `IllegalStateException`, `IndexOutOfBoundsException`, and `IOException` respectively in these cases.
+------------------------------------------------------

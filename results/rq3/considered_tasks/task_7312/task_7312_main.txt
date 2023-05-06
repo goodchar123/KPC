@@ -1,0 +1,35 @@
+Please write a java method that De-registers a previously-registered virtual-machine shutdown hook.
+Sure, here's an example Java method that de-registers a previously-registered virtual-machine shutdown hook:
+
+```java
+public static void deRegisterShutdownHook(Thread hook) {
+    Runtime.getRuntime().removeShutdownHook(hook);
+}
+```
+
+This method takes a `Thread` object as a parameter, which represents the shutdown hook that you want to de-register. It then calls the `removeShutdownHook()` method on the `Runtime` object to remove the specified hook.
+
+Note that this method should only be called from the same thread that registered the shutdown hook, or from a different thread that has synchronized access to the same object that was used to register the hook. Otherwise, you may get a `IllegalStateException` at runtime.
+------------------------------------------------------
+Please check If the virtual machine is already in the process of shutting          down for java.lang.Runtime.removeShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check If a security manager is present and it denies          RuntimePermission("shutdownHooks") for java.lang.Runtime.removeShutdownHook(java.lang.Thread) in the code snippet you provided, otherwise throw SecurityException.
+Sure, here's an updated version of the Java method that includes the checks you requested:
+
+```java
+public static void deRegisterShutdownHook(Thread hook) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("shutdownHooks"));
+    }
+    if (Runtime.getRuntime().removeShutdownHook(hook)) {
+        // Hook was successfully removed
+    } else {
+        throw new IllegalStateException("Shutdown in progress");
+    }
+}
+```
+
+This updated method first checks if a security manager is present, and if so, it checks if it has permission to remove shutdown hooks. If the security manager denies the permission, a `SecurityException` is thrown.
+
+Next, the method calls `removeShutdownHook()` on the `Runtime` object to remove the specified hook. If the hook was successfully removed, the method continues execution. If the hook was not removed because the virtual machine is already in the process of shutting down, an `IllegalStateException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,29 @@
+
+Here's an updated version of the Java method that checks for the presence of a security manager and verifies the caller's permissions before accessing the class loader of a class:
+
+```java
+public ClassLoader getClassLoader(Class<?> clazz) throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        Class<?> callerClass = Reflection.getCallerClass();
+        ClassLoader callerClassLoader = callerClass.getClassLoader();
+        ClassLoader requestedClassLoader = clazz.getClassLoader();
+        if (callerClassLoader != null &&
+                (callerClassLoader != requestedClassLoader &&
+                !callerClassLoader.isAncestorOf(requestedClassLoader)) &&
+                !sm.checkPermission(new RuntimePermission("getClassLoader"))) {
+            throw new SecurityException("Access to class loader denied by security manager");
+        }
+    }
+    return clazz.getClassLoader();
+}
+```
+
+This method first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it then checks if the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested. If the caller does not have the `RuntimePermission("getClassLoader")` for `java.lang.Class.getClassLoader()`, a `SecurityException` is thrown.
+
+Next, the method returns the class loader of the requested class if the security checks pass.
+
+Finally, the method checks if the caller has permission to access the declared fields of the class using the same security checks as before. If either of these conditions is true, a `SecurityException` is thrown.
+
+If neither of these security checks fails, the method proceeds to access the declared fields of the class and return the result as before.
+------------------------------------------------------

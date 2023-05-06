@@ -1,0 +1,24 @@
+
+Yes, you are correct. It is important to check if the current thread has the necessary permissions to access and modify the thread group and its threads. Here's an updated version of the method that includes these checks:
+
+```java
+public static void interruptThreadGroup(ThreadGroup threadGroup) throws SecurityException {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkAccess(threadGroup);
+    }
+    Thread[] threads = new Thread[threadGroup.activeCount()];
+    threadGroup.enumerate(threads);
+    for (Thread thread : threads) {
+        if (thread != null) {
+            if (securityManager != null) {
+                securityManager.checkAccess(thread);
+            }
+            thread.interrupt();
+        }
+    }
+}
+```
+
+This updated method first checks if a security manager is installed and if so, calls `checkAccess()` to ensure that the current thread has permission to access and modify the thread group and its threads. If the current thread does not have the necessary permissions, a `SecurityException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the Java method that checks for the conditions you mentioned and throws the appropriate exceptions:
+
+```
+import java.awt.BufferCapabilities;
+import java.awt.Canvas;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferStrategy;
+
+public class MultiBufferStrategy extends Canvas {
+    
+    private BufferStrategy bufferStrategy;
+    
+    public MultiBufferStrategy(BufferCapabilities bufferCaps) throws AWTException {
+        setIgnoreRepaint(true);
+        createBufferStrategy(2, bufferCaps);
+        bufferStrategy = getBufferStrategy();
+    }
+    
+    public void render() {
+        do {
+            do {
+                Graphics2D g = (Graphics2D) bufferStrategy.getDrawGraphics();
+                g.clearRect(0, 0, getWidth(), getHeight());
+                // Draw your component here
+                g.dispose();
+            } while (bufferStrategy.contentsRestored());
+            bufferStrategy.show();
+        } while (bufferStrategy.contentsLost());
+    }
+    
+    @Override
+    public BufferStrategy createBufferStrategy(int numBuffers, BufferCapabilities caps) throws IllegalArgumentException, AWTException {
+        if (numBuffers < 1 || caps == null) {
+            throw new IllegalArgumentException("Invalid arguments for createBufferStrategy");
+        }
+        BufferStrategy bufferStrategy = super.createBufferStrategy(numBuffers, caps);
+        if (bufferStrategy == null) {
+            throw new AWTException("Could not create buffer strategy with the given capabilities");
+        }
+        return bufferStrategy;
+    }
+    
+}
+```
+
+In this updated version, we override the `createBufferStrategy` method of the `Canvas` class to check for the conditions you mentioned. If the conditions are not met, we throw the appropriate exceptions. If the buffer strategy cannot be created with the given capabilities, we throw an `AWTException`. 
+
+You can use this updated class in the same way as before, but now it will throw exceptions if the conditions are not met.
+------------------------------------------------------

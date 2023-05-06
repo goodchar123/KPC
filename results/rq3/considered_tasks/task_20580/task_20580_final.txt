@@ -1,0 +1,40 @@
+
+Here's an updated version of the Java method that includes the requested error handling for `Statement.cancel()`:
+
+```java
+public short getSmallIntParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    statement.setShort(parameterIndex, (short) 123); // set a sample value for the parameter
+    ResultSet resultSet = null;
+    try {
+        resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return resultSet.getShort(parameterIndex);
+        } else {
+            throw new SQLException("No result found");
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout occurred, attempt to cancel the statement
+            try {
+                statement.cancel();
+            } catch (SQLFeatureNotSupportedException ex) {
+                throw new SQLFeatureNotSupportedException("Statement cancellation not supported", ex);
+            }
+        }
+        throw e;
+    } finally {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                // Ignore exception
+            }
+        }
+    }
+}
+```
+
+This updated method includes a try-catch-finally block to handle potential exceptions. If a `SQLException` is thrown during the execution of the query, the method checks if it is a `SQLTimeoutException`. If it is, the method attempts to cancel the statement using the `cancel` method of the `PreparedStatement` object. If the driver does not support statement cancellation, a `SQLFeatureNotSupportedException` is thrown.
+
+The method then re-throws the original exception. The `finally` block is the same as in the previous version of the method.
+------------------------------------------------------

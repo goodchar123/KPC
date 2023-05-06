@@ -1,0 +1,38 @@
+
+Here's an updated version of the Java method that includes the checks you requested:
+
+```java
+public void moveThreadsToLockWaitQueue(Condition condition, Lock lock) throws InterruptedException {
+    // Get the lock's monitor
+    Object monitor = ((ReentrantLock) lock).getLock();
+
+    // Synchronize on the monitor to ensure thread safety
+    synchronized (monitor) {
+        // Check if the current thread is the owner of the monitor
+        if (Thread.currentThread() != ((AbstractQueuedSynchronizer) lock).getExclusiveOwnerThread()) {
+            throw new IllegalMonitorStateException();
+        }
+
+        // Check if the current thread was interrupted while waiting
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+
+        // Get the wait queue for the condition
+        WaitQueue waitQueue = ((AbstractQueuedSynchronizer.ConditionObject) condition).getWaitQueue();
+
+        // Move all threads from the condition's wait queue to the lock's wait queue
+        while (waitQueue.hasNodes()) {
+            Node node = waitQueue.remove();
+            ((AbstractQueuedSynchronizer) lock).addWaiter(node);
+        }
+    }
+}
+```
+
+This updated method first checks if the current thread is the owner of the lock's monitor. If not, it throws an `IllegalMonitorStateException`.
+
+Next, it checks if the current thread was interrupted while waiting. If so, it throws an `InterruptedException`. Note that the interrupted status of the current thread is cleared when this exception is thrown.
+
+Finally, it proceeds with moving the threads from the condition's wait queue to the lock's wait queue as before.
+------------------------------------------------------

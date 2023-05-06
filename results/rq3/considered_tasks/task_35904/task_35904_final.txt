@@ -1,0 +1,60 @@
+
+You're right, here's an updated version of the `changeIcon` method that checks for a headless environment:
+
+```java
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class IconChanger {
+    public static void changeIcon(Image image) {
+        try {
+            // Check for headless environment
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException("Cannot change icon in headless environment");
+            }
+            
+            // Check for errors loading assistive technologies
+            if (!Toolkit.getDefaultToolkit().areExtraMouseButtonsEnabled()) {
+                throw new AWTError("Error loading assistive technologies");
+            }
+            
+            // Check for security manager and permissions
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkRead(image.getSource());
+            }
+            
+            // Load the image and set it as the application's icon
+            Image iconImage = AccessController.doPrivileged(new PrivilegedAction<Image>() {
+                public Image run() {
+                    return Toolkit.getDefaultToolkit().getImage(image.getSource());
+                }
+            });
+            if (iconImage != null) {
+                java.awt.Frame[] frames = java.awt.Frame.getFrames();
+                for (java.awt.Frame frame : frames) {
+                    frame.setIconImage(iconImage);
+                }
+            }
+        } catch (SecurityException e) {
+            throw new SecurityException("Security exception while changing icon: " + e.getMessage());
+        } catch (AWTError e) {
+            throw new AWTError("Error changing icon: " + e.getMessage());
+        } catch (HeadlessException e) {
+            throw new HeadlessException("Headless exception while changing icon: " + e.getMessage());
+        }
+    }
+}
+```
+
+This version of the method first checks for a headless environment using the `isHeadless` method of the `GraphicsEnvironment` class. If this method returns `true`, it throws a `HeadlessException`.
+
+Next, the method checks for errors loading assistive technologies using the `areExtraMouseButtonsEnabled` method of the `Toolkit` class. If this method returns `false`, it throws an `AWTError`.
+
+The method then checks for the presence of a security manager using the `System.getSecurityManager` method. If a security manager is present, it calls its `checkRead` method to check if the application has permission to read the image file. If the security manager denies permission, the method throws a `SecurityException`.
+
+Finally, the method loads the image using the `getImage` method of the `Toolkit` class, wrapped in a `PrivilegedAction` to ensure that it has the necessary permissions. If the image is successfully loaded, the method sets it as the icon for all frames in the application.
+------------------------------------------------------

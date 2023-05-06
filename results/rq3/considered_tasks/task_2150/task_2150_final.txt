@@ -1,0 +1,48 @@
+
+Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+public static int[] sliceLanes(int[] currentVector, int mask, int originLane, int numLanes) {
+    int[] slicedLanes = new int[numLanes];
+    int currentLane = originLane;
+    int lanesSliced = 0;
+    
+    while (lanesSliced < numLanes) {
+        int laneValue = currentVector[currentLane];
+        if ((mask & (1 << laneValue)) != 0) {
+            slicedLanes[lanesSliced] = laneValue;
+            lanesSliced++;
+        }
+        currentLane++;
+        if (currentLane >= currentVector.length) {
+            break;
+        }
+    }
+    
+    if (lanesSliced < numLanes) {
+        int[] nextVector = getNextVector();
+        int remainingLanes = numLanes - lanesSliced;
+        int[] nextSlicedLanes = sliceLanes(nextVector, mask, 0, remainingLanes);
+        try {
+            System.arraycopy(nextSlicedLanes, 0, slicedLanes, lanesSliced, remainingLanes);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds.");
+        } catch (ArrayStoreException e) {
+            throw new ArrayStoreException("An element in the src array could not be stored into the dest array because of a type mismatch.");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Either src or dest is null.");
+        }
+    }
+    
+    return slicedLanes;
+}
+
+private static int[] getNextVector() {
+    // implementation to get the next vector
+}
+```
+
+The updated method includes a try-catch block around the `System.arraycopy` call to catch any potential errors. If an `IndexOutOfBoundsException` is caught, the method throws a new `IndexOutOfBoundsException` with a descriptive error message. Similarly, if an `ArrayStoreException` or `NullPointerException` is caught, the method throws a new exception with a descriptive error message.
+
+This error checking ensures that the method will not attempt to access data outside of the array bounds, will not attempt to store elements of the wrong type, and will not attempt to copy from or to a null array.
+------------------------------------------------------

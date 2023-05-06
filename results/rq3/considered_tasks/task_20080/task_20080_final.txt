@@ -1,0 +1,37 @@
+
+Sure, here's the updated Java method that includes the requested checks:
+
+```java
+import jdk.incubator.foreign.MemorySegment;
+import jdk.incubator.foreign.ResourceScope;
+
+public static MemorySegment createMemorySegment(long size, ResourceScope scope) {
+    if (size <= 0) {
+        throw new IllegalArgumentException("Size must be greater than zero");
+    }
+    if (scope.isClosed()) {
+        throw new IllegalStateException("Scope has already been closed");
+    }
+    if (!scope.isThreadOwner()) {
+        throw new IllegalStateException("Access occurs from a thread other than the thread owning scope");
+    }
+    return MemorySegment.allocateNative(size, scope);
+}
+```
+
+This method first checks if the `size` argument is greater than zero. If it is not, an `IllegalArgumentException` is thrown.
+
+Next, it checks if the `scope` argument has already been closed. If it has, an `IllegalStateException` is thrown.
+
+Finally, it checks if the current thread is the owner of the `scope`. If it is not, an `IllegalStateException` is thrown.
+
+If all checks pass, the method allocates a new native memory segment with the specified size and resource scope using the `MemorySegment.allocateNative` method.
+
+You can use this updated method in the same way as before:
+
+```java
+MemorySegment segment = createMemorySegment(1024, ResourceScope.newConfinedScope());
+``` 
+
+This will allocate a new memory segment with a size of 1024 bytes and a confined resource scope, while also performing the necessary checks to ensure that the allocation is valid.
+------------------------------------------------------

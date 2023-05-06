@@ -1,0 +1,24 @@
+
+Sure, here's the updated Java method that checks if a security manager exists and the caller has the required permission before calling `ThreadMXBean.findMonitorDeadlockedThreads()`:
+
+```java
+public static boolean isThreadQueued(Thread thread) {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPermission(new ManagementPermission("monitor"));
+    }
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    long[] threadIds = threadMXBean.findMonitorDeadlockedThreads();
+    if (threadIds != null) {
+        for (long threadId : threadIds) {
+            if (thread.getId() == threadId) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+```
+
+This method first checks if a security manager exists and throws a `SecurityException` if the caller does not have the `ManagementPermission("monitor")`. If the permission check passes, the method calls `ThreadMXBean.findMonitorDeadlockedThreads()` to find all monitor-deadlocked threads and checks if the given thread is in the list. If the thread is found, the method returns `true`. Otherwise, it returns `false`.
+------------------------------------------------------

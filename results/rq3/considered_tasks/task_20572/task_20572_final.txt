@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the Java method that checks for errors and throws the appropriate exceptions:
+
+```java
+public void freeBlob(Blob blob) throws SQLException {
+    if (blob != null) {
+        try {
+            blob.free();
+        } catch (SQLException e) {
+            // Check if error occurred while freeing Blob's resources
+            if (e.getErrorCode() == 0 && e.getSQLState() == null) {
+                throw new SQLException("Error occurred while freeing Blob's resources", e);
+            } else {
+                throw e;
+            }
+        } catch (AbstractMethodError e) {
+            // Check if JDBC driver does not support this method
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support Blob.free()", e);
+        }
+    }
+}
+```
+
+This updated method first tries to free the Blob object using its `free()` method. If an error occurs, it checks if the error code is 0 and the SQL state is null, which indicates that an error occurred while freeing the Blob's resources. In this case, it throws a new SQLException with a message indicating the error. Otherwise, it rethrows the original SQLException.
+
+If the JDBC driver does not support the `free()` method, the method catches the `AbstractMethodError` and throws a new `SQLFeatureNotSupportedException` with a message indicating that the driver does not support this method.
+
+Note that this method still throws a SQLException if the Blob object is null, as in the previous version.
+------------------------------------------------------

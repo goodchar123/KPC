@@ -1,0 +1,54 @@
+
+Sure, here's the updated code snippet that includes error handling for the scenarios you mentioned:
+
+```java
+import java.sql.*;
+import java.util.*;
+
+public class DBHelper {
+    public static List<Integer> executeStatementAndGetGeneratedKeys(Connection conn, String sql, int[] keyIndexes) throws SQLException {
+        List<Integer> generatedKeys = new ArrayList<>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(sql, keyIndexes);
+            stmt.executeUpdate();
+            rs = stmt.getGeneratedKeys();
+            while (rs.next()) {
+                generatedKeys.add(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            if (e instanceof SQLTimeoutException) {
+                // handle timeout exception
+                throw (SQLTimeoutException) e;
+            } else {
+                // handle other database access errors
+                throw e;
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    // log or handle the exception
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    // log or handle the exception
+                }
+            }
+        }
+        return generatedKeys;
+    }
+}
+```
+
+In this updated code, we have added a try-catch block to handle any `SQLException` that may occur during the execution of the SQL statement. We have also added a `finally` block to close the `PreparedStatement` and `ResultSet` objects, if they are not null.
+
+If the `SQLException` is an instance of `SQLTimeoutException`, we throw that exception. Otherwise, we throw the original `SQLException`.
+
+This code should handle the scenarios you mentioned and provide appropriate error handling.
+------------------------------------------------------

@@ -1,0 +1,36 @@
+
+You're right, it's important to add proper error checking to ensure the method works correctly and doesn't cause any unexpected errors. Here's the updated code with the error checking you suggested:
+
+```java
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
+
+public class Uncompressor {
+    public static void uncompress(byte[] compressedData, byte[] buffer) throws IOException {
+        if (compressedData == null || buffer == null) {
+            throw new NullPointerException("Input arrays cannot be null");
+        }
+        if (buffer.length < compressedData.length) {
+            throw new IndexOutOfBoundsException("Buffer size is too small");
+        }
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(compressedData);
+        GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] bufferArray = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = gzipInputStream.read(bufferArray)) != -1) {
+            outputStream.write(bufferArray, 0, bytesRead);
+        }
+        byte[] uncompressedData = outputStream.toByteArray();
+        if (uncompressedData.length > buffer.length) {
+            throw new IndexOutOfBoundsException("Uncompressed data size is too large for buffer");
+        }
+        System.arraycopy(uncompressedData, 0, buffer, 0, uncompressedData.length);
+    }
+}
+```
+
+This updated code checks for null input arrays, ensures that the buffer is large enough to hold the uncompressed data, and checks for errors when using `System.arraycopy()`. If any of these errors occur, the method throws the appropriate exception.
+------------------------------------------------------

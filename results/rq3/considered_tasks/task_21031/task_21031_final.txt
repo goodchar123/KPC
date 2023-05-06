@@ -1,0 +1,26 @@
+
+Sure, here's an updated version of the method that checks for database access errors and closed connections when calling `getMetaData()`:
+
+```java
+public boolean supportsTransactionIsolationLevel(Connection conn, int isolationLevel) throws SQLException {
+    try {
+        DatabaseMetaData metaData = conn.getMetaData();
+        int[] supportedIsolationLevels = metaData.supportsTransactionIsolationLevel();
+        for (int i = 0; i < supportedIsolationLevels.length; i++) {
+            if (supportedIsolationLevels[i] == isolationLevel) {
+                return true;
+            }
+        }
+        return false;
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 || e.getSQLState() == null) {
+            throw new SQLException("Database access error occurred or connection is closed", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method uses a try-catch block to catch any `SQLException` that may occur when calling `getMetaData()`. If an exception is caught, it checks if the error code is 0 or the SQL state is null, which indicates a database access error or a closed connection. If this is the case, it throws a new `SQLException` with a more descriptive error message and the original exception as the cause. If the error is not related to a closed connection or database access error, it re-throws the original exception.
+------------------------------------------------------

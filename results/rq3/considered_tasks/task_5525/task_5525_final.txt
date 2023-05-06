@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the `configure` method that checks for the existence of a security manager and the caller's permissions before calling `LogManager.readConfiguration`:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.PropertyPermission;
+import java.util.logging.LogManager;
+import java.util.logging.LoggingPermission;
+
+public class LoggingConfigurator {
+    
+    public static void configure(InputStream inputStream) throws IOException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new LoggingPermission("control"));
+            sm.checkPermission(new PropertyPermission("java.util.logging.config.class", "read"));
+            sm.checkPermission(new PropertyPermission("java.util.logging.config.file", "read"));
+        }
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            try {
+                LogManager logManager = LogManager.getLogManager();
+                logManager.readConfiguration(inputStream);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read logging configuration", e);
+            }
+            return null;
+        });
+    }
+}
+```
+
+This version of the method first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it checks that the caller has the `LoggingPermission("control")` permission and the `PropertyPermission` to read the logging configuration properties. If any of these checks fail, a `SecurityException` is thrown.
+
+If all the security checks pass, the method calls `LogManager.readConfiguration` inside a `doPrivileged` block to ensure that the operation is performed with the necessary permissions. If an `IOException` occurs while reading the configuration, a `RuntimeException` is thrown.
+
+You can call this method in the same way as before:
+
+```java
+InputStream inputStream = new FileInputStream("logging.properties");
+LoggingConfigurator.configure(inputStream);
+``` 
+
+This updated version of the method provides additional security checks to ensure that the caller has the necessary permissions to read and configure the logging system.
+------------------------------------------------------

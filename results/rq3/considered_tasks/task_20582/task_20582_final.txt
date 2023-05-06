@@ -1,0 +1,22 @@
+
+Sure, here's an updated version of the method that checks for query timeout and attempts to cancel the statement if the timeout has been exceeded:
+
+```java
+public long getBigIntParameter(PreparedStatement statement, int parameterIndex, int timeoutSeconds) throws SQLException {
+    statement.setLong(parameterIndex, 123456789L); // set a sample BIGINT parameter value
+    statement.setQueryTimeout(timeoutSeconds); // set the query timeout
+    ResultSet resultSet = statement.executeQuery();
+    if (resultSet.next()) {
+        return resultSet.getLong(1); // retrieve the first column value as a long
+    } else {
+        throw new SQLException("No result found");
+    }
+    // check if the statement was cancelled due to timeout
+    if (statement.isClosed()) {
+        throw new SQLTimeoutException("Query timeout exceeded");
+    }
+}
+```
+
+This method takes an additional integer parameter `timeoutSeconds` that specifies the query timeout in seconds. It sets the query timeout using the `setQueryTimeout` method of the `PreparedStatement` object. After executing the query, it checks if the statement was cancelled due to timeout using the `isClosed` method. If the statement was cancelled, it throws a `SQLTimeoutException`. You can modify the timeout handling logic to suit your specific use case.
+------------------------------------------------------

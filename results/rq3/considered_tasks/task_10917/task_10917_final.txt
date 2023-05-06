@@ -1,0 +1,34 @@
+
+Sure, here's the updated code snippet that includes the requested checks:
+
+```java
+public void receiveDatagram(DatagramChannel channel) throws IOException {
+    ByteBuffer buffer = ByteBuffer.allocate(1024);
+    int bytesRead = 0;
+    try {
+        while (bytesRead == 0) {
+            if (buffer.isReadOnly()) {
+                throw new IllegalArgumentException("Buffer is read-only");
+            }
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+            bytesRead = channel.read(buffer);
+        }
+    } catch (AsynchronousCloseException e) {
+        throw new AsynchronousCloseException();
+    } catch (ClosedByInterruptException e) {
+        throw new ClosedByInterruptException();
+    } catch (ClosedChannelException e) {
+        throw new ClosedChannelException();
+    } catch (SecurityException e) {
+        throw new SecurityException();
+    }
+    buffer.flip();
+    String message = new String(buffer.array(), 0, buffer.limit());
+    System.out.println("Received message: " + message);
+}
+```
+
+This updated method includes checks for the buffer being read-only, the channel being closed, another thread closing the channel while the read operation is in progress, another thread interrupting the current thread while the read operation is in progress and a security manager denying the operation. If any of these checks fail, the method throws the appropriate exception.
+------------------------------------------------------

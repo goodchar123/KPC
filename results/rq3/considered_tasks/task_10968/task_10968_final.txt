@@ -1,0 +1,37 @@
+
+Sure, here's an updated version of the Java method that includes all the requested checks:
+
+```
+public void readBytesFromChannel(ReadableByteChannel channel, ByteBuffer buffer) throws IOException {
+    if (!buffer.isReadOnly()) {
+        throw new IllegalArgumentException("Buffer must be read-only");
+    }
+    if (!(channel instanceof ReadableByteChannel)) {
+        throw new NonReadableChannelException();
+    }
+    if (!channel.isOpen()) {
+        throw new ClosedChannelException();
+    }
+    int bytesRead;
+    try {
+        bytesRead = channel.read(buffer);
+    } catch (IOException e) {
+        throw new IOException("Error reading from channel", e);
+    }
+    while (bytesRead != -1) {
+        buffer.flip();
+        while (buffer.hasRemaining()) {
+            System.out.print((char) buffer.get());
+        }
+        buffer.clear();
+        try {
+            bytesRead = channel.read(buffer);
+        } catch (IOException e) {
+            throw new IOException("Error reading from channel", e);
+        }
+    }
+    if (buffer.position() >= buffer.limit()) {
+        throw new BufferUnderflowException();
+    }
+
+------------------------------------------------------

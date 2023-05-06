@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that checks for a security manager and the required permission:
+
+```java
+public void deactivateConnectorServer() throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check if the caller has the required permission
+        try {
+            sm.checkPermission(new MBeanServerPermission("createMBeanServer"));
+        } catch (SecurityException e) {
+            // Throw a SecurityException if the caller doesn't have the required permission
+            throw new SecurityException("Caller does not have the required permission to create MBeanServer", e);
+        }
+    }
+
+    try {
+        // Get the JMX connector server
+        JMXConnectorServer connectorServer = ManagementFactory.getPlatformMBeanServer().getMBeanServerDelegate().getConnectorServer();
+
+        // Stop listening for client connections
+        connectorServer.stop();
+    } catch (IOException e) {
+        // Handle the exception
+        e.printStackTrace();
+    }
+}
+```
+
+This updated method first checks if there is a security manager using `System.getSecurityManager()`. If there is, it checks if the caller has the required permission using `SecurityManager.checkPermission()`. If the caller doesn't have the required permission, a `SecurityException` is thrown.
+
+If the caller has the required permission or there is no security manager, the method proceeds
+------------------------------------------------------

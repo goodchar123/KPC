@@ -1,0 +1,101 @@
+
+Sure, here's an updated version of the `createClassLoader` method that includes the requested security and error checks for `System.getProperty`:
+
+```java
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
+public class MyClass {
+    public static URLClassLoader createClassLoader(URL[] urls) {
+        SecurityManager sm = System.getSecurityManager();
+        ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
+        ClassLoader caller = MyClass.class.getClassLoader();
+        
+        // Check for security manager and caller's class loader
+        if (sm != null && caller != null && !isAncestor(parent, caller)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        
+        // Check for recursive invocation during construction of system class loader
+        if (caller == null && "java.system.class.loader".equals(System.getProperty("java.system.class.loader"))) {
+            throw new IllegalStateException("Recursive invocation during construction of system class loader");
+        }
+        
+        // Check for null or empty key
+        String key = "java.system.class.loader";
+        if (key == null) {
+            throw new NullPointerException("System property key is null");
+        } else if (key.isEmpty()) {
+            throw new IllegalArgumentException("System property key is empty");
+        }
+        
+        // Check for security manager and property access
+        if (sm != null) {
+            try {
+                sm.checkPropertyAccess(key);
+            } catch (SecurityException e) {
+                throw new SecurityException("Access to system property '" + key + "' not allowed", e);
+            }
+        }
+        
+        // Get the system class loader
+        ClassLoader systemClassLoader;
+        try {
+            systemClassLoader = AccessController.doPrivileged(new PrivilegedExceptionAction<ClassLoader>() {
+                public ClassLoader run() throws Exception {
+                    return ClassLoader.getSystemClassLoader();
+                }
+            });
+        } catch (PrivilegedActionException e) {
+            throw new Error("Failed to get system class loader", e.getCause());
+        }
+        
+        // Check for security manager and caller's class loader
+        if (sm != null && caller != null && !isAncestor(systemClassLoader, caller)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        
+        // Create a new instance of URLClassLoader with the specified URLs and default parent class loader
+        URLClassLoader classLoader;
+        try {
+            classLoader = AccessController.doPrivileged(new PrivilegedExceptionAction<URLClassLoader>() {
+                public URLClassLoader run() throws Exception {
+                    return new URLClassLoader(urls, parent);
+                }
+            });
+        } catch (PrivilegedActionException e) {
+            throw new Error("Failed to create URLClassLoader", e.getCause());
+        }
+        
+        // Check for security manager and caller's class loader
+        if (sm != null && caller != null && !isAncestor(classLoader, caller)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        
+        return classLoader;
+    }
+    
+    private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+        ClassLoader cl = descendant;
+        while (cl != null) {
+            if (cl == ancestor) {
+                return true;
+            }
+            cl = cl.getParent();
+        }
+        return false;
+    }
+}
+```
+
+In this updated version, we first check for a security manager and the caller's class loader to ensure that the caller has the necessary permissions to create a new class loader. We also check for recursive invocation during the construction of the system class loader.
+
+We then check for null or empty key values and throw `NullPointerException` or `IllegalArgumentException` respectively. After that, we check for security manager and property access.
+
+After getting the system class loader, we again check for security manager and caller's class loader to ensure that the caller has the necessary permissions to access the system class loader and create the new class loader.
+
+If any of the security or error checks fail, we throw the appropriate exception.
+------------------------------------------------------

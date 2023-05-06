@@ -1,0 +1,50 @@
+
+Sure, here's an updated version of the method that checks for these additional exceptions:
+
+```java
+public double getDoubleParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    try {
+        statement.setDouble(parameterIndex, 3.14); // set the parameter value
+        ResultSet resultSet = statement.executeQuery(); // execute the query
+        double result = 0.0;
+        if (resultSet.next()) {
+            if (resultSet.getMetaData().getColumnCount() < parameterIndex) {
+                throw new SQLException("Invalid parameter index: " + parameterIndex);
+            }
+            result = resultSet.getDouble(parameterIndex); // retrieve the parameter value
+        }
+        return result;
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            throw (SQLTimeoutException) e;
+        } else if (e instanceof SQLNonTransientException) {
+            throw (SQLNonTransientException) e;
+        } else if (e instanceof SQLTransientException) {
+            throw (SQLTransientException) e;
+        } else {
+            throw e;
+        }
+    } catch (NullPointerException e) {
+        throw new SQLException("PreparedStatement is closed", e);
+    } catch (IndexOutOfBoundsException e) {
+        throw new SQLException("Invalid parameter index: " + parameterIndex, e);
+    } catch (Exception e) {
+        throw new SQLException("Error retrieving parameter value", e);
+    } finally {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+}
+```
+
+In this updated version, we've added additional try-catch blocks to catch exceptions that might occur when setting the parameter value, retrieving the parameter value, or closing the `ResultSet` object.
+
+We've also added an additional check to ensure that the `parameterIndex` corresponds to a valid parameter marker in the SQL statement. If it does not, we throw a new `SQLException` with a message indicating that the parameter index is invalid.
+
+Note that this is just an example and you may need to modify it to fit your specific use case.
+------------------------------------------------------

@@ -1,0 +1,52 @@
+
+Here's an updated version of the Java method that checks for exceptions and throws the appropriate ones:
+
+```java
+import sun.misc.Unsafe;
+import java.lang.reflect.Field;
+
+public class MemoryChecker {
+    private static final Unsafe unsafe;
+
+    static {
+        try {
+            Field field = Unsafe.class.getDeclaredField("theUnsafe");
+            field.setAccessible(true);
+            unsafe = (Unsafe) field.get(null);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get Unsafe instance", e);
+        }
+    }
+
+    public static boolean isMappedSegmentInMemory(long address, long size) {
+        try {
+            Field field = Unsafe.class.getDeclaredField("theUnsafe");
+            field.setAccessible(true);
+            long pageSize = unsafe.pageSize();
+            long startPage = address / pageSize;
+            long endPage = (address + size - 1) / pageSize;
+            for (long page = startPage; page <= endPage; page++) {
+                if (unsafe.getBoolean(null, (page * pageSize) + 1)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to access field", e);
+        } catch (SecurityException e) {
+            throw new RuntimeException("Access denied by security manager", e);
+        } catch (InaccessibleObjectException e) {
+            throw new RuntimeException("Access cannot be enabled", e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Object is not an instance of the declaring class", e);
+        } catch (NullPointerException e) {
+            throw new RuntimeException("Object is null and field is an instance field", e);
+        } catch (ExceptionInInitializerError e) {
+            throw new RuntimeException("Initialization failed", e);
+        }
+    }
+}
+```
+
+This updated method now checks for exceptions that may be thrown by the `setAccessible` and `getBoolean` methods, as well as the `get` method that may be called later. If any of these exceptions occur, the method throws a `RuntimeException` with an appropriate message and the original exception as the cause.
+------------------------------------------------------

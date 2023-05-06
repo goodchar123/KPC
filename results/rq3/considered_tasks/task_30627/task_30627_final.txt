@@ -1,0 +1,82 @@
+
+Here's an updated version of the code snippet that includes the requested error checking:
+
+```java
+import java.awt.Color;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+public class SystemColorTable {
+    public static void populateTable(JTable table) {
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Color Name");
+        model.addColumn("Color Value");
+
+        for (String colorName : ColorUtil.colorNames) {
+            Color color = ColorUtil.getColor(colorName);
+            if (color == null) {
+                throw new ClassCastException("Invalid color name: " + colorName);
+            }
+            String hexValue = ColorUtil.getHexValue(color);
+            model.addRow(new Object[]{colorName, hexValue});
+        }
+
+        if (model.getDataVector().isEmpty()) {
+            throw new IllegalArgumentException("Table model is empty");
+        }
+        table.setModel(model);
+    }
+}
+
+import java.awt.Color;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ColorUtil {
+    public static final String[] colorNames = {
+        "BLACK", "BLUE", "CYAN", "DARK_GRAY", "GRAY", "GREEN", "LIGHT_GRAY",
+        "MAGENTA", "ORANGE", "PINK", "RED", "WHITE", "YELLOW"
+    };
+
+    private static final Map<String, Color> colorMap = new HashMap<>();
+
+    static {
+        colorMap.put("BLACK", Color.BLACK);
+        colorMap.put("BLUE", Color.BLUE);
+        colorMap.put("CYAN", Color.CYAN);
+        colorMap.put("DARK_GRAY", Color.DARK_GRAY);
+        colorMap.put("GRAY", Color.GRAY);
+        colorMap.put("GREEN", Color.GREEN);
+        colorMap.put("LIGHT_GRAY", Color.LIGHT_GRAY);
+        colorMap.put("MAGENTA", Color.MAGENTA);
+        colorMap.put("ORANGE", Color.ORANGE);
+        colorMap.put("PINK", Color.PINK);
+        colorMap.put("RED", Color.RED);
+        colorMap.put("WHITE", Color.WHITE);
+        colorMap.put("YELLOW", Color.YELLOW);
+    }
+
+    public static Color getColor(String colorName) {
+        if (colorName == null) {
+            throw new NullPointerException("Color name cannot be null");
+        }
+        return colorMap.get(colorName);
+    }
+
+    public static String getHexValue(Color color) {
+        if (color == null) {
+            throw new NullPointerException("Color cannot be null");
+        }
+        try {
+            return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+        } catch (IllegalFormatException e) {
+            throw new IllegalFormatException("Invalid format string: " + e.getMessage());
+        }
+    }
+}
+```
+
+In the `populateTable` method, we check if the `model` object is empty and throw an `IllegalArgumentException` if it is. We also catch any `IllegalFormatException` that might be thrown by the `getHexValue` method and re-throw it as an `IllegalFormatException` with a more descriptive error message.
+
+In the `getHexValue` method, we catch any `IllegalFormatException` that might be thrown by the `String.format` method and re-throw it as an `IllegalFormatException` with a more descriptive error message.
+------------------------------------------------------

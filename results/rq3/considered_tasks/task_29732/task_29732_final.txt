@@ -1,0 +1,36 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+public static AttributeSet readAttributeSet(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    try {
+        int size = in.readInt();
+        AttributeSet attributeSet = new AttributeSet();
+        for (int i = 0; i < size; i++) {
+            String name = in.readUTF();
+            Object value = in.readObject();
+            attributeSet.addAttribute(name, value);
+        }
+        return attributeSet;
+    } catch (EOFException e) {
+        throw new EOFException("End of file reached while reading attribute set");
+    } catch (IOException e) {
+        if (e.getMessage().equals("null")) {
+            throw new EOFException("End of file reached while reading attribute set");
+        } else {
+            throw new IOException("I/O error occurred while reading attribute set: " + e.getMessage());
+        }
+    } catch (UTFDataFormatException e) {
+        throw new UTFDataFormatException("Invalid modified UTF-8 encoding of string while reading attribute set");
+    } catch (InvalidClassException e) {
+        throw new InvalidClassException("Something is wrong with a class used by deserialization: " + e.getMessage());
+    } catch (StreamCorruptedException e) {
+        throw new StreamCorruptedException("Control information in the stream is inconsistent while reading attribute set");
+    } catch (OptionalDataException e) {
+        throw new OptionalDataException("Primitive data found in the stream instead of objects while reading attribute set");
+    }
+}
+```
+
+This updated code snippet includes a check for the end of file while reading the integer size using `in.readInt()`. If an `EOFException` is caught, it throws a new `EOFException` with a custom message. Additionally, if an `IOException` is caught and its message is "null", it is assumed that the end of file has been reached and a new `EOFException` is thrown with a custom message. Otherwise, the original `IOException` is thrown with a custom message that includes its message.
+------------------------------------------------------

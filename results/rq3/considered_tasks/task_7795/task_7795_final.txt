@@ -1,0 +1,41 @@
+
+Sure, here's the updated code snippet that includes the necessary exception handling:
+
+```java
+public ClassLoader getClassLoader(Class<?> clazz) throws SecurityException {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        ClassLoader callerClassLoader = getClass().getClassLoader();
+        ClassLoader requestedClassLoader = clazz.getClassLoader();
+        if (callerClassLoader != null && requestedClassLoader != null && !isAncestorClassLoader(callerClassLoader, requestedClassLoader)) {
+            s.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+    return clazz.getClassLoader();
+}
+
+public <E> E getElement(List<E> list, int index) throws IndexOutOfBoundsException {
+    if (index < 0 || index >= list.size()) {
+        throw new IndexOutOfBoundsException("Index is out of range");
+    }
+    return list.get(index);
+}
+
+private boolean isAncestorClassLoader(ClassLoader ancestor, ClassLoader child) {
+    ClassLoader parent = child.getParent();
+    if (parent == null) {
+        return false;
+    }
+    if (parent == ancestor) {
+        return true;
+    }
+    return isAncestorClassLoader(ancestor, parent);
+}
+```
+
+For `getClassLoader()`, we first check if a security manager is present. If so, we check if the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested. If this is the case, we check if the caller has the `RuntimePermission("getClassLoader")`. If the permission is not granted, we throw a `SecurityException`.
+
+For `getElement()`, we first check if the index is out of range by comparing it to the size of the list. If the index is out of range, we throw an `IndexOutOfBoundsException`.
+
+The `isAncestorClassLoader()` method is a helper method that checks if a given class loader is an ancestor of another class loader.
+------------------------------------------------------

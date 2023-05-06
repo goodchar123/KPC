@@ -1,0 +1,35 @@
+
+Sure, here's the updated code snippet that checks for all the mentioned exceptions:
+
+```java
+public boolean isColumnSearchable(Connection conn, String tableName, String columnName) throws SQLException {
+    boolean isSearchable = false;
+    ResultSet rs = null;
+    try {
+        DatabaseMetaData metaData = conn.getMetaData();
+        rs = metaData.getColumns(null, null, tableName, columnName);
+        if (rs.next()) {
+            int searchable = rs.getInt("SEARCHABLE");
+            isSearchable = (searchable == DatabaseMetaData.columnSearchable);
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred.", e);
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Database access error occurred or ResultSet is closed.", e);
+            }
+        }
+    }
+    return isSearchable;
+}
+```
+
+This updated method uses a try-catch block to catch any `SQLException` that may occur when calling `conn.getMetaData()` and `metaData.getColumns()`. If an exception is caught, it throws a new `SQLException` with a custom error message and the original exception as the cause.
+
+Additionally, the `finally` block ensures that the `ResultSet` is closed properly, even if an exception is thrown. If an exception occurs when closing the `ResultSet`, it throws a new `SQLException` with a custom error message and the original exception as the cause.
+
+Finally, the method also checks if the column label is valid by calling `rs.getInt("SEARCHABLE")` inside the `if (rs.next())` block. If an exception occurs when calling this method, it throws a new `SQLException` with a custom error message and the original exception as the cause.
+------------------------------------------------------

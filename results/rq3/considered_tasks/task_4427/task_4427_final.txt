@@ -1,0 +1,35 @@
+
+Here is the updated Java method that checks for the mentioned exception:
+
+```java
+import org.w3c.dom.*;
+
+public void addAttribute(Element element, String attributeName, String attributeValue) throws DOMException {
+    Document document = element.getOwnerDocument();
+    Attr attribute = null;
+    try {
+        attribute = document.createAttributeNS(null, attributeName);
+    } catch (DOMException e) {
+        if (e.code == DOMException.NAMESPACE_ERR || e.code == DOMException.INVALID_CHARACTER_ERR || e.code == DOMException.NOT_SUPPORTED_ERR) {
+            throw e;
+        }
+    }
+    try {
+        attribute.setValue(attributeValue);
+    } catch (DOMException e) {
+        if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR) {
+            throw e;
+        }
+    }
+    try {
+        element.setAttributeNode(attribute);
+    } catch (DOMException e) {
+        if (e.code == DOMException.WRONG_DOCUMENT_ERR || e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR || e.code == DOMException.INUSE_ATTRIBUTE_ERR) {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method now checks for the `NO_MODIFICATION_ALLOWED_ERR` exception that can be thrown by the `setValue` method of the `Attr` object. If this exception is caught, it is re-thrown as a `DOMException`.
+------------------------------------------------------

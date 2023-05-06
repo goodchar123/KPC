@@ -1,0 +1,536 @@
+Please write a java method that Writes an image using the an arbitrary ImageWriter that supports the given format to an ImageOutputStream.
+Sure, here's an example Java method that writes an image using an arbitrary ImageWriter that supports the given format to an ImageOutputStream:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImage(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Get all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+        for (ImageWriter w : ImageIO.getImageWriters(type)) {
+            if (w.getOriginatingProvider().getMIMETypes().contains(formatName)) {
+                writer = w;
+                break;
+            }
+        }
+        if (writer == null) {
+            throw new IllegalArgumentException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output destination for the writer
+        writer.setOutput(output);
+
+        // Write the image using the writer
+        writer.write(null, new IIOImage(image, null, null), null);
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This method takes in a `BufferedImage` object representing the image to be written, a `String` format name (e.g. "JPEG", "PNG", etc.), and an `ImageOutputStream` object representing the output stream to write to. It first searches for an `ImageWriter` that supports the given format, and then sets the output destination for the writer to the given output stream. Finally, it writes the image using the writer, and cleans up by disposing of the writer and flushing/closing the output stream.
+------------------------------------------------------
+Please write a java method that Writes an image using the an arbitrary ImageWriter that supports the given format to an ImageOutputStream.
+Sure, here's an example Java method that writes an image using an arbitrary ImageWriter that supports the given format to an ImageOutputStream:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImageToStream(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Get a list of all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+        ImageWriterSpi spi = null;
+        for (ImageWriterFactory factory : ImageWriterFactory.getAllImageWriterFactories()) {
+            spi = factory.getWriterSpi();
+            if (spi.canEncodeImage(type)) {
+                writer = spi.createWriterInstance();
+                break;
+            }
+        }
+        if (writer == null) {
+            throw new IOException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output stream for the writer
+        writer.setOutput(output);
+
+        // Set the compression quality (if applicable)
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed()) {
+            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            writeParam.setCompressionQuality(0.9f);
+        }
+
+        // Write the image to the output stream
+        writer.write(null, new IIOImage(image, null, null), writeParam);
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This method takes in a `BufferedImage` object representing the image to be written, a `String` specifying the format of the output image (e.g. "JPEG", "PNG", etc.), and an `ImageOutputStream` object representing the output stream to which the image should be written. It then searches for an `ImageWriter` that supports the given format, sets the output stream for the writer, sets the compression quality (if applicable), and writes the image to the output stream. Finally, it cleans up by disposing of the writer and flushing and closing the output stream.
+------------------------------------------------------
+Please check if formatName is null. for javax.imageio.ImageIO.getImageWritersByFormatName(java.lang.String) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM. for javax.imageio.ImageTypeSpecifier.createFromBufferedImageType(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if type is null. for javax.imageio.spi.ImageWriterSpi.canEncodeImage(javax.imageio.ImageTypeSpecifier) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if an error occurs during loading, or initialization of the writer class, or during instantiation or initialization of the writer object. for javax.imageio.spi.ImageWriterSpi.createWriterInstance() in the code snippet you provided, otherwise throw IOException.
+Please check if the writer does not support compression, or does not support the requested mode. for javax.imageio.ImageWriteParam.setCompressionMode(int) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if mode is not one of the modes listed above. for javax.imageio.ImageWriteParam.setCompressionMode(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the compression mode is not MODE_EXPLICIT. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the set of legal compression types is non null and the current compression type is null. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if quality is not between 0 and 1, inclusive. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the output has not been set. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if image contains a Raster and canWriteRasters returns false. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if image is null. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if an error occurs during writing. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IOException.
+Sure, here's the updated Java method that includes the requested error checking:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImageToStream(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Check if formatName is null
+        if (formatName == null) {
+            throw new IllegalArgumentException("formatName cannot be null");
+        }
+
+        // Check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM
+        if (image.getType() < BufferedImage.TYPE_INT_ARGB || image.getType() > BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_CUSTOM) {
+            throw new IllegalArgumentException("bufferedImageType is not a standard type or is equal to TYPE_CUSTOM");
+        }
+
+        // Create an ImageTypeSpecifier from the BufferedImage type
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+
+        // Check if type is null
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
+
+        // Get a list of all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageWriterSpi spi = null;
+        for (ImageWriterFactory factory : ImageWriterFactory.getAllImageWriterFactories()) {
+            spi = factory.getWriterSpi();
+            if (spi.canEncodeImage(type)) {
+                try {
+                    writer = spi.createWriterInstance();
+                    break;
+                } catch (IOException e) {
+                    throw new IOException("Error loading or initializing writer class: " + e.getMessage());
+                }
+            }
+        }
+        if (writer == null) {
+            throw new IOException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output stream for the writer
+        writer.setOutput(output);
+
+        // Set the compression quality (if applicable)
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed()) {
+            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+
+            // Check if the writer supports compression
+            if (!writeParam.isCompressionSupported()) {
+                throw new UnsupportedOperationException("Compression not supported by writer");
+            }
+
+            // Check if the writer supports the requested compression mode
+            if (!writeParam.isCompressionModeSupported(ImageWriteParam.MODE_EXPLICIT)) {
+                throw new UnsupportedOperationException("Requested compression mode not supported by writer");
+            }
+
+            writeParam.setCompressionQuality(0.9f);
+
+            // Check if the compression mode is MODE_EXPLICIT
+            if (writeParam.getCompressionMode() != ImageWriteParam.MODE_EXPLICIT) {
+                throw new IllegalStateException("Compression mode is not MODE_EXPLICIT");
+            }
+
+            // Check if the set of legal compression types is non-null and the current compression type is null
+            if (writeParam.getCompressionTypes() != null && writeParam.getCompressionType() == null) {
+                throw new IllegalStateException("Legal compression types are non-null but current compression type is null");
+            }
+
+            // Check if the quality is between 0 and 1, inclusive
+            if (writeParam.getCompressionQuality() < 0 || writeParam.getCompressionQuality() > 1) {
+                throw new IllegalArgumentException("Compression quality must be between 0 and 1, inclusive");
+            }
+        }
+
+        // Check if the output has been set
+        if (writer.getOutput() == null) {
+            throw new IllegalStateException("Output has not been set");
+        }
+
+        // Check if image contains a Raster and canWriteRasters returns false
+        if (image.getRaster() != null && !writer.canWriteRasters()) {
+            throw new UnsupportedOperationException("Image contains a Raster but writer cannot write Rasters");
+        }
+
+        // Check if image is null
+        if (image == null) {
+            throw new IllegalArgumentException("image cannot be null");
+        }
+
+        // Write the image to the output stream
+        try {
+            writer.write(null, new IIOImage(image, null, null), writeParam);
+        } catch (IOException e) {
+            throw new IOException("Error writing image: " + e.getMessage());
+        }
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This updated method includes error checking for all of the scenarios you mentioned, and throws the appropriate exceptions if any of these scenarios occur.
+------------------------------------------------------
+Please write a java method that Writes an image using the an arbitrary ImageWriter that supports the given format to an ImageOutputStream.
+Sure, here's an example Java method that writes an image using an arbitrary ImageWriter that supports the given format to an ImageOutputStream:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImageToStream(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Get a list of all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+        ImageWriterSpi spi = null;
+        for (ImageWriterFactory factory : ImageWriterFactory.getAllImageWriterFactories()) {
+            spi = factory.getWriterSpi();
+            if (spi.canEncodeImage(type)) {
+                writer = spi.createWriterInstance();
+                break;
+            }
+        }
+        if (writer == null) {
+            throw new IOException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output stream for the writer
+        writer.setOutput(output);
+
+        // Set the compression quality (if applicable)
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed()) {
+            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            writeParam.setCompressionQuality(0.9f);
+        }
+
+        // Write the image to the output stream
+        writer.write(null, new IIOImage(image, null, null), writeParam);
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This method takes in a `BufferedImage` object representing the image to be written, a `String` specifying the format of the output image (e.g. "JPEG", "PNG", etc.), and an `ImageOutputStream` object representing the output stream to which the image should be written. It then searches for an `ImageWriter` that supports the given format, sets the output stream for the writer, sets the compression quality (if applicable), and writes the image to the output stream. Finally, it cleans up by disposing of the writer and flushing and closing the output stream.
+------------------------------------------------------
+Please check if formatName is null. for javax.imageio.ImageIO.getImageWritersByFormatName(java.lang.String) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM. for javax.imageio.ImageTypeSpecifier.createFromBufferedImageType(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if type is null. for javax.imageio.spi.ImageWriterSpi.canEncodeImage(javax.imageio.ImageTypeSpecifier) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if an error occurs during loading, or initialization of the writer class, or during instantiation or initialization of the writer object. for javax.imageio.spi.ImageWriterSpi.createWriterInstance() in the code snippet you provided, otherwise throw IOException.
+Please check if the writer does not support compression, or does not support the requested mode. for javax.imageio.ImageWriteParam.setCompressionMode(int) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if mode is not one of the modes listed above. for javax.imageio.ImageWriteParam.setCompressionMode(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the compression mode is not MODE_EXPLICIT. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the set of legal compression types is non null and the current compression type is null. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if quality is not between 0 and 1, inclusive. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the output has not been set. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if image contains a Raster and canWriteRasters returns false. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if image is null. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if an error occurs during writing. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IOException.
+Sure, here's the updated Java method that includes the requested error checking:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImageToStream(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Check if formatName is null
+        if (formatName == null) {
+            throw new IllegalArgumentException("formatName cannot be null");
+        }
+
+        // Check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM
+        if (image.getType() < BufferedImage.TYPE_INT_ARGB || image.getType() > BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_CUSTOM) {
+            throw new IllegalArgumentException("bufferedImageType is not a standard type or is equal to TYPE_CUSTOM");
+        }
+
+        // Create an ImageTypeSpecifier from the BufferedImage type
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+
+        // Check if type is null
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
+
+        // Get a list of all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageWriterSpi spi = null;
+        for (ImageWriterFactory factory : ImageWriterFactory.getAllImageWriterFactories()) {
+            spi = factory.getWriterSpi();
+            if (spi.canEncodeImage(type)) {
+                try {
+                    writer = spi.createWriterInstance();
+                    break;
+                } catch (IOException e) {
+                    throw new IOException("Error loading or initializing writer class: " + e.getMessage());
+                }
+            }
+        }
+        if (writer == null) {
+            throw new IOException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output stream for the writer
+        writer.setOutput(output);
+
+        // Set the compression quality (if applicable)
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed()) {
+            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+
+            // Check if the writer supports compression
+            if (!writeParam.isCompressionSupported()) {
+                throw new UnsupportedOperationException("Compression not supported by writer");
+            }
+
+            // Check if the writer supports the requested compression mode
+            if (!writeParam.isCompressionModeSupported(ImageWriteParam.MODE_EXPLICIT)) {
+                throw new UnsupportedOperationException("Requested compression mode not supported by writer");
+            }
+
+            writeParam.setCompressionQuality(0.9f);
+
+            // Check if the compression mode is MODE_EXPLICIT
+            if (writeParam.getCompressionMode() != ImageWriteParam.MODE_EXPLICIT) {
+                throw new IllegalStateException("Compression mode is not MODE_EXPLICIT");
+            }
+
+            // Check if the set of legal compression types is non-null and the current compression type is null
+            if (writeParam.getCompressionTypes() != null && writeParam.getCompressionType() == null) {
+                throw new IllegalStateException("Legal compression types are non-null but current compression type is null");
+            }
+
+            // Check if the quality is between 0 and 1, inclusive
+            if (writeParam.getCompressionQuality() < 0 || writeParam.getCompressionQuality() > 1) {
+                throw new IllegalArgumentException("Compression quality must be between 0 and 1, inclusive");
+            }
+        }
+
+        // Check if the output has been set
+        if (writer.getOutput() == null) {
+            throw new IllegalStateException("Output has not been set");
+        }
+
+        // Check if image contains a Raster and canWriteRasters returns false
+        if (image.getRaster() != null && !writer.canWriteRasters()) {
+            throw new UnsupportedOperationException("Image contains a Raster but writer cannot write Rasters");
+        }
+
+        // Check if image is null
+        if (image == null) {
+            throw new IllegalArgumentException("image cannot be null");
+        }
+
+        // Write the image to the output stream
+        try {
+            writer.write(null, new IIOImage(image, null, null), writeParam);
+        } catch (IOException e) {
+            throw new IOException("Error writing image: " + e.getMessage());
+        }
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This updated method includes error checking for all of the scenarios you mentioned, and throws the appropriate exceptions if any of these scenarios occur.
+------------------------------------------------------
+Please check if output is null. for javax.imageio.ImageIO.createImageOutputStream(java.lang.Object) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if a cache file is needed but cannot be created. for javax.imageio.ImageIO.createImageOutputStream(java.lang.Object) in the code snippet you provided, otherwise throw IOException.
+Please check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM. for javax.imageio.ImageTypeSpecifier.createFromBufferedImageType(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if type is null. for javax.imageio.spi.ImageWriterSpi.canEncodeImage(javax.imageio.ImageTypeSpecifier) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if mode is not one of the modes listed above. for javax.imageio.ImageWriteParam.setCompressionMode(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.setCompressionQuality(float) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.getCompressionMode() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.getCompressionTypes() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.getCompressionType() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the compression mode is not MODE_EXPLICIT. for javax.imageio.ImageWriteParam.getCompressionType() in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the writer does not support compression. for javax.imageio.ImageWriteParam.getCompressionQuality() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the compression mode is not MODE_EXPLICIT. for javax.imageio.ImageWriteParam.getCompressionQuality() in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the set of legal compression types is non null and the current compression type is null. for javax.imageio.ImageWriteParam.getCompressionQuality() in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if the output has not been set. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw IllegalStateException.
+Please check if image contains a Raster and canWriteRasters returns false. for javax.imageio.ImageWriter.write(javax.imageio.metadata.IIOMetadata,javax.imageio.IIOImage,javax.imageio.ImageWriteParam) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Sure, here's the updated Java method that includes the requested error checking:
+
+```java
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+
+public class ImageWriterExample {
+    public static void writeImageToStream(BufferedImage image, String formatName, ImageOutputStream output) throws IOException {
+        // Check if output is null
+        if (output == null) {
+            throw new IllegalArgumentException("output cannot be null");
+        }
+
+        // Check if a cache file is needed but cannot be created
+        if (output instanceof FileImageOutputStream && !((FileImageOutputStream) output).canWrite()) {
+            throw new IOException("Cannot create cache file for output");
+        }
+
+        // Check if bufferedImageType is not one of the standard types, or is equal to TYPE_CUSTOM
+        if (image.getType() < BufferedImage.TYPE_INT_ARGB || image.getType() > BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_CUSTOM) {
+            throw new IllegalArgumentException("bufferedImageType is not a standard type or is equal to TYPE_CUSTOM");
+        }
+
+        // Create an ImageTypeSpecifier from the BufferedImage type
+        ImageTypeSpecifier type = ImageTypeSpecifier.createFromBufferedImageType(image.getType());
+
+        // Check if type is null
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
+
+        // Get a list of all available ImageWriters that support the given format
+        ImageWriter writer = null;
+        ImageWriterSpi spi = null;
+        for (ImageWriterFactory factory : ImageWriterFactory.getAllImageWriterFactories()) {
+            spi = factory.getWriterSpi();
+            if (spi.canEncodeImage(type)) {
+                try {
+                    writer = spi.createWriterInstance();
+                    break;
+                } catch (IOException e) {
+                    throw new IOException("Error loading or initializing writer class: " + e.getMessage());
+                }
+            }
+        }
+        if (writer == null) {
+            throw new IOException("No ImageWriter found for format " + formatName);
+        }
+
+        // Set the output stream for the writer
+        writer.setOutput(output);
+
+        // Set the compression quality (if applicable)
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        if (writeParam.canWriteCompressed()) {
+            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+
+            // Check if the writer supports compression
+            if (!writeParam.isCompressionSupported()) {
+                throw new UnsupportedOperationException("Compression not supported by writer");
+            }
+
+            // Check if the writer supports the requested compression mode
+            if (!writeParam.isCompressionModeSupported(ImageWriteParam.MODE_EXPLICIT)) {
+                throw new IllegalArgumentException("Requested compression mode not supported by writer");
+            }
+
+            // Check if the compression mode is MODE_EXPLICIT
+            if (writeParam.getCompressionMode() != ImageWriteParam.MODE_EXPLICIT) {
+                throw new IllegalStateException("Compression mode is not MODE_EXPLICIT");
+            }
+
+            // Check if the writer supports compression quality
+            if (!writeParam.isCompressionQualitySupported()) {
+                throw new UnsupportedOperationException("Compression quality not supported by writer");
+            }
+
+            // Check if the compression type is supported
+            if (writeParam.getCompressionTypes() != null && writeParam.getCompressionType() == null) {
+                throw new IllegalStateException("Legal compression types are non-null but current compression type is null");
+            }
+
+            // Check if the compression mode is MODE_EXPLICIT
+            if (writeParam.getCompressionType() != null && writeParam.getCompressionMode() != ImageWriteParam.MODE_EXPLICIT) {
+                throw new IllegalStateException("Compression mode is not MODE_EXPLICIT");
+            }
+
+            // Check if the quality is between 0 and 1, inclusive
+            if (writeParam.getCompressionQuality() < 0 || writeParam.getCompressionQuality() > 1) {
+                throw new IllegalArgumentException("Compression quality must be between 0 and 1, inclusive");
+            }
+        }
+
+        // Check if the output has been set
+        if (writer.getOutput() == null) {
+            throw new IllegalStateException("Output has not been set");
+        }
+
+        // Check if image contains a Raster and canWriteRasters returns false
+        if (image.getRaster() != null && !writer.canWriteRasters()) {
+            throw new UnsupportedOperationException("Image contains a Raster but writer cannot write Rasters");
+        }
+
+        // Check if image is null
+        if (image == null) {
+            throw new IllegalArgumentException("image cannot be null");
+        }
+
+        // Write the image to the output stream
+        try {
+            writer.write(null, new IIOImage(image, null, null), writeParam);
+        } catch (IOException e) {
+            throw new IOException("Error writing image: " + e.getMessage());
+        }
+
+        // Cleanup
+        writer.dispose();
+        output.flush();
+        output.close();
+    }
+}
+```
+
+This updated method includes error checking for all of the scenarios you mentioned, and throws the appropriate exceptions if any of these scenarios occur.
+------------------------------------------------------

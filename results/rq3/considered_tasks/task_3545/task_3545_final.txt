@@ -1,0 +1,66 @@
+
+Thank you for the additional feedback. Here's an updated version of the method that includes error handling for these scenarios:
+
+```java
+import javax.xml.stream.*;
+import java.io.*;
+import java.util.NoSuchElementException;
+
+public String getNextChunk(XMLStreamReader reader) throws XMLStreamException {
+    StringBuilder sb = new StringBuilder();
+    while (reader.hasNext()) {
+        int event = reader.next();
+        switch (event) {
+            case XMLStreamConstants.CHARACTERS:
+            case XMLStreamConstants.CDATA:
+            case XMLStreamConstants.SPACE:
+            case XMLStreamConstants.ENTITY_REFERENCE:
+                if (reader.hasText()) {
+                    sb.append(reader.getText());
+                } else {
+                    throw new IllegalStateException("Invalid text state");
+                }
+                break;
+            case XMLStreamConstants.END_ELEMENT:
+                return sb.toString();
+            case XMLStreamConstants.START_DOCUMENT:
+            case XMLStreamConstants.END_DOCUMENT:
+            case XMLStreamConstants.START_ELEMENT:
+            case XMLStreamConstants.PROCESSING_INSTRUCTION:
+            case XMLStreamConstants.COMMENT:
+            case XMLStreamConstants.DTD:
+                // do nothing
+                break;
+            default:
+                throw new XMLStreamException("Fatal error detecting next state");
+        }
+    }
+    throw new NoSuchElementException("No more events");
+}
+
+public static void main(String[] args) {
+    try {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLStreamReader reader = factory.createXMLStreamReader(new FileInputStream("example.xml"));
+        String chunk = getNextChunk(reader);
+        System.out.println(chunk);
+    } catch (FileNotFoundException e) {
+        System.err.println("File not found: " + e.getMessage());
+    } catch (XMLStreamException e) {
+        System.err.println("Error processing XML: " + e.getMessage());
+    } catch (NoSuchElementException e) {
+        System.err.println("No more events: " + e.getMessage());
+    }
+}
+```
+
+This updated version now includes the following error handling:
+
+- If `hasNext()` throws an exception, it throws an `XMLStreamException`.
+- If `next()` throws an exception, it throws an `XMLStreamException`.
+- If `hasNext()` returns `false`, it throws a `NoSuchElementException`.
+- If the current state is not a valid text state when calling `getText()`, it throws an `IllegalStateException`.
+- If the parsing event is not recognized, it throws an `XMLStreamException`.
+
+I hope this updated version addresses all of your concerns.
+------------------------------------------------------

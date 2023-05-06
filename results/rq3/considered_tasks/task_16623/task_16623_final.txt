@@ -1,0 +1,27 @@
+
+Thank you for bringing this to my attention. You are correct that it is important to perform these checks before calling the `wrap()` method of the `SSLEngine` object and allocating a new `ByteBuffer` to ensure that the method is called with valid arguments. Here's an updated version of the method that includes these checks:
+
+```java
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
+
+public static ByteBuffer encode(SSLEngine sslEngine, ByteBuffer plaintext) throws SSLException {
+    if (sslEngine == null || plaintext == null) {
+        throw new IllegalArgumentException("Arguments cannot be null");
+    }
+    if (sslEngine.getUseClientMode() == false && sslEngine.getUseClientMode() == true) {
+        throw new IllegalStateException("Client/server mode has not been set");
+    }
+    if (sslEngine.getSession() == null) {
+        throw new SSLException("SSL session is not available");
+    }
+    if (plaintext.isReadOnly()) {
+        throw new ReadOnlyBufferException();
+    }
+    ByteBuffer networkData = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+    SSLEngineResult result;
+    do {
+       
+------------------------------------------------------

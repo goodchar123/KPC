@@ -1,0 +1,86 @@
+
+Here's an updated version of the Java method that includes the error checking you requested for `ServerSocket.accept()`:
+
+```java
+import java.net.*;
+import java.io.IOException;
+
+public class TransportServiceListener {
+    public static void main(String[] args) throws IOException {
+        try {
+            // Create a new server socket on a random port
+            ServerSocket serverSocket = new ServerSocket(0);
+
+            // Get the local address and port of the server socket
+            InetAddress address = serverSocket.getInetAddress();
+            int port = serverSocket.getLocalPort();
+
+            // Print the address and port to the console
+            System.out.println("Listening on " + address.getHostAddress() + ":" + port);
+
+            // Listen for incoming connections
+            while (true) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    try {
+                        // Get the input and output streams for the client socket
+                        InputStream inputStream = clientSocket.getInputStream();
+                        OutputStream outputStream = clientSocket.getOutputStream();
+
+                        // Handle the incoming connection
+                    } catch (IOException e) {
+                        // Check for specific error conditions
+                        if (e instanceof SocketException) {
+                            // Socket is closed or not connected
+                            throw (SocketException) e;
+                        } else if (e instanceof EOFException) {
+                            // Socket input has been shutdown
+                            throw (EOFException) e;
+                        } else {
+                            // Other I/O error occurred
+                            throw new IOException("Error creating input stream", e);
+                        }
+                    }
+
+                    try {
+                        // Get the output stream for the client socket
+                        OutputStream outputStream = clientSocket.getOutputStream();
+
+                        // Handle the incoming connection
+                    } catch (IOException e) {
+                        // Check for specific error conditions
+                        if (e instanceof SocketException) {
+                            // Socket is not connected
+                            throw (SocketException) e;
+                        } else {
+                            // Other I/O error occurred
+                            throw new IOException("Error creating output stream", e);
+                        }
+                    }
+                } catch (IOException e) {
+                    // Check for specific error conditions
+                    if (e instanceof SocketTimeoutException) {
+                        // Timeout has been reached
+                        throw (SocketTimeoutException) e;
+                    } else if (e instanceof SecurityException) {
+                        // Security manager doesn't allow the operation
+                        throw (SecurityException) e;
+                    } else if (e instanceof IllegalBlockingModeException) {
+                        // Socket is in non-blocking mode and no connection is ready
+                        throw (IllegalBlockingModeException) e;
+                    } else {
+                        // Other I/O error occurred
+                        throw new IOException("Error waiting for connection", e);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method checks for specific error conditions when waiting for a connection using `serverSocket.accept()`. If any of these conditions are met, the appropriate exception is thrown. If none of these conditions are met, the method continues to handle the incoming connection. Additionally, the error checking for creating input and output streams has been retained.
+------------------------------------------------------

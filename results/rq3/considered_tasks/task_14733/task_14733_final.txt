@@ -1,0 +1,113 @@
+
+Sure, here's an updated version of the code that checks for errors and throws the appropriate exceptions:
+
+```java
+import java.util.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+
+public class PropertyTableToXML {
+    
+    public static Document createXMLDocument(Map<String, String> properties) throws FactoryConfigurationError, ParserConfigurationException, DOMException {
+        // Create a new XML document
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        
+        // Create the root element
+        Element root = doc.createElement("properties");
+        doc.appendChild(root);
+        
+        // Add each property as a child element
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+            String name = entry.getKey();
+            String value = entry.getValue();
+            if (!isValidXMLName(name)) {
+                throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid XML name: " + name);
+            }
+            Element prop = doc.createElement("property");
+            try {
+                prop.setAttribute("name", name);
+            } catch (DOMException e) {
+                if (e.code == DOMException.INVALID_CHARACTER_ERR) {
+                    throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid XML character in attribute name: " + name);
+                } else if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR) {
+                    throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This node is read-only");
+                } else {
+                    throw e;
+                }
+            }
+            try {
+                prop.setTextContent(value);
+            } catch (DOMException e) {
+                if (e.code == DOMException.INVALID_CHARACTER_ERR) {
+                    throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid XML character in value: " + value);
+                } else if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR) {
+                    throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This node is read-only");
+                } else {
+                    throw e;
+                }
+            }
+            try {
+                root.appendChild(prop);
+            } catch (DOMException e) {
+                if (e.code == DOMException.HIERARCHY_REQUEST_ERR) {
+                    throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, "Cannot append child to this node");
+                } else if (e.code == DOMException.WRONG_DOCUMENT_ERR) {
+                    throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, "New child was created from a different document");
+                } else if (e.code == DOMException.NO_MODIFICATION_ALLOWED_ERR) {
+                    throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "This node is read-only");
+                } else if (e.code == DOMException.NOT_SUPPORTED_ERR) {
+                    throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Cannot remove DocumentType or Element child");
+                } else {
+                    throw e;
+                }
+            }
+        }
+        
+        return doc;
+    }
+    
+    private static boolean isValidXMLName(String name) {
+        // Check if the name is a valid XML name
+        // (this is a simplified check that assumes XML 1.0)
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
+        char first = name.charAt(0);
+        if (!Character.isLetter(first) && first != '_') {
+            return false;
+        }
+        for (int i = 1; i < name.length(); i++) {
+            try {
+                char c = name.charAt(i);
+                if (!Character.isLetterOrDigit(c) && c != '.' && c != '-' && c != '_' && c != ':') {
+                    return false;
+                }
+            } catch (IndexOutOfBoundsException e) {
+                throw new IndexOutOfBoundsException("Invalid index: " + i);
+            }
+        }
+        return true;
+    }
+    
+}
+```
+
+This version of the method checks for `FactoryConfigurationError` when creating the `DocumentBuilderFactory` and `ParserConfigurationException` when creating the `DocumentBuilder`. It also checks for `DOMException` when creating elements, setting attributes and text content, and appending child nodes. It also checks for invalid XML names and characters and throws a more specific exception with a helpful error message.
+
+To use this updated method, you can call it like this:
+
+```java
+Map<String, String> properties = new HashMap<>();
+properties.put("color", "blue");
+properties.put("size", "medium");
+properties.put("price", "$19.99");
+
+try {
+    Document doc = PropertyTableToXML.createXMLDocument(properties);
+} catch (FactoryConfigurationError | ParserConfigurationException | DOMException e) {
+    // Handle the exception
+}
+```
+------------------------------------------------------

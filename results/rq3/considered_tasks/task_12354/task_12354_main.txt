@@ -1,0 +1,62 @@
+Please write a java method that Invokes the method handle, allowing any caller type descriptor, but requiring an exact type match.
+Here's an example Java method that invokes a method handle with an exact type match:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ExampleClass {
+    public static void invokeExact(MethodHandle handle, Object... args) throws Throwable {
+        MethodType type = handle.type();
+        Class<?>[] paramTypes = type.parameterArray();
+        if (args.length != paramTypes.length) {
+            throw new IllegalArgumentException("Wrong number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            if (!paramTypes[i].isInstance(args[i])) {
+                throw new IllegalArgumentException("Argument " + i + " has wrong type");
+            }
+        }
+        handle.invokeExact(args);
+    }
+}
+```
+
+This method takes a `MethodHandle` object and an array of arguments, and checks that the number and types of the arguments match the method handle's parameter types exactly. If they do, it invokes the method handle using `invokeExact()`. If not, it throws an `IllegalArgumentException`.
+------------------------------------------------------
+Please check if the target's type is not identical with the caller's symbolic type descriptor for java.lang.invoke.MethodHandle.invokeExact(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Please check anything thrown by the underlying method propagates unchanged through the method handle call for java.lang.invoke.MethodHandle.invokeExact(java.lang.Object...) in the code snippet you provided, otherwise throw Throwable.
+Here's the updated Java method that checks if the target's type is not identical with the caller's symbolic type descriptor and propagates any exceptions thrown by the underlying method unchanged:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ExampleClass {
+    public static void invokeExact(MethodHandle handle, Object... args) throws Throwable {
+        MethodType type = handle.type();
+        Class<?>[] paramTypes = type.parameterArray();
+        if (args.length != paramTypes.length) {
+            throw new IllegalArgumentException("Wrong number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            if (!paramTypes[i].isInstance(args[i])) {
+                throw new IllegalArgumentException("Argument " + i + " has wrong type");
+            }
+        }
+        if (!type.equals(MethodType.methodType(handle.type().returnType(), handle.type().parameterArray()))) {
+            throw new WrongMethodTypeException("Target's type is not identical with the caller's symbolic type descriptor");
+        }
+        try {
+            handle.invokeExact(args);
+        } catch (Throwable t) {
+            throw t;
+        }
+    }
+}
+```
+
+This method now checks if the target's type is not identical with the caller's symbolic type descriptor and throws a `WrongMethodTypeException` if they don't match. It also catches any exceptions thrown by the underlying method and propagates them unchanged.
+------------------------------------------------------

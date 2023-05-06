@@ -1,0 +1,60 @@
+
+Sure, here's an updated version of the Java method that includes the error checking you requested:
+
+```java
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.KeyStore.LoadStoreParameter;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+public class KeystoreLoader {
+    public static KeyStore loadKeystore(LoadStoreParameter param) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, IOException {
+        String keystoreType = "JKS";
+        if (param == null) {
+            throw new NullPointerException("LoadStoreParameter cannot be null");
+        }
+        try {
+            KeyStore keystore = KeyStore.getInstance(keystoreType);
+            keystore.load(param);
+            return keystore;
+        } catch (KeyStoreException e) {
+            throw new KeyStoreException("No Provider supports a KeyStoreSpi implementation for the specified type: " + keystoreType, e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new NoSuchAlgorithmException("Algorithm used to check the integrity of the keystore cannot be found", e);
+        } catch (CertificateException e) {
+            throw new CertificateException("One or more certificates in the keystore could not be loaded", e);
+        } catch (UnrecoverableKeyException e) {
+            throw new IOException("Incorrect ProtectionParameter (e.g. wrong password)", e);
+        } catch (IOException e) {
+            throw new IOException("I/O or format problem with the keystore data", e);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("The given LoadStoreParameter input is not recognized", e);
+        }
+    }
+}
+```
+
+This updated method includes error checking for the following scenarios:
+
+- If no provider supports a `KeyStoreSpi` implementation for the specified type, a `KeyStoreException` is thrown with a message indicating the type that was specified.
+- If the `LoadStoreParameter` input is null, a `NullPointerException` is thrown.
+- If there is an I/O or format problem with the keystore data, an `IOException` is thrown.
+- If the algorithm used to check the integrity of the keystore cannot be found, a `NoSuchAlgorithmException` is thrown.
+- If any of the certificates in the keystore could not be loaded, a `CertificateException` is thrown.
+- If the error is due to an incorrect `ProtectionParameter` (e.g. wrong password), an `UnrecoverableKeyException` is thrown.
+
+You can call this method like this:
+
+```java
+LoadStoreParameter param = ...; // create/load the parameter object
+try {
+    KeyStore keystore = KeystoreLoader.loadKeystore(param);
+    // use the loaded keystore
+} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | IOException e) {
+    // handle the error
+}
+```
+------------------------------------------------------

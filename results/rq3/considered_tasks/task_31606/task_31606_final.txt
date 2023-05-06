@@ -1,0 +1,25 @@
+
+You're right, it's important to check for null and end of stream conditions when using `DataInputStream.readFully(byte[])`. Here's an updated version of the method that includes these checks:
+
+```java
+public static short readShort(DataInputStream stream) throws IOException {
+    byte[] bytes = new byte[2];
+    try {
+        stream.readFully(bytes);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Input stream is null");
+    } catch (EOFException e) {
+        throw new EOFException("End of stream reached before all bytes could be read");
+    }
+    if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) {
+        return (short) ((bytes[0] << 8) | (bytes[1] & 0xFF));
+    } else {
+        return (short) ((bytes[1] << 8) | (bytes[0] & 0xFF));
+    }
+}
+```
+
+This version of the method includes a try-catch block that catches `NullPointerException` and `EOFException` thrown by `readFully`. If `stream` is null, a `NullPointerException` is thrown with a descriptive message. If the end of the stream is reached before all bytes could be read, an `EOFException` is thrown with a descriptive message.
+
+It's important to handle these exceptions to ensure that the method behaves correctly and doesn't cause unexpected errors or exceptions to be thrown further up the call stack.
+------------------------------------------------------

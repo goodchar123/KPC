@@ -1,0 +1,62 @@
+
+Thank you for pointing that out. Here's the updated code snippet that includes the additional error handling:
+
+```java
+public String getDBMSTypeName(SerialArray serialArray) throws SQLException {
+    String dbmsTypeName = null;
+    Connection connection = null;
+    try {
+        ResultSet resultSet = serialArray.getResultSet();
+        if (resultSet.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+        Statement statement = resultSet.getStatement();
+        if (statement.isClosed()) {
+            throw new SQLException("Statement is closed");
+        }
+        connection = statement.getConnection();
+        if (connection.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        dbmsTypeName = serialArray.getBaseTypeName();
+        DatabaseMetaData metaData = connection.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata");
+        }
+        resultSet = metaData.getTypeInfo();
+        if (resultSet == null) {
+            throw new SQLException("Failed to retrieve type information");
+        }
+        while (resultSet.next()) {
+            String typeName = resultSet.getString("TYPE_NAME");
+            if (typeName == null) {
+                throw new SQLException("Invalid column label: TYPE_NAME");
+            }
+            if (typeName.equalsIgnoreCase(dbmsTypeName)) {
+                String localTypeName = resultSet.getString("LOCAL_TYPE_NAME");
+                if (localTypeName == null) {
+                    throw new SQLException("Invalid column label: LOCAL_TYPE_NAME");
+                }
+                dbmsTypeName = localTypeName;
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (connection != null) {
+            connection.close();
+        }
+    }
+    return dbmsTypeName;
+}
+```
+
+In this updated code, we first check if the result set, statement, and connection are closed before using them. If any of them is closed, we throw a `SQLException` with an appropriate message.
+
+We also check if the `DatabaseMetaData` object or the `ResultSet` object is null after retrieving them. If either of them is null, we throw a `SQLException` with an appropriate message.
+
+We also check if the column label is valid before retrieving the string value from the result set. If the column label is invalid, we throw a `SQLException` with an appropriate message.
+
+Finally, we wrap the entire method in a try-catch block to catch any `SQLException` that might occur and re-throw it. We also close the connection in the `finally` block to ensure that it is always closed, even if an exception occurs.
+------------------------------------------------------

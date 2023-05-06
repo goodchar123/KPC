@@ -1,0 +1,52 @@
+
+Here's the updated Java method that includes the requested error checking:
+
+```
+import java.util.concurrent.*;
+
+public class PeriodicAction {
+    public static void submitPeriodicAction(Runnable action, long initialDelay, long delay) {
+        if (delay <= 0) {
+            throw new IllegalArgumentException("Delay must be greater than zero");
+        }
+        
+        if (initialDelay < 0) {
+            throw new IllegalArgumentException("Initial delay must be non-negative");
+        }
+        
+        ScheduledExecutorService executor = null;
+        try {
+            executor = Executors.newScheduledThreadPool(1);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Core pool size must be non-negative");
+        }
+        
+        if (executor == null) {
+            throw new RejectedExecutionException("Executor service is null");
+        }
+        
+        try {
+            executor.scheduleWithFixedDelay(action, initialDelay, delay, TimeUnit.MILLISECONDS);
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Command or unit is null");
+        } catch (RejectedExecutionException e) {
+            throw new RejectedExecutionException("Task cannot be scheduled for execution");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Delay must be greater than zero");
+        }
+    }
+}
+```
+
+This updated method checks for the following errors:
+
+- If `delay` is less than or equal to zero, an `IllegalArgumentException` is thrown with a message indicating that the delay must be greater than zero.
+- If `initialDelay` is less than zero, an `IllegalArgumentException` is thrown with a message indicating that the initial delay must be non-negative.
+- If `corePoolSize` is less than zero, an `IllegalArgumentException` is thrown with a message indicating that the core pool size must be non-negative.
+- If the `ScheduledExecutorService` returned by `Executors.newScheduledThreadPool(1)` is null, a `RejectedExecutionException` is thrown with a message indicating that the executor service is null.
+- If `command` or `unit` is null, a `NullPointerException` is thrown by the `scheduleWithFixedDelay` method.
+- If the delay is less than or equal to zero, an `IllegalArgumentException` is thrown with a message indicating that the delay must be greater than zero.
+- If the task cannot be scheduled for execution, a `RejectedExecutionException` is thrown with a message indicating that the task cannot be scheduled.
+
+By including these error checks, the method ensures that the inputs are valid before scheduling the periodic action.
+------------------------------------------------------

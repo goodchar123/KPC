@@ -1,0 +1,40 @@
+
+Here's the modified `getUnallocatedBytes` method that checks for the security manager and throws a `SecurityException` if the security manager denies access:
+
+```java
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class UnallocatedBytes {
+
+    public static long getUnallocatedBytes(String path) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("getFileSystemAttributes"));
+            File file = new File(path);
+            sm.checkRead(file.getPath());
+        }
+        long unallocatedBytes = AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                File file = new File(path);
+                return file.getFreeSpace();
+            }
+        });
+        return unallocatedBytes;
+    }
+
+    public static void main(String[] args) {
+        String path = "C:\\";
+        long unallocatedBytes = getUnallocatedBytes(path);
+        System.out.println("Unallocated bytes in " + path + ": " + unallocatedBytes);
+    }
+}
+```
+
+In this modified version, we first check if a security manager is installed using `System.getSecurityManager()`. If a security manager is present, we check if it has permission to get file system attributes using `sm.checkPermission(new RuntimePermission("getFileSystemAttributes"))`. We also check if the security manager allows read access to the file using `sm.checkRead(file.getPath())`.
+
+If the security manager allows access, we use `AccessController.doPrivileged` to execute the `getFreeSpace` method with the necessary privileges. If the security manager denies access, a `SecurityException` is thrown.
+
+Note that this code assumes that the security manager is installed and configured to deny access to the `getFileSystemAttributes` permission or the file read permission. If no security manager is present, the code will execute without any security checks.
+------------------------------------------------------

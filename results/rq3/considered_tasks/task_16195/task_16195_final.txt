@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the `initializeCipher` method that includes the additional checks you requested:
+
+```java
+import java.security.*;
+import javax.crypto.*;
+
+public class CipherInitializer {
+    public static void initializeCipher(SecretKey key, AlgorithmParameterSpec params, SecureRandom random, String algorithm, int opmode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedOperationException {
+        Cipher cipher = Cipher.getInstance(algorithm);
+        if (opmode == Cipher.WRAP_MODE || opmode == Cipher.UNWRAP_MODE) {
+            if (!(cipher instanceof javax.crypto.CipherSpi.Wrapper || cipher instanceof javax.crypto.CipherSpi.Unwrapper)) {
+                throw new UnsupportedOperationException("Cipher does not support WRAP_MODE or UNWRAP_MODE");
+            }
+        }
+        try {
+            cipher.init(opmode, key, params, random);
+        } catch (InvalidKeyException e) {
+            if (e.getMessage().contains("key size")) {
+                throw new InvalidKeyException("Key is inappropriate for initializing this cipher, or its keysize exceeds the maximum allowable keysize", e);
+            } else {
+                throw e;
+            }
+        } catch (InvalidAlgorithmParameterException e) {
+            if (e.getMessage().contains("exceed the legal limits")) {
+                throw new InvalidAlgorithmParameterException("The given algorithm parameters imply a cryptographic strength that would exceed the legal limits", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This updated method includes three additional checks:
+
+1. After calling `cipher.init`, the method checks if an `InvalidKeyException` was thrown and if the exception message contains the string "key size". If so, the method throws a new `InvalidKeyException` with a more specific error message.
+
+2. After calling `cipher.init`, the method checks if an `InvalidAlgorithmParameterException` was thrown and if the exception message contains the string "exceed the legal limits". If so, the method throws a new `InvalidAlgorithmParameterException` with a more specific error message.
+
+3. Before calling `cipher.init`, the method checks if the operation mode is `WRAP_MODE` or `UNWRAP_MODE`, and if so, it checks if the underlying `CipherSpi` supports these modes. If the cipher does not support these modes, the method throws an `UnsupportedOperationException`.
+
+These additional checks help to provide more specific error messages when certain types of errors occur during cipher initialization.
+------------------------------------------------------

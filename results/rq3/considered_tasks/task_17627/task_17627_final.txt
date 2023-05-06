@@ -1,0 +1,35 @@
+
+Sure, here's an updated version of the `negotiateTLSSession` method that checks for network-level errors during the TLS handshake and throws an `IOException` if any occur:
+
+```java
+import java.io.IOException;
+import java.net.Socket;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
+public class TLSSessionNegotiator {
+    
+    public static void negotiateTLSSession(String host, int port) throws IOException {
+        SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        Socket socket = factory.createSocket(host, port);
+        SSLSocket sslSocket = (SSLSocket) socket;
+        try {
+            sslSocket.startHandshake();
+        } catch (IOException e) {
+            sslSocket.close();
+            throw new IOException("TLS handshake failed: " + e.getMessage());
+        }
+        if (!sslSocket.isConnected()) {
+            throw new IOException("TLS handshake failed: socket is not connected");
+        }
+        if (!sslSocket.getSession().isValid()) {
+            throw new IOException("TLS handshake failed: session is not valid");
+        }
+    }
+}
+```
+
+This version of the method wraps the `startHandshake()` call in a try-catch block to catch any `IOException` that may occur during the handshake. If an exception is caught, the `SSLSocket` is closed and an `IOException` is thrown with a message indicating that the handshake failed.
+
+After the handshake, the method checks if the socket is still connected and if the TLS session is valid. If either of these checks fail, an `IOException` is thrown with an appropriate error message.
+------------------------------------------------------

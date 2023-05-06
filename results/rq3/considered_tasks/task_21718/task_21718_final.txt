@@ -1,0 +1,46 @@
+
+Here is the updated Java method that includes the requested error handling:
+
+```java
+import java.io.IOException;
+
+public class CommandRunner {
+    public static void runCommand(String command) throws IOException {
+        if (command == null) {
+            throw new NullPointerException("Command cannot be null");
+        }
+        if (command.isEmpty()) {
+            throw new IndexOutOfBoundsException("Command list cannot be empty");
+        }
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        try {
+            SecurityManager securityManager = System.getSecurityManager();
+            if (securityManager != null) {
+                securityManager.checkExec(command);
+                if (processBuilder.redirectInput() != null) {
+                    securityManager.checkRead(processBuilder.redirectInput().file().getPath());
+                }
+                if (processBuilder.redirectOutput() != null) {
+                    securityManager.checkWrite(processBuilder.redirectOutput().file().getPath());
+                }
+                if (processBuilder.redirectError() != null) {
+                    securityManager.checkWrite(processBuilder.redirectError().file().getPath());
+                }
+            }
+            Process process = processBuilder.start();
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            throw new UnsupportedOperationException("Operating system does not support the creation of processes");
+        } catch (SecurityException e) {
+            throw new SecurityException("Security manager denies access to subprocess");
+        }
+    }
+}
+```
+
+This method now checks for null and empty command lists, as well as security manager permissions and operating system support for process creation. If any of these conditions are not met, the appropriate exception is thrown.
+------------------------------------------------------

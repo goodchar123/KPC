@@ -1,0 +1,61 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections for the `getMetaData()` method:
+
+```java
+public boolean supportsRowIdLifetime() throws SQLException {
+    try {
+        if (connection.isClosed()) {
+            throw new SQLException("Connection is closed.");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Failed to check if connection is closed.", e);
+    }
+    try {
+        DatabaseMetaData metaData = connection.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata.");
+        }
+        boolean supportsRowId = metaData.supportsRowId();
+        if (supportsRowId) {
+            System.out.println("This data source supports the SQL ROWID type.");
+            try {
+                int rowIdLifetime = metaData.getRowIdLifetime();
+                switch (rowIdLifetime) {
+                    case RowIdLifetime.ROWID_VALID_FOREVER:
+                        System.out.println("A RowId object remains valid for the lifetime of the row.");
+                        break;
+                    case RowIdLifetime.ROWID_VALID_OTHER:
+                        System.out.println("A RowId object remains valid for a different lifetime than the row.");
+                        break;
+                    case RowIdLifetime.ROWID_VALID_SESSION:
+                        System.out.println("A RowId object remains valid for the duration of the session.");
+                        break;
+                    case RowIdLifetime.ROWID_VALID_TRANSACTION:
+                        System.out.println("A RowId object remains valid for the duration of the transaction.");
+                        break;
+                    case RowIdLifetime.ROWID_UNSUPPORTED:
+                        System.out.println("This data source does not support the lifetime of RowId objects.");
+                        break;
+                    default:
+                        System.out.println("Unknown RowId lifetime value: " + rowIdLifetime);
+                        break;
+                }
+            } catch (SQLException e) {
+                throw new SQLException("Failed to retrieve RowId lifetime.", e);
+            }
+        } else {
+            System.out.println("This data source does not support the SQL ROWID type.");
+        }
+        return supportsRowId;
+    } catch (SQLException e) {
+        throw new SQLException("Failed to retrieve database metadata.", e);
+    }
+}
+```
+
+In this updated code, we first check if the connection is closed using the `isClosed()` method. If a database access error occurs or the connection is closed, we throw a `SQLException` with an appropriate message.
+
+Next, we retrieve the database metadata using the `getMetaData()` method. If a database access error occurs or the metadata is null, we throw a `SQLException` with an appropriate message.
+
+Finally, we retrieve the RowId lifetime using the `getRowIdLifetime()` method. If a database access error occurs, a `SQLException` will be thrown.
+------------------------------------------------------

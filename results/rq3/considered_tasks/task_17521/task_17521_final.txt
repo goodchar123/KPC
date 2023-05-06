@@ -1,0 +1,101 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+import com.sun.net.httpserver.HttpsServer;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.KeyManagementException;
+
+public class HttpsServerExample {
+
+    public static HttpsServer createHttpsServer() throws Exception {
+        // Load the keystore containing the server's private key and certificate
+        char[] password = "password".toCharArray();
+        KeyStore keyStore = null;
+        try {
+            keyStore = KeyStore.getInstance("JKS");
+            FileInputStream fileInputStream = new FileInputStream("keystore.jks");
+            keyStore.load(fileInputStream, password);
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+            throw new KeyStoreException("Failed to load keystore", e);
+        }
+
+        // Create a KeyManagerFactory to create a KeyManager for the SSLContext
+        KeyManagerFactory keyManagerFactory = null;
+        try {
+            keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, password);
+        } catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e) {
+            throw new KeyStoreException("Failed to create KeyManagerFactory", e);
+        }
+
+        // Create a TrustManagerFactory to create a TrustManager for the SSLContext
+        TrustManagerFactory trustManagerFactory = null;
+        try {
+            trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+            trustManagerFactory.init(keyStore);
+        } catch (NoSuchAlgorithmException | KeyStoreException e) {
+            throw new KeyStoreException("Failed to create TrustManagerFactory", e);
+        }
+
+        // Create an SSLContext with the KeyManager and TrustManager
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new KeyStoreException("Failed to create SSLContext", e);
+        }
+
+        // Create a HttpsServer instance
+        HttpsServer httpsServer = null;
+        try {
+            httpsServer = HttpsServer.create();
+            httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+                public void configure(HttpsParameters params) {
+                    // Set the SSL parameters for the HttpsServer
+                    params.setNeedClientAuth(false);
+                }
+            });
+        } catch (IOException e) {
+            throw new IOException("Failed to create HttpsServer", e);
+        }
+
+        return httpsServer;
+    }
+
+    public static void main(String[] args) throws Exception {
+        HttpsServer httpsServer = null;
+        try {
+            httpsServer = createHttpsServer();
+            // Bind the HttpsServer to a local address and port
+            InetSocketAddress address = new InetSocketAddress(8080);
+            httpsServer.bind(address, 0);
+            System.out.println("HttpsServer started on " + address);
+        } catch (Exception e) {
+            System.err.println("Failed to start HttpsServer: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This updated code snippet includes try-catch blocks to handle the following exceptions:
+
+- KeyStoreException, NoSuchAlgorithmException, CertificateException, and IOException when loading the keystore
+- NoSuchAlgorithmException, UnrecoverableKeyException, and KeyStoreException when creating the KeyManagerFactory
+- NoSuchAlgorithmException and KeyStoreException when creating the TrustManagerFactory
+- NoSuchAlgorithmException and KeyManagementException when creating the SSLContext
+- IOException when creating the HttpsServer
+
+It also includes a try-catch block around the main method to handle any exceptions that may occur during the creation and binding of the HttpsServer.
+------------------------------------------------------

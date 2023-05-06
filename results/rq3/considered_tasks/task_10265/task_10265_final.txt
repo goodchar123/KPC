@@ -1,0 +1,63 @@
+
+Sure, here's the updated Java method that includes error checking and throws SQLException if a database access error occurs:
+
+```
+public boolean getBooleanFieldValue(String fieldName) throws SQLException {
+    // Assume that the persistent field is stored in a database table called "my_table"
+    // and that the boolean field is stored in a column called "my_boolean_field"
+    
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    boolean fieldValue = false;
+    
+    try {
+        // First, establish a connection to the database
+        conn = DriverManager.getConnection("jdbc:mysql://localhost/my_database", "username", "password");
+        
+        // Next, create a statement to execute a SELECT query
+        stmt = conn.createStatement();
+        String query = "SELECT " + fieldName + " FROM my_table";
+        
+        // Execute the query and retrieve the result set
+        rs = stmt.executeQuery(query);
+        
+        // Get the value of the boolean field from the result set
+        if (rs.next()) {
+            fieldValue = rs.getBoolean(fieldName);
+        }
+    } catch (SQLException e) {
+        // Handle any database access errors
+        throw e;
+    } finally {
+        // Close the result set, statement, and connection
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+    }
+    
+    // Return the value of the boolean field
+    return fieldValue;
+}
+```
+
+Now, if a database access error occurs when closing the result set, statement, or connection, the method will throw a SQLException.
+------------------------------------------------------

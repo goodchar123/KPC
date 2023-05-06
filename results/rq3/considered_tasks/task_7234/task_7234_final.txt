@@ -1,0 +1,27 @@
+
+Sure, here's an updated version of the `setUncaughtExceptionHandler` method that checks if the current thread is allowed to modify the target thread:
+
+```java
+public static void setUncaughtExceptionHandler(Thread thread, Thread.UncaughtExceptionHandler handler) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("modifyThread"));
+        if (thread.getThreadGroup() != Thread.currentThread().getThreadGroup()) {
+            throw new SecurityException("Cannot modify thread in different thread group");
+        }
+    }
+    thread.setUncaughtExceptionHandler(handler);
+}
+```
+
+This method first checks if there is a `SecurityManager` installed, and if so, checks if the current thread has the `modifyThread` permission. If the target thread is in a different thread group than the current thread, a `SecurityException` is thrown.
+
+You can call this method like this:
+
+```java
+Thread myThread = new Thread(myRunnable);
+setUncaughtExceptionHandler(myThread, myExceptionHandler);
+```
+
+Where `myRunnable` is the `Runnable` object that the thread will execute
+------------------------------------------------------

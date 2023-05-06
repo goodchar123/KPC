@@ -1,0 +1,25 @@
+
+Sure, here's an updated version of the method that checks for both database access errors and closed connections when calling `getAutoCommit()`, and also checks for errors when calling `setReadOnly()`:
+
+```java
+public void setReadOnly(Connection conn) throws SQLException {
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        if (!conn.getAutoCommit()) {
+            throw new SQLException("Cannot set read-only mode during a transaction");
+        }
+        conn.setReadOnly(true);
+    } catch (SQLException e) {
+        throw new SQLException("Error setting read-only mode: " + e.getMessage());
+    }
+}
+```
+
+This updated method first tries to call `isClosed()` on the connection object. If the connection is closed, it throws a `SQLException` with an appropriate error message.
+
+Next, it calls `getAutoCommit()` to check if the connection is currently in a transaction. If the value is `false`, it means that a transaction is currently in progress, and setting the connection to read-only mode is not allowed. In this case, it throws a `SQLException` with an appropriate error message.
+
+Finally, it sets the connection to read-only mode using `setReadOnly(true)`. If an error occurs during this operation, it throws a `SQLException` with an appropriate error message.
+------------------------------------------------------

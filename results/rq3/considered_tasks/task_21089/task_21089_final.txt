@@ -1,0 +1,57 @@
+
+Sure, here's the updated Java method that checks for database access errors and closed connections/result sets:
+
+```java
+public String getFunctionDescription(String catalogName, String functionName) throws SQLException {
+    String description = "";
+    Connection conn = null;
+    ResultSet rs = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed.");
+        }
+        DatabaseMetaData dbmd = conn.getMetaData();
+        rs = dbmd.getFunctions(catalogName, null, functionName);
+        while (rs.next()) {
+            if (rs.isClosed()) {
+                throw new SQLException("Result set is closed.");
+            }
+            String remarks = rs.getString("REMARKS");
+            if (remarks != null) {
+                description += remarks + "\n";
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+    }
+    return description;
+}
+```
+
+In this updated method, we first check if the connection is closed using the `isClosed()` method. If it is closed, we throw a `SQLException` with an appropriate message.
+
+Similarly, we check if the result set is closed using the `isClosed()` method. If it is closed, we throw a `SQLException` with an appropriate message.
+
+If any exception occurs, we print the stack trace and re-throw the exception.
+
+Finally, we close the result set and the connection in the `finally` block. We also wrap the `close()` method calls in `try-catch` blocks to handle any exceptions that may occur while closing the resources.
+------------------------------------------------------

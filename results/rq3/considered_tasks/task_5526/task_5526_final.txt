@@ -1,0 +1,36 @@
+
+Here's an updated version of the Java method that checks for security manager and LoggingPermission before removing handlers, adding handlers, and setting the logger level:
+
+```java
+import java.security.*;
+
+public class LoggingConfigUpdater {
+    public static void updateLoggingConfig() {
+        Logger logger = Logger.getLogger("");
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new LoggingPermission("control"));
+        }
+        Handler[] handlers = logger.getHandlers();
+        for (Handler handler : handlers) {
+            if (sm != null) {
+                sm.checkPermission(new LoggingPermission("control"));
+            }
+            logger.removeHandler(handler);
+        }
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.ALL);
+        if (sm != null) {
+            sm.checkPermission(new LoggingPermission("control"));
+        }
+        logger.addHandler(consoleHandler);
+        if (sm != null) {
+            sm.checkPermission(new LoggingPermission("control"));
+        }
+        logger.setLevel(Level.ALL);
+    }
+}
+```
+
+This updated method first checks if a security manager exists and if so, checks for LoggingPermission before removing handlers, adding handlers, and setting the logger level. If the caller does not have the required permission, a SecurityException will be thrown. The permission check is now done before each operation that requires it.
+------------------------------------------------------

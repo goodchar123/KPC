@@ -1,0 +1,64 @@
+Please write a java method that Enumerates the names bound in the named context, along with the class names of objects bound to them.
+Here's a Java method that enumerates the names bound in the named context, along with the class names of objects bound to them:
+
+```java
+import javax.naming.*;
+import java.util.*;
+
+public static void listContext(Context context) throws NamingException {
+    NamingEnumeration<NameClassPair> namingEnum = context.list("");
+    while (namingEnum.hasMore()) {
+        NameClassPair pair = namingEnum.next();
+        String name = pair.getName();
+        String className = pair.getClassName();
+        System.out.println(name + " : " + className);
+    }
+}
+```
+
+This method takes a `Context` object as a parameter and uses the `list()` method to obtain a `NamingEnumeration` of `NameClassPair` objects representing the names and class names of objects bound in the context. It then iterates over the enumeration and prints out the name and class name of each object.
+------------------------------------------------------
+Please check If a naming exception is encountered while attempting                 to determine whether there is another element                 in the enumeration. See NamingException                 and its subclasses for the possible naming exceptions. for javax.naming.NamingEnumeration.hasMore() in the code snippet you provided, otherwise throw NamingException.
+Please check If a naming exception is encountered while attempting                 to retrieve the next element. See NamingException                 and its subclasses for the possible naming exceptions. for javax.naming.NamingEnumeration.next() in the code snippet you provided, otherwise throw NamingException.
+Please check If attempting to get the next element when none is available. for javax.naming.NamingEnumeration.next() in the code snippet you provided, otherwise throw NoSuchElementException.
+Sure, here's the updated code snippet that checks for the possible exceptions and throws them accordingly:
+
+```java
+import javax.naming.*;
+import java.util.*;
+
+public static void listContext(Context context) throws NamingException {
+    NamingEnumeration<NameClassPair> namingEnum = null;
+    try {
+        namingEnum = context.list("");
+        while (namingEnum.hasMore()) {
+            NameClassPair pair = null;
+            try {
+                pair = namingEnum.next();
+                String name = pair.getName();
+                String className = pair.getClassName();
+                System.out.println(name + " : " + className);
+            } catch (NamingException ne) {
+                throw ne;
+            } catch (Exception e) {
+                throw new NamingException("Error while retrieving next element", e);
+            }
+        }
+    } catch (NamingException ne) {
+        throw ne;
+    } catch (Exception e) {
+        throw new NamingException("Error while checking for next element", e);
+    } finally {
+        if (namingEnum != null) {
+            try {
+                namingEnum.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+}
+```
+
+This updated method now has try-catch blocks around the `list()` method call and the `hasMore()` and `next()` method calls. If a `NamingException` or any other exception is encountered, it is thrown with an appropriate message. Additionally, a finally block is added to close the `NamingEnumeration` object if it is not null.
+------------------------------------------------------

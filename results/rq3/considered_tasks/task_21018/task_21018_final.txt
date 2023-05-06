@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that checks for a database access error or a closed connection when calling `getMetaData()`, and checks for a database access error or a closed result set when calling `next()`. It throws a `SQLException` if any of these conditions occur:
+
+```java
+public static int getMaxIndexBytes(Connection conn, String tableName) throws SQLException {
+    int maxIndexBytes = 0;
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata");
+        }
+        ResultSet rs = metaData.getIndexInfo(null, null, tableName, false, false);
+        if (rs == null) {
+            throw new SQLException("Failed to retrieve index information");
+        }
+        while (rs.next()) {
+            int indexBytes = rs.getInt("INDEX_MAX_LENGTH");
+            if (indexBytes > maxIndexBytes) {
+                maxIndexBytes = indexBytes;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error retrieving index information: " + e.getMessage());
+    }
+    return maxIndexBytes;
+}
+```
+
+This updated method first checks if the connection is closed using the `isClosed()` method. If the connection is closed, it throws a `SQLException` with an appropriate error message. 
+
+Next, it tries to retrieve the metadata and index information using the `getMetaData()` and `getIndexInfo()` methods. If either of these methods return `null`, it throws a `SQLException` with an appropriate error message. 
+
+Inside the `while` loop, it checks if the result set is closed or if a database access error occurs when calling `next()`. If either of these conditions occur, it throws a `SQLException` with an appropriate error message. 
+
+If no errors occur, the method returns the maximum index size as before.
+------------------------------------------------------

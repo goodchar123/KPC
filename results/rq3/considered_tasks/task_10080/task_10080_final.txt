@@ -1,0 +1,57 @@
+
+Here is the updated code snippet that includes the additional error handling:
+
+```
+public static ObjectStreamClass readClassDescriptor(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    byte[] classDesc = new byte[2];
+    try {
+        in.readFully(classDesc);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Buffer is null");
+    } catch (EOFException e) {
+        throw new EOFException("End of file reached");
+    } catch (IOException e) {
+        throw new IOException("Other I/O error has occurred");
+    }
+    if (classDesc[0] != ObjectStreamConstants.TC_CLASSDESC) {
+        throw new InvalidClassException("Expected class descriptor");
+    }
+    short classDescLen = (short) ((classDesc[1] & 0xFF) << 8 | (classDesc[2] & 0xFF));
+    byte[] classDescBytes = new byte[classDescLen];
+    try {
+        in.readFully(classDescBytes);
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Buffer is null");
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Offset or length is out of bounds");
+    } catch (EOFException e) {
+        throw new EOFException("End of file reached");
+    } catch (IOException e) {
+        throw new IOException("Other I/O error has occurred");
+    }
+    ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(classDescBytes));
+    try {
+        return input.readObject();
+    } catch (IOException e) {
+        throw new IOException("Any of the usual Input/Output related exceptions");
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Copying would cause access of data outside array bounds");
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("An element in the src array could not be stored into the dest array because of a type mismatch");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("Either src or dest is null");
+    }
+}
+```
+
+This updated code snippet includes error handling for the following scenarios:
+
+- If an I/O error occurs during `readFully(byte[])`, an `IOException` is thrown.
+- If `buf` is null during `readFully(byte[],int,int)`, a `NullPointerException` is thrown.
+- If `off` is negative, `len` is negative, or `len` is greater than `buf.length - off` during `readFully(byte[],int,int)`, an `IndexOutOfBoundsException` is thrown.
+- If the end of the file is reached during `readFully(byte[],int,int)`, an `EOFException` is thrown.
+- If any of the usual Input/Output related exceptions occur during `readObject()`, an `IOException` is thrown.
+- If copying would cause access of data outside array bounds during `System.arraycopy()`, an `IndexOutOfBoundsException` is thrown.
+- If an element in the src array could not be stored into the dest array because of a type mismatch during `System.arraycopy()`, an `ArrayStoreException` is thrown.
+- If either `src` or `dest` is null during `System.arraycopy()`, a `NullPointerException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,151 @@
+Please write a java method that Retrieves and removes the Future representing the next completed task, waiting if necessary up to the specified wait time if none are yet present.
+Here's an example Java method that retrieves and removes the Future representing the next completed task, waiting if necessary up to the specified wait time if none are yet present:
+
+```
+import java.util.concurrent.*;
+
+public class FutureExample {
+    private final BlockingQueue<Future<?>> queue = new LinkedBlockingQueue<>();
+
+    public <T> T getNextResult(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        Future<?> future = queue.poll(timeout, unit);
+        if (future == null) {
+            throw new TimeoutException();
+        }
+        return (T) future.get();
+    }
+
+    public void addTask(Callable<?> task) {
+        Future<?> future = Executors.newSingleThreadExecutor().submit(task);
+        queue.add(future);
+    }
+}
+```
+
+In this example, we use a `BlockingQueue` to store the `Future` objects representing the completed tasks. The `getNextResult` method retrieves and removes the next completed task from the queue, waiting up to the specified timeout if necessary. If no task is available within the specified timeout, a `TimeoutException` is thrown.
+
+The `addTask` method adds a new task to the queue by submitting it to a `ExecutorService`.
+------------------------------------------------------
+Please check if the computation was cancelled for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw CancellationException.
+Sure, here's an updated version of the `getNextResult` method that checks if the computation was cancelled for `java.util.concurrent.Future.get()`, and throws a `CancellationException` if it was:
+
+```
+import java.util.concurrent.*;
+
+public class FutureExample {
+    private final BlockingQueue<Future<?>> queue = new LinkedBlockingQueue<>();
+
+    public <T> T getNextResult(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, CancellationException {
+        Future<?> future = queue.poll(timeout, unit);
+        if (future == null) {
+            throw new TimeoutException();
+        }
+        if (future.isCancelled()) {
+            throw new CancellationException();
+        }
+        return (T) future.get();
+    }
+
+    public void addTask(Callable<?> task) {
+        Future<?> future = Executors.newSingleThreadExecutor().submit(task);
+        queue.add(future);
+    }
+}
+```
+
+In this updated version, we use the `isCancelled()` method of the `Future` object to check if the computation was cancelled. If it was, we throw a `CancellationException`.
+------------------------------------------------------
+Please check if the computation was cancelled for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw CancellationException.
+Please check if the computation threw an exception for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw ExecutionException.
+Sure, here's an updated version of the `getNextResult` method that checks if the computation was cancelled and if it threw an exception for `java.util.concurrent.Future.get()`, and throws a `CancellationException` or `ExecutionException` respectively:
+
+```
+import java.util.concurrent.*;
+
+public class FutureExample {
+    private final BlockingQueue<Future<?>> queue = new LinkedBlockingQueue<>();
+
+    public <T> T getNextResult(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, CancellationException {
+        Future<?> future = queue.poll(timeout, unit);
+        if (future == null) {
+            throw new TimeoutException();
+        }
+        if (future.isCancelled()) {
+            throw new CancellationException();
+        }
+        try {
+            return (T) future.get();
+        } catch (ExecutionException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        } catch (CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException(e);
+        }
+    }
+
+    public void addTask(Callable<?> task) {
+        Future<?> future = Executors.newSingleThreadExecutor().submit(task);
+        queue.add(future);
+    }
+}
+```
+
+In this updated version, we use a try-catch block to catch any exceptions thrown by the `future.get()` method. If the computation was cancelled, we throw a `CancellationException`. If the computation threw an exception, we throw an `ExecutionException` with the original exception as its cause. If any other exception was thrown, we wrap it in an `ExecutionException`.
+
+We also catch `InterruptedException` and cancel the future if it occurs, before re-throwing it.
+------------------------------------------------------
+Please check if the task cannot be         scheduled for execution for java.util.concurrent.ExecutorService.submit(java.util.concurrent.Callable) in the code snippet you provided, otherwise throw RejectedExecutionException.
+Please check if the task is null for java.util.concurrent.ExecutorService.submit(java.util.concurrent.Callable) in the code snippet you provided, otherwise throw NullPointerException.
+Sure, here's an updated version of the `addTask` method that checks if the task cannot be scheduled for execution and if the task is null for `java.util.concurrent.ExecutorService.submit(java.util.concurrent.Callable)`, and throws a `RejectedExecutionException` or `NullPointerException` respectively:
+
+```
+import java.util.concurrent.*;
+
+public class FutureExample {
+    private final BlockingQueue<Future<?>> queue = new LinkedBlockingQueue<>();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public <T> T getNextResult(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, CancellationException {
+        Future<?> future = queue.poll(timeout, unit);
+        if (future == null) {
+            throw new TimeoutException();
+        }
+        if (future.isCancelled()) {
+            throw new CancellationException();
+        }
+        try {
+            return (T) future.get();
+        } catch (ExecutionException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        } catch (CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException(e);
+        }
+    }
+
+    public void addTask(Callable<?> task) throws RejectedExecutionException, NullPointerException {
+        if (task == null) {
+            throw new NullPointerException();
+        }
+        try {
+            Future<?> future = executor.submit(task);
+            queue.add(future);
+        } catch (RejectedExecutionException e) {
+            throw e;
+        }
+    }
+}
+```
+
+In this updated version, we use a try-catch block to catch any `RejectedExecutionException` thrown by the `executor.submit()` method. If the task is null, we throw a `NullPointerException`.
+
+We also catch `InterruptedException` and cancel the future if it occurs, before re-throwing it.
+------------------------------------------------------

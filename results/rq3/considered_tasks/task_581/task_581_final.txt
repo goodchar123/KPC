@@ -1,0 +1,43 @@
+
+Sure, here's the updated Java method that checks for the security manager and throws `SecurityException` if the caller does not have `ManagementPermission("monitor")`. It also checks for the support of monitoring object monitor usage and ownable synchronizer usage and throws `UnsupportedOperationException` if the Java virtual machine does not support it:
+
+```java
+public static void getThreadInfo(long[] ids) {
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPermission(new ManagementPermission("monitor"));
+    }
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    if (threadMXBean.isObjectMonitorUsageSupported() && threadMXBean.isSynchronizerUsageSupported()) {
+        ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(ids, true, true);
+        for (ThreadInfo threadInfo : threadInfos) {
+            System.out.println("Thread name: " + threadInfo.getThreadName());
+            System.out.println("Thread ID: " + threadInfo.getThreadId());
+            System.out.println("Thread state: " + threadInfo.getThreadState());
+            System.out.println("Stack trace: ");
+            StackTraceElement[] stackTraceElements = threadInfo.getStackTrace();
+            for (StackTraceElement stackTraceElement : stackTraceElements) {
+                System.out.println("\t" + stackTraceElement.toString());
+            }
+            if (threadMXBean.isObjectMonitorUsageSupported() && threadInfo.getLockedMonitors().length > 0) {
+                System.out.println("Locked monitors: ");
+                for (MonitorInfo monitorInfo : threadInfo.getLockedMonitors()) {
+                    System.out.println("\t" + monitorInfo.toString());
+                }
+            }
+            if (threadMXBean.isSynchronizerUsageSupported() && threadInfo.getLockedSynchronizers().length > 0) {
+                System.out.println("Locked synchronizers: ");
+                for (LockInfo lockInfo : threadInfo.getLockedSynchronizers()) {
+                    System.out.println("\t" + lockInfo.toString());
+                }
+            }
+            System.out.println();
+        }
+    } else {
+        throw new UnsupportedOperationException("Monitoring of object monitor usage or ownable synchronizer usage is not supported.");
+    }
+}
+```
+
+This method first checks for the security manager and throws `SecurityException` if the caller does not have `ManagementPermission("monitor")`. It then checks for the support of monitoring object monitor usage and ownable synchronizer usage and throws `UnsupportedOperationException` if the Java virtual machine does not support it. If both checks pass, it proceeds to get the thread info for each thread whose ID is in the input array `ids` and prints out the thread name, ID, state, stack trace, and any locked monitors or synchronizers.
+------------------------------------------------------

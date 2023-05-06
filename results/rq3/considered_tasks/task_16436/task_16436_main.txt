@@ -1,0 +1,49 @@
+Please write a java method that Acquires in shared mode, aborting if interrupted.
+Here's an example Java method that acquires a lock in shared mode and aborts if interrupted:
+
+```
+public void acquireSharedLock() throws InterruptedException {
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    lock.readLock().lockInterruptibly();
+    try {
+        // Code to execute while holding the shared lock
+    } finally {
+        lock.readLock().unlock();
+    }
+}
+```
+
+In this example, we create a `ReentrantReadWriteLock` object and acquire the read lock in shared mode using the `lockInterruptibly()` method. This method will block until the lock is available, but will throw an `InterruptedException` if the thread is interrupted while waiting for the lock.
+
+We then execute our code while holding the shared lock, and release the lock in a `finally` block to ensure that it is always released, even if an exception is thrown.
+
+Note that this is just an example and you may need to modify it to fit your specific use case.
+------------------------------------------------------
+Please check if the current thread is interrupted for java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock.lockInterruptibly() in the code snippet you provided, otherwise throw InterruptedException.
+Please check if the current thread does not hold this lock for java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock.unlock() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+You are correct, thank you for pointing that out. Here's an updated version of the Java method that includes the checks you mentioned:
+
+```
+public void acquireSharedLock() throws InterruptedException {
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    lock.readLock().lockInterruptibly();
+    try {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        // Code to execute while holding the shared lock
+    } finally {
+        if (!lock.readLock().isHeldByCurrentThread()) {
+            throw new IllegalMonitorStateException("Current thread does not hold this lock");
+        }
+        lock.readLock().unlock();
+    }
+}
+```
+
+In this updated version, we first check if the current thread has been interrupted using `Thread.interrupted()`. If it has, we throw an `InterruptedException`.
+
+We also check if the current thread holds the lock before unlocking it using `lock.readLock().isHeldByCurrentThread()`. If it doesn't, we throw an `IllegalMonitorStateException`.
+
+These checks ensure that the method behaves correctly and throws the appropriate exceptions if necessary.
+------------------------------------------------------

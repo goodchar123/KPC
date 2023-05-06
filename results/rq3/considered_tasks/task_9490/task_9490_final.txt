@@ -1,0 +1,40 @@
+
+Sure, here's the updated Java method that checks if the zone ID has an invalid format or cannot be found, and throws appropriate exceptions:
+
+```java
+public static ZonedDateTime withDifferentTimeZone(ZonedDateTime dateTime, String zoneId) {
+    ZoneId newZone;
+    try {
+        newZone = ZoneId.of(zoneId);
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Invalid zone ID format: " + zoneId, e);
+    } catch (ZoneRulesException e) {
+        throw new ZoneRulesException("Zone ID not found: " + zoneId, e);
+    }
+    ZonedDateTime newDateTime = dateTime.withZoneSameInstant(newZone);
+    if (newDateTime.isBefore(MIN_DATE_TIME) || newDateTime.isAfter(MAX_DATE_TIME)) {
+        throw new DateTimeException("Result exceeds supported date range for ZonedDateTime.withZoneSameInstant(ZoneId)");
+    }
+    return newDateTime;
+}
+```
+
+This method first tries to create a new `ZoneId` object from the `zoneId` string using `ZoneId.of()`. If the format is invalid, a `DateTimeException` is thrown with an appropriate error message. If the zone ID is not found, a `ZoneRulesException` is thrown with an appropriate error message.
+
+If the `ZoneId` object is successfully created, the method then calls `withZoneSameInstant()` to create a new `ZonedDateTime` object with the same instant as the original `dateTime`, but with the time-zone set to the new `ZoneId`. It then checks if the resulting `newDateTime` is before the minimum supported date-time or after the maximum supported date-time for `ZonedDateTime.withZoneSameInstant(ZoneId)`. If it is, a `DateTimeException` is thrown with an appropriate error message.
+
+You can call this method like this:
+
+```java
+ZonedDateTime dateTime = ZonedDateTime.now();
+String zoneId = "America/New_York";
+try {
+    ZonedDateTime newDateTime = withDifferentTimeZone(dateTime, zoneId);
+    // Do something with newDateTime
+} catch (DateTimeException | ZoneRulesException e) {
+    // Handle the exception
+}
+```
+
+This will create a new `ZonedDateTime` object with the same instant as `dateTime`, but with the time-zone set to `America/New_York`. If the `zoneId` string has an invalid format or cannot be found, appropriate exceptions will be thrown and you can handle them appropriately.
+------------------------------------------------------

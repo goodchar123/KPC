@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the `convertToSnippet` method that includes error checking for the `substring` method:
+
+```
+public Snippet convertToSnippet(String sourceCode) throws PatternSyntaxException, IndexOutOfBoundsException {
+    Snippet snippet = new Snippet();
+    String[] lines = null;
+    try {
+        lines = sourceCode.split("\n");
+    } catch (PatternSyntaxException e) {
+        throw new PatternSyntaxException("Invalid syntax for delimiter", e.getPattern(), e.getIndex());
+    }
+    String currentVarType = "";
+    for (String line : lines) {
+        if (line.startsWith("var ")) {
+            int varTypeEndIndex = line.indexOf(" ", 4);
+            if (varTypeEndIndex < 0 || varTypeEndIndex >= line.length()) {
+                throw new PatternSyntaxException("Invalid syntax for variable declaration", line, varTypeEndIndex);
+            }
+            int varNameStartIndex = varTypeEndIndex + 1;
+            if (varNameStartIndex < 0 || varNameStartIndex >= line.length()) {
+                throw new IndexOutOfBoundsException("Invalid index for variable name start");
+            }
+            currentVarType = line.substring(4, varTypeEndIndex);
+            String[] varNames = line.substring(varNameStartIndex).split(",");
+            for (String varName : varNames) {
+                snippet.addVariable(currentVarType, varName.trim());
+            }
+        } else {
+            int codeLineStartIndex = 0;
+            if (line.length() > 0 && Character.isWhitespace(line.charAt(0))) {
+                codeLineStartIndex = 1;
+            }
+            if (codeLineStartIndex < 0 || codeLineStartIndex >= line.length()) {
+                throw new IndexOutOfBoundsException("Invalid index for code line start");
+            }
+            snippet.addCodeLine(line.substring(codeLineStartIndex));
+        }
+    }
+    return snippet;
+}
+```
+
+This version of the method includes error checking for the `substring` method calls. For each call to `substring`, it checks if the index is negative or larger than the length of the string and throws an `IndexOutOfBoundsException` if it is.
+
+Note that this version of the method only handles errors related to the `substring` method. If you need to handle other types of errors, you could modify it to include additional try-catch blocks or use other error handling techniques.
+------------------------------------------------------

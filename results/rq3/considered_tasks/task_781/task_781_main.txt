@@ -1,0 +1,57 @@
+Please write a java method that Sets the modulus value common to all observed MBeans.
+Here's an example Java method that sets the modulus value common to all observed MBeans:
+
+```java
+public void setModulusValue(int modulus) {
+    ObjectName query = null;
+    try {
+        query = new ObjectName("*:*");
+    } catch (MalformedObjectNameException e) {
+        e.printStackTrace();
+    }
+    Set<ObjectName> mbeans = mbeanServer.queryNames(query, null);
+    for (ObjectName mbean : mbeans) {
+        try {
+            mbeanServer.setAttribute(mbean, new Attribute("Modulus", modulus));
+        } catch (InstanceNotFoundException | AttributeNotFoundException | InvalidAttributeValueException | ReflectionException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This method first creates an ObjectName query to match all MBeans. It then queries the MBeanServer to get a set of all MBeans that match the query. Finally, it loops through each MBean and sets the "Modulus" attribute to the specified value using the `setAttribute()` method. If any exceptions occur during this process, they are caught and printed to the console.
+------------------------------------------------------
+Please check UNK for javax.management.MBeanServer.queryNames(javax.management.ObjectName,javax.management.QueryExp) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null or the attribute in parameter is null. for javax.management.MBeanServer.setAttribute(javax.management.ObjectName,javax.management.Attribute) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check Wraps an exception thrown by the MBean's setter. for javax.management.MBeanServer.setAttribute(javax.management.ObjectName,javax.management.Attribute) in the code snippet you provided, otherwise throw MBeanException.
+Here's the updated Java method that includes the requested exception handling:
+
+```java
+public void setModulusValue(int modulus) throws RuntimeOperationsException, MBeanException {
+    ObjectName query = null;
+    try {
+        query = new ObjectName("*:*");
+    } catch (MalformedObjectNameException e) {
+        throw new RuntimeOperationsException(e);
+    }
+    Set<ObjectName> mbeans = mbeanServer.queryNames(query, null);
+    for (ObjectName mbean : mbeans) {
+        try {
+            if (mbean == null) {
+                throw new IllegalArgumentException("The object name in parameter is null");
+            }
+            mbeanServer.setAttribute(mbean, new Attribute("Modulus", modulus));
+        } catch (InstanceNotFoundException | AttributeNotFoundException | InvalidAttributeValueException | ReflectionException e) {
+            throw new MBeanException(e, "Exception occurred while setting attribute for MBean: " + mbean);
+        }
+    }
+}
+```
+
+This updated method now includes the requested exception handling. 
+
+For the `queryNames()` method, if the `ObjectName` is malformed, a `RuntimeOperationsException` is thrown.
+
+For the `setAttribute()` method, if the `ObjectName` or `Attribute` is null, an `IllegalArgumentException` is thrown. If an exception is thrown by the MBean's setter, a `MBeanException` is thrown with a message indicating which MBean caused the exception.
+------------------------------------------------------

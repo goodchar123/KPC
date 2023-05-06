@@ -1,0 +1,57 @@
+
+Here's the updated Java method that includes the additional checks:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
+import java.nio.channels.OverlappingFileLockException;
+
+public class FileLockExample {
+    public static void acquireExclusiveLock(String filePath) throws ClosedChannelException, AsynchronousCloseException, FileLockInterruptionException, NonWritableChannelException, IOException {
+        try (RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+             FileChannel channel = file.getChannel()) {
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+            FileLock lock = channel.lock();
+            if (!channel.isOpen()) {
+                lock.release();
+                throw new AsynchronousCloseException();
+            }
+            if (Thread.interrupted()) {
+                lock.release();
+                throw new FileLockInterruptionException();
+            }
+            if (!channel.isOpen() || !channel.isWritable()) {
+                lock.release();
+                throw new NonWritableChannelException();
+            }
+            System.out.println("Acquired exclusive lock on file: " + filePath);
+            // Do some work with the locked file
+            lock.release();
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+        } catch (OverlappingFileLockException e) {
+            System.err.println("Failed to acquire exclusive lock on file: " + filePath);
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This method now checks for the following additional conditions:
+
+- If some other I/O error occurs while acquiring the lock, throw an `IOException`.
+- If the channel used to acquire the lock is no longer open when releasing the lock, throw a `ClosedChannelException`.
+- If an I/O error occurs while releasing the lock, throw an `IOException`.
+------------------------------------------------------

@@ -1,0 +1,61 @@
+
+Sure, here's an updated version of the `getNumericValue` method that checks for database access errors, closed result sets, invalid column indexes, and `null` values, and throws the appropriate exceptions:
+
+```java
+import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+
+public class ExampleClass {
+    
+    public BigDecimal getNumericValue(PreparedStatement statement, int parameterIndex) throws SQLException {
+        ResultSet resultSet = null;
+        try {
+            statement.setFetchSize(1);
+            statement.setQueryTimeout(10); // set query timeout to 10 seconds
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                ResultSetMetaData metaData = resultSet.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                if (parameterIndex < 1 || parameterIndex > columnCount) {
+                    throw new SQLException("Invalid column index");
+                }
+                BigDecimal value = resultSet.getBigDecimal(parameterIndex);
+                if (resultSet.wasNull()) {
+                    return null;
+                } else {
+                    return value;
+                }
+            } else {
+                throw new SQLException("No results found");
+            }
+        } catch (SQLTimeoutException e) {
+            throw e; // re-throw SQLTimeoutException
+        } catch (SQLException e) {
+            if (e.getMessage().contains("result set is closed")) {
+                throw new SQLException("Result set is closed");
+            } else if (e.getMessage().contains("getColumnCount")) {
+                throw new SQLException("Error getting column count");
+            } else if (e.getMessage().contains("wasNull")) {
+                throw new SQLException("Error checking for null value");
+            } else {
+                throw e; // re-throw SQLException
+            }
+        } finally {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+        }
+    }
+}
+```
+
+In this updated version, we've added checks for database access errors and closed result sets when calling `getMetaData`, `getColumnCount`, and `wasNull`. If a `SQLException` is thrown with a message containing "result set is closed", we'll throw a new `SQLException` with a more descriptive message. Similarly, if a `SQLException` is thrown with a message containing "getColumnCount" or "wasNull", we'll throw a new `SQLException` with a more descriptive message. Otherwise, we'll re-throw the original `SQLException`.
+
+We've also added a check for an invalid column index, just like before.
+
+Finally, we've added a check for `null` values using the `wasNull` method on the `ResultSet` object. If the value is `null`, we'll return `null`. Otherwise, we'll return the `BigDecimal` value.
+------------------------------------------------------

@@ -1,0 +1,73 @@
+
+Sure, here's an updated version of the Java method that includes the exception handling you requested:
+
+```java
+public Map<String, Object> getAttributes(String objectName, String[] attributeNames) throws NamingException, InvalidSearchFilterException, InvalidSearchControlsException, NoSuchElementException {
+    // Create a new Hashtable to hold the environment properties
+    Hashtable<String, String> env = new Hashtable<String, String>();
+
+    // Set the JNDI context factory to use
+    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+
+    // Set the URL of the LDAP server to connect to
+    env.put(Context.PROVIDER_URL, "ldap://localhost:389");
+
+    // Set the security credentials (if necessary)
+    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+    env.put(Context.SECURITY_PRINCIPAL, "cn=admin,dc=mycompany,dc=com");
+    env.put(Context.SECURITY_CREDENTIALS, "password");
+
+    // Create a new InitialDirContext with the environment properties
+    DirContext ctx = new InitialDirContext(env);
+
+    // Create a new SearchControls object to specify the search criteria
+    SearchControls controls = new SearchControls();
+    controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    controls.setReturningAttributes(attributeNames);
+
+    // Perform the search and retrieve the named object
+    NamingEnumeration<SearchResult> results;
+    try {
+        results = ctx.search("", "cn=" + objectName, controls);
+    } catch (InvalidSearchControlsException e) {
+        throw new InvalidSearchControlsException("Search controls contain invalid settings");
+    } catch (NamingException e) {
+        throw new NamingException("Encountered a naming exception while performing the search");
+    }
+    try {
+        if (!results.hasMore()) {
+            throw new InvalidSearchFilterException("Search filter not supported or understood by the underlying directory");
+        }
+        SearchResult result = results.nextElement();
+
+        // Get the attributes of the named object
+        Attributes attrs = result.getAttributes();
+
+        // Create a new Map to hold the selected attributes
+        Map<String, Object> selectedAttrs = new HashMap<String, Object>();
+
+        // Iterate over the attribute names and add the selected attributes to the Map
+        for (String attributeName : attributeNames) {
+            Attribute attr = attrs.get(attributeName);
+            if (attr != null) {
+                try {
+                    selectedAttrs.put(attributeName, attr.get());
+                } catch (NamingException e) {
+                    throw new NamingException("Encountered a naming exception while retrieving the value");
+                } catch (NoSuchElementException e) {
+                    throw new NoSuchElementException("This attribute has no values");
+                }
+            }
+        }
+
+        // Close the context and return the selected attributes
+        ctx.close();
+        return selectedAttrs;
+    } catch (NamingException e) {
+        throw new NamingException("Encountered a naming exception while attempting to determine whether there is another element in the enumeration");
+    }
+}
+```
+
+This updated method includes exception handling for the scenario you specified. If the search filter is not supported or understood by the underlying directory, it throws an `InvalidSearchFilterException`.
+------------------------------------------------------

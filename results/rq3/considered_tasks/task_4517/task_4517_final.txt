@@ -1,0 +1,91 @@
+
+Here is the updated Java method that includes error handling for the scenarios you mentioned:
+
+```java
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import org.xml.sax.Attributes;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
+
+public class XIncludeState {
+
+    public static boolean getXIncludeState(String xmlFilePath) throws ParserConfigurationException, SAXException, TransformerConfigurationException, FactoryConfigurationError, UnsupportedOperationException, IOException, IllegalArgumentException {
+        try {
+            // Create a new DocumentBuilderFactory
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+            // Enable XInclude processing
+            try {
+                factory.setXIncludeAware(true);
+            } catch (UnsupportedOperationException e) {
+                throw new UnsupportedOperationException("XInclude processing is not supported by this implementation", e);
+            }
+
+            // Create a new DocumentBuilder
+            DocumentBuilder builder;
+            try {
+                builder = factory.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                throw new ParserConfigurationException("Error creating DocumentBuilder", e);
+            }
+
+            // Parse the XML file
+            try {
+                builder.parse(xmlFilePath);
+            } catch (IOException e) {
+                throw new IOException("Error reading XML file", e);
+            } catch (SAXException e) {
+                throw new SAXException("Error parsing XML file", e);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("URI cannot be null", e);
+            }
+
+            // Retrieve the state of XInclude processing
+            try {
+                boolean xIncludeAware = builder.isXIncludeAware();
+
+                // Create a new SAXTransformerFactory
+                SAXTransformerFactory transformerFactory = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+
+                // Create a new TransformerHandler
+                TransformerHandler transformerHandler;
+                try {
+                    transformerHandler = transformerFactory.newTransformerHandler();
+                } catch (TransformerConfigurationException e) {
+                    throw new TransformerConfigurationException("Error creating TransformerHandler", e);
+                }
+
+                // Set the result to a dummy StreamResult
+                try {
+                    transformerHandler.setResult(new StreamResult());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid result", e);
+                }
+
+                return xIncludeAware;
+            } catch (UnsupportedOperationException e) {
+                throw new UnsupportedOperationException("isXIncludeAware() method is not supported by this implementation", e);
+            }
+        } catch (FactoryConfigurationError e) {
+            throw new FactoryConfigurationError("Error creating DocumentBuilderFactory", e);
+        }
+    }
+}
+```
+
+This updated method includes try-catch blocks to handle the following scenarios:
+
+- `TransformerConfigurationException` when for some reason the `TransformerHandler` cannot be created.
+- `IllegalArgumentException` when the result is invalid for some reason.
+------------------------------------------------------

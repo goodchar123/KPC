@@ -1,0 +1,56 @@
+
+Sure, here's an updated version of the `createMBean` method that checks for the various exceptions and throws the appropriate ones:
+
+```java
+import javax.management.*;
+
+public class MBeanServerConnectionHandler {
+    
+    private MBeanServerConnection mbsc;
+    
+    // Constructor that initializes the MBeanServerConnection instance
+    public MBeanServerConnectionHandler(MBeanServerConnection mbsc) {
+        this.mbsc = mbsc;
+    }
+    
+    // Method that handles the createMBean method
+    public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException, MBeanException, NotCompliantMBeanException, InstanceNotFoundException, RuntimeOperationsException, IOException {
+        try {
+            return mbsc.createMBean(className, name, loaderName);
+        } catch (ClassNotFoundException e) {
+            throw new ReflectionException(e, "Class not found: " + className);
+        } catch (Exception e) {
+            if (e instanceof InstanceAlreadyExistsException) {
+                throw (InstanceAlreadyExistsException) e;
+            } else if (e instanceof MBeanRegistrationException) {
+                throw (MBeanRegistrationException) e;
+            } else if (e instanceof RuntimeMBeanException) {
+                throw (RuntimeMBeanException) e;
+            } else if (e instanceof RuntimeErrorException) {
+                throw (RuntimeErrorException) e;
+            } else if (e instanceof MBeanException) {
+                throw (MBeanException) e;
+            } else if (e instanceof NotCompliantMBeanException) {
+                throw (NotCompliantMBeanException) e;
+            } else if (e instanceof InstanceNotFoundException) {
+                throw (InstanceNotFoundException) e;
+            } else if (e instanceof RuntimeOperationsException) {
+                throw (RuntimeOperationsException) e;
+            } else if (e instanceof IOException) {
+                throw (IOException) e;
+            } else if (e instanceof IllegalArgumentException) {
+                throw new RuntimeOperationsException((IllegalArgumentException) e, "Invalid arguments");
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
+
+This updated method now catches the various exceptions that can be thrown by the `createMBean` method and throws the appropriate ones. 
+
+For example, if the MBean's constructor throws an exception, the method will throw a `MBeanException`. If the specified class loader is not registered in the MBean server, the method will throw an `InstanceNotFoundException`. And if a communication problem occurs when talking to the MBean server, the method will throw an `IOException`.
+
+Note that if an exception is caught that is not one of the expected exceptions, the method will throw a `RuntimeException` with the original exception as its cause. This is to ensure that unexpected exceptions are still propagated up the call stack.
+------------------------------------------------------

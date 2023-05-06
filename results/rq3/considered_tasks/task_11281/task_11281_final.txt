@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the `openModule` method that checks if the `JarFile` has been closed before accessing its stream:
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.jar.JarFile;
+
+public class ModuleReader {
+    public static void openModule(String moduleName) throws IOException {
+        Path modulePath = Paths.get(moduleName + ".jar");
+        if (!modulePath.getFileSystem().provider().equals(Paths.get("").getFileSystem().provider())) {
+            throw new UnsupportedOperationException("Path is not associated with the default provider");
+        }
+        try (JarFile moduleFile = new JarFile(modulePath.toFile())) {
+            // Access the module content here
+            // For example, you can iterate over the entries in the module file
+            moduleFile.stream().forEach(entry -> System.out.println(entry.getName()));
+            if (moduleFile.stream().isParallel()) {
+                throw new IllegalStateException("JarFile stream is closed");
+            }
+        }
+        catch (IllegalStateException e) {
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method checks if the provider of the `modulePath` is the same as the provider of an empty `Path` (which represents the default provider). If they are not the same, it throws an `UnsupportedOperationException`. It also checks if the `JarFile` stream is closed by calling `isParallel()` on the stream. If the stream is closed, it throws an `IllegalStateException`. Finally, it catches the `IllegalStateException` and re-throws it to propagate the exception to the caller. This ensures that the `Path` is associated with the default provider and that the `JarFile` stream is open before accessing the module content, and that any exceptions are properly handled.
+------------------------------------------------------

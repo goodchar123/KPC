@@ -1,0 +1,36 @@
+
+Here's an updated version of the `introspect` method that checks for the presence of a security manager and calls `s.checkPackageAccess()` to ensure that the caller has access to the package of the current class:
+
+```java
+public static void introspect(Object bean, Class<?> stopClass) {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        Class<?> callerClass = Reflection.getCallerClass();
+        ClassLoader callerClassLoader = callerClass.getClassLoader();
+        ClassLoader currentClassLoader = BeanIntrospector.class.getClassLoader();
+        if (callerClassLoader != currentClassLoader && !isAncestorClassLoader(callerClassLoader, currentClassLoader)) {
+            Package currentPackage = BeanIntrospector.class.getPackage();
+            s.checkPackageAccess(currentPackage.getName());
+        }
+    }
+    // rest of the method as before
+}
+
+private static boolean isAncestorClassLoader(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader current = descendant;
+    while (current != null) {
+        if (current == ancestor) {
+            return true;
+        }
+        current = current.getParent();
+    }
+    return false;
+}
+```
+
+This code first checks if a security manager is present. If so, it gets the class loader of the caller and the class loader of the `BeanIntrospector` class, and checks if they are the same or if the caller's class loader is an ancestor of the `BeanIntrospector` class loader. If not, it gets the package of the `BeanIntrospector` class and calls `s.checkPackageAccess()` to ensure that the caller has access to that package.
+
+The `isAncestorClassLoader` method is a helper method that checks if one class loader is an ancestor of another by traversing the parent chain of the descendant class loader.
+
+If the security check fails, a `SecurityException` is thrown.
+------------------------------------------------------

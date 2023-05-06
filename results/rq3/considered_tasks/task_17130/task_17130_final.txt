@@ -1,0 +1,29 @@
+
+Sure, here's the updated Java method that checks for database access errors and closed result sets and throws SQLException if necessary:
+
+```java
+public String getRowSetType(RowSet rowSet) throws SQLException {
+    try {
+        int type = rowSet.getType();
+        switch (type) {
+            case ResultSet.TYPE_FORWARD_ONLY:
+                return "TYPE_FORWARD_ONLY";
+            case ResultSet.TYPE_SCROLL_INSENSITIVE:
+                return "TYPE_SCROLL_INSENSITIVE";
+            case ResultSet.TYPE_SCROLL_SENSITIVE:
+                return "TYPE_SCROLL_SENSITIVE";
+            default:
+                return "Unknown RowSet type";
+        }
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 || e.getSQLState().equals("S1000")) {
+            throw new SQLException("Database access error occurred or this method was called on a closed result set.", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method now includes a try-catch block that catches any SQLException that may occur when calling the getType() method. It then checks the error code and SQL state of the exception to determine if it was caused by a database access error or a closed result set. If so, it throws a new SQLException with a custom error message that includes the original exception as the cause. If the exception was caused by something else, it re-throws the original exception.
+------------------------------------------------------

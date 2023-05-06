@@ -1,0 +1,37 @@
+
+Here's an updated version of the Java method that includes error handling for the scenarios you mentioned:
+
+```java
+public int getIntParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    try {
+        statement.execute();
+        ResultSet resultSet = statement.getResultSet();
+        if (resultSet != null && resultSet.next()) {
+            return resultSet.getInt(parameterIndex);
+        } else {
+            throw new SQLException("No rows returned from statement");
+        }
+    } catch (SQLException e) {
+        if (e.getMessage().contains("closed PreparedStatement")) {
+            throw new SQLException("PreparedStatement is closed");
+        } else if (e.getMessage().contains("timeout value")) {
+            throw new SQLTimeoutException("Timeout exceeded while executing statement");
+        } else {
+            throw e;
+        }
+    } finally {
+        if (statement != null) {
+            statement.close();
+        }
+    }
+}
+```
+
+This updated method includes a try-catch-finally block to handle potential errors. 
+
+In the try block, the method executes the statement and retrieves the result set. If the result set is not null and has at least one row, the method retrieves the value of the specified parameter as an int using the `getInt` method of the `ResultSet` object. If no rows are returned, the method throws a `SQLException`.
+
+In the catch block, the method checks the error message of the caught `SQLException` to determine the type of error. If the error message contains "closed PreparedStatement", the method throws a `SQLException` indicating that the `PreparedStatement` is closed. If the error message contains "timeout value", the method throws a `SQLTimeoutException` indicating that the timeout value has been exceeded. For all other errors, the method re-throws the original `SQLException`.
+
+In the finally block, the method closes the `PreparedStatement` object to ensure proper resource management.
+------------------------------------------------------

@@ -1,0 +1,30 @@
+
+Sure, here's an updated version of the code that checks for an I/O error when closing the `OutputStream`:
+
+```java
+public void truncateBlob(Blob blob, long len) throws SQLException, IOException {
+    if (blob == null) {
+        throw new IllegalArgumentException("Blob cannot be null");
+    }
+    if (len < 0) {
+        throw new IllegalArgumentException("Length cannot be negative");
+    }
+    if (len > blob.length()) {
+        throw new IllegalArgumentException("Length cannot be greater than the Blob length");
+    }
+    try (OutputStream out = blob.setBinaryStream(len + 1)) {
+        out.write(blob.getBytes(1, (int) len));
+        out.close();
+        if (out instanceof java.io.Closeable) {
+            ((java.io.Closeable) out).close();
+        }
+    } catch (IOException e) {
+        throw new SQLException("Error truncating Blob", e);
+    }
+}
+```
+
+This version of the method adds a call to `close()` on the `OutputStream` after writing to it. It then checks if the `OutputStream` is an instance of `java.io.Closeable`, and if so, calls `close()` on it again to ensure that any I/O errors are caught and handled.
+
+If an I/O error occurs during the `close()` call, the method throws an `IOException`.
+------------------------------------------------------

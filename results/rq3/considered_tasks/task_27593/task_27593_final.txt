@@ -1,0 +1,37 @@
+
+Here's the updated Java method that checks for the specified value not being allowed for `javax.swing.SpinnerListModel.setValue(java.lang.Object)` and the type of the specified element being incompatible with this list for `java.util.List.contains(java.lang.Object)`. It throws an `IllegalArgumentException` if either of these conditions is true:
+
+```java
+public void pushValueToSpinnerModel(JSpinner spinner) {
+    JComponent editor = spinner.getEditor();
+    if (editor instanceof DefaultEditor) {
+        DefaultEditor defaultEditor = (DefaultEditor) editor;
+        JFormattedTextField textField = defaultEditor.getTextField();
+        try {
+            textField.commitEdit();
+            Object value = spinner.getValue();
+            SpinnerModel model = spinner.getModel();
+            if (model == null) {
+                throw new IllegalArgumentException("Model is null for JSpinner");
+            } else if (model instanceof SpinnerNumberModel) {
+                SpinnerNumberModel numberModel = (SpinnerNumberModel) model;
+                Number numberValue = (Number) value;
+                numberModel.setValue(numberValue);
+            } else if (model instanceof SpinnerListModel) {
+                SpinnerListModel listModel = (SpinnerListModel) model;
+                String stringValue = value.toString();
+                List list = listModel.getList();
+                if (list.contains(stringValue)) {
+                    listModel.setValue(stringValue);
+                } else {
+                    try {
+                        list.contains(value);
+                    } catch (ClassCastException e) {
+                        throw new IllegalArgumentException("Type of specified element is incompatible with this list");
+                    }
+                    throw new IllegalArgumentException("Value not allowed for SpinnerListModel");
+                }
+            } else if (model instanceof SpinnerDateModel) {
+                SpinnerDateModel dateModel = (SpinnerDateModel) model;
+                if (
+------------------------------------------------------

@@ -1,0 +1,69 @@
+
+Sure, here's the updated code snippet that checks for closed channels and I/O errors:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+
+public class FileLockExample {
+    public static void main(String[] args) {
+        try {
+            RandomAccessFile file = new RandomAccessFile("example.txt", "rw");
+            FileChannel channel = file.getChannel();
+            FileLock lock = null;
+            try {
+                lock = channel.tryLock();
+            } catch (OverlappingFileLockException e) {
+                // File is already locked in this thread or virtual machine
+            } catch (ClosedChannelException e) {
+                System.err.println("Channel is closed");
+            } catch (IOException e) {
+                System.err.println("I/O error occurred");
+            }
+            if (lock != null) {
+                // Lock acquired
+                System.out.println("Lock acquired");
+                // Do some work with the file
+                try {
+                    if (!channel.isOpen()) {
+                        throw new ClosedChannelException();
+                    }
+                    lock.release();
+                } catch (ClosedChannelException e) {
+                    System.err.println("Channel is closed");
+                } catch (IOException e) {
+                    System.err.println("I/O error occurred");
+                }
+                System.out.println("Lock released");
+            } else {
+                // Lock not acquired
+                System.out.println("Lock not acquired");
+            }
+            try {
+                if (!channel.isOpen()) {
+                    throw new ClosedChannelException();
+                }
+                channel.close();
+                file.close();
+            } catch (ClosedChannelException e) {
+                System.err.println("Channel is closed");
+            } catch (IOException e) {
+                System.err.println("I/O error occurred");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+In this updated code, we catch `ClosedChannelException` and `IOException` separately when attempting to acquire a lock using `tryLock()`. If the channel is closed, we throw a `ClosedChannelException`. If some other I/O error occurs, we throw an `IOException`.
+
+Similarly, when releasing the lock, we catch `ClosedChannelException` and `IOException` separately. If the channel is closed, we throw a `ClosedChannelException`. If an I/O error occurs, we throw an `IOException`.
+
+Finally, when closing the channel, we catch `ClosedChannelException` and `IOException` separately. If the channel is closed, we throw a `ClosedChannelException`. If an I/O error occurs, we throw an `IOException`.
+------------------------------------------------------

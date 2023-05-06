@@ -1,0 +1,87 @@
+
+Thank you for pointing out the missing error checking. Here's the updated code snippet that includes the additional error checking:
+
+```
+public Object createInstance(String className, Map<String, Object> attributes, Map<String, Object> environment) throws Exception {
+    try {
+        Class<?> clazz = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+        throw new LinkageError("Class not found: " + className);
+    } catch (ExceptionInInitializerError e) {
+        throw new ExceptionInInitializerError("Failed to initialize class: " + className);
+    }
+    
+    Object instance;
+    try {
+        instance = clazz.newInstance();
+    } catch (InstantiationException | IllegalAccessException e) {
+        throw new ExceptionInInitializerError("Failed to initialize class: " + className);
+    }
+    
+    for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+        String attributeName = entry.getKey();
+        Object attributeValue = entry.getValue();
+        
+        if (attributeName == null) {
+            throw new NullPointerException("Attribute name cannot be null");
+        }
+        
+        try {
+            Field field = clazz.getDeclaredField(attributeName);
+            if (!field.isAccessible()) {
+                try {
+                    field.setAccessible(true);
+                } catch (SecurityException e) {
+                    throw new InaccessibleObjectException("Cannot enable access to field: " + attributeName);
+                }
+            }
+            if (Modifier.isFinal(field.getModifiers())) {
+                throw new IllegalAccessException("Cannot modify final field: " + attributeName);
+            }
+            field.set(instance, attributeValue);
+        } catch (NoSuchFieldException e) {
+            throw new IllegalArgumentException("No such field: " + attributeName);
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessException("Cannot access field: " + attributeName);
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied to field: " + attributeName);
+        }
+    }
+    
+    for (Map.Entry<String, Object> entry : environment.entrySet()) {
+        String environmentName = entry.getKey();
+        Object environmentValue = entry.getValue();
+        
+        if (environmentName == null) {
+            throw new NullPointerException("Environment variable name cannot be null");
+        }
+        
+        try {
+            Method method = clazz.getDeclaredMethod("set" + environmentName, environmentValue.getClass());
+            if (!method.isAccessible()) {
+                try {
+                    method.setAccessible(true);
+                } catch (SecurityException e) {
+                    throw new InaccessibleObjectException("Cannot enable access to method: set" + environmentName);
+                }
+            }
+            method.invoke(instance, environmentValue);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("No such method: set" + environmentName);
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessException("Cannot access method: set" + environmentName);
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied to method: set" + environmentName);
+        } catch (InvocationTargetException e) {
+            throw new InvocationTargetException(e.getCause(), "Failed to invoke method: set" + environmentName);
+        }
+    }
+    
+    return instance;
+}
+```
+
+This updated method includes error checking and exception throwing for the following scenarios:
+
+- `Class.forName()` throws a `ClassNotFoundException` or
+------------------------------------------------------

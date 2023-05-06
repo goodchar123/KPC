@@ -1,0 +1,32 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    public static int getMaxTablesInSelectStatement(Connection conn) throws SQLException {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        
+        try {
+            DatabaseMetaData metaData = conn.getMetaData();
+            int maxTables = metaData.getMaxTablesInSelect();
+            if (maxTables < 0) {
+                throw new SQLException("Database does not support retrieving maximum number of tables in SELECT statement");
+            }
+            return maxTables;
+        } catch (SQLException e) {
+            throw new SQLException("Error retrieving metadata: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method first checks if the connection is closed using the `isClosed()` method of the `Connection` object. If the connection is closed, a `SQLException` is thrown with an appropriate message.
+
+Next, the `getMetaData()` method is called inside a try-catch block to catch any `SQLException` that may occur. If an exception is caught, a new `SQLException` is thrown with a message that includes the original exception's message.
+
+Finally, the `getMaxTablesInSelect()` method is called on the `DatabaseMetaData` object, and the result is checked to ensure that it is not negative. If it is negative, a `SQLException` is thrown with an appropriate message. Otherwise, the maximum number of tables is returned.
+------------------------------------------------------

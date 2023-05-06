@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the code snippet that checks for errors and throws appropriate exceptions:
+
+```
+public void parseXML(Reader reader) throws XMLStreamException, FactoryConfigurationError {
+    XMLInputFactory factory = null;
+    try {
+        factory = XMLInputFactory.newInstance();
+    } catch (FactoryConfigurationError e) {
+        // Throw the exception if an instance of the factory cannot be loaded
+        throw new FactoryConfigurationError("Unable to load XMLInputFactory", e);
+    }
+    XMLEventReader eventReader = null;
+    try {
+        eventReader = factory.createXMLEventReader(new StAXSource(factory.createXMLStreamReader(reader)));
+    } catch (XMLStreamException e) {
+        // Throw the exception if an error occurs while creating the event reader
+        throw new XMLStreamException("Error creating XMLEventReader", e);
+    }
+
+    // Attempt to set the system identifier explicitly
+    StAXSource source = new StAXSource(eventReader);
+    try {
+        source.setSystemId("http://example.com/myfile.xml");
+    } catch (UnsupportedOperationException e) {
+        // Throw the exception if setSystemId() is not supported by the StAXSource
+        throw new UnsupportedOperationException("setSystemId() is not supported by this StAXSource", e);
+    }
+
+    try {
+        // This will throw an exception if createXMLEventReader() is not supported by the factory
+        eventReader = factory.createXMLEventReader(source);
+    } catch (UnsupportedOperationException e) {
+        // Throw the exception if createXMLEventReader() is not supported by the factory
+        throw new UnsupportedOperationException("createXMLEventReader() is not supported by this XMLInputFactory", e);
+    }
+}
+```
+
+In this updated version, we first attempt to create an instance of the `XMLInputFactory` using `XMLInputFactory.newInstance()`. If this fails and throws a `FactoryConfigurationError`, we catch the exception and re-throw it with a more descriptive error message.
+
+Next, we attempt to create an `XMLEventReader` using the factory and a `StAXSource` created from the reader. If an error occurs while creating the event reader, we catch the `XMLStreamException` and re-throw it with a more descriptive error message.
+
+We then attempt to set the system identifier explicitly using `StAXSource.setSystemId()`. If this method is not supported by the `StAXSource`, we catch the `UnsupportedOperationException` and re-throw it with a more descriptive error message.
+
+Finally, we attempt to create a new `XMLEventReader` using the `StAXSource` and the factory's `createXMLEventReader()` method. If this method is not supported by the factory, we catch the `UnsupportedOperationException` and re-throw it with a more descriptive error message.
+------------------------------------------------------

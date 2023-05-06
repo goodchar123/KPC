@@ -1,0 +1,74 @@
+
+Here's the updated Java method that includes the checks you requested:
+
+```java
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class TaskbarPopupMenu {
+    public static void attachToTaskbar(JPopupMenu popupMenu) {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+        if (!SystemTray.isSupported()) {
+            throw new UnsupportedOperationException();
+        }
+        if (!SystemTray.getSystemTray().isSupported()) {
+            throw new UnsupportedOperationException();
+        }
+        if (!SystemTray.getSystemTray().isTraySupported()) {
+            throw new UnsupportedOperationException();
+        }
+        if (!SystemTray.getSystemTray().isSupported(SystemTray.Feature.ICON_IMAGE)) {
+            throw new UnsupportedOperationException();
+        }
+        if (!SystemTray.getSystemTray().isSupported(SystemTray.Feature.TOOLTIP)) {
+            throw new UnsupportedOperationException();
+        }
+        if (!SystemTray.getSystemTray().isSupported(SystemTray.Feature.MENU)) {
+            throw new UnsupportedOperationException();
+        }
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new AWTPermission("accessSystemTray"));
+        }
+        Image image = Toolkit.getDefaultToolkit().getImage("icon.png");
+        TrayIcon trayIcon = new TrayIcon(image, "Application Name", null);
+        trayIcon.setImageAutoSize(true);
+        trayIcon.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    popupMenu.setLocation(e.getX(), e.getY());
+                    popupMenu.setInvoker(popupMenu);
+                    popupMenu.setVisible(true);
+                }
+            }
+            public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    popupMenu.setLocation(e.getX(), e.getY());
+                    popupMenu.setInvoker(popupMenu);
+                    popupMenu.setVisible(true);
+                }
+            }
+        });
+        try {
+            SystemTray.getSystemTray().add(trayIcon);
+        } catch (AWTException e) {
+            System.err.println("TrayIcon could not be added.");
+        }
+    }
+}
+```
+
+This updated method includes the following checks:
+
+- `GraphicsEnvironment.isHeadless()` is used to check if the current platform supports a graphical user interface. If it returns `true`, a `HeadlessException` is thrown.
+- `SystemTray.isSupported()` is used to check if the system tray is supported by the current platform. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `SystemTray.getSystemTray().isSupported()` is used to check if the system tray is supported by the current platform. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `SystemTray.getSystemTray().isTraySupported()` is used to check if the system tray is supported by the current platform. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `SystemTray.getSystemTray().isSupported(SystemTray.Feature.ICON_IMAGE)` is used to check if the system tray supports setting an icon image. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `SystemTray.getSystemTray().isSupported(SystemTray.Feature.TOOLTIP)` is used to check if the system tray supports setting a tooltip. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `SystemTray.getSystemTray().isSupported(SystemTray.Feature.MENU)` is used to check if the system tray supports adding a menu. If it returns `false`, an `UnsupportedOperationException` is thrown.
+- `System.getSecurityManager()` is used to check if the `accessSystemTray` permission is granted. If it is not granted, a `SecurityException` is thrown.
+------------------------------------------------------

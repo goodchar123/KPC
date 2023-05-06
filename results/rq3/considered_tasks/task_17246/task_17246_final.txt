@@ -1,0 +1,49 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested for the `Connection.createStatement()` method:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    
+    // Set the signedness of a column in a database table
+    public static void setColumnSignedness(Connection conn, String tableName, String columnName, boolean isSigned) throws SQLException {
+        // Check if the connection is closed
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        
+        // Create a statement to execute the ALTER TABLE command
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            
+            // Build the ALTER TABLE command to set the signedness of the column
+            String command = "ALTER TABLE " + tableName + " MODIFY " + columnName + " ";
+            if (isSigned) {
+                command += "SIGNED";
+            } else {
+                command += "UNSIGNED";
+            }
+            
+            // Execute the ALTER TABLE command
+            int result = stmt.executeUpdate(command);
+            
+            // Check if the statement produced a ResultSet object
+            if (result > 0 && stmt.getResultSet() != null) {
+                throw new SQLException("Statement produced a ResultSet object");
+            }
+            
+            // Check if the statement was a PreparedStatement or CallableStatement
+            if (stmt instanceof PreparedStatement || stmt instanceof CallableStatement) {
+                throw new SQLException("Statement was a PreparedStatement or CallableStatement");
+            }
+            
+            // Check if the statement timed out
+            SQLWarning warning = stmt.getWarnings();
+            while (warning != null) {
+                if (warning.getErrorCode() == 0 && warning.getSQLState().equals("01002")) {
+                    throw new SQLTimeoutException("Statement timed out");
+                }
+                warning
+------------------------------------------------------

@@ -1,0 +1,59 @@
+
+Sure, here's the updated Java method that includes the requested exception handling:
+
+```java
+import javax.management.*;
+
+public void setAttribute(MBeanServer mbs, ObjectName objectName, String attributeName, Object attributeValue) throws Exception {
+    try {
+        // Get the MBeanInfo for the specified object
+        MBeanInfo mbeanInfo = mbs.getMBeanInfo(objectName);
+
+        // Find the MBeanAttributeInfo for the specified attribute
+        MBeanAttributeInfo[] attributeInfos = mbeanInfo.getAttributes();
+        MBeanAttributeInfo attributeInfo = null;
+        for (MBeanAttributeInfo info : attributeInfos) {
+            if (info.getName().equals(attributeName)) {
+                attributeInfo = info;
+                break;
+            }
+        }
+
+        // If the attribute is writable, set its value
+        if (attributeInfo != null && attributeInfo.isWritable()) {
+            Attribute attribute = new Attribute(attributeName, attributeValue);
+            mbs.setAttribute(objectName, attribute);
+        } else {
+            throw new AttributeNotFoundException("Attribute " + attributeName + " is not writable");
+        }
+    } catch (InstanceNotFoundException e) {
+        throw e;
+    } catch (IntrospectionException e) {
+        throw e;
+    } catch (ReflectionException e) {
+        throw e;
+    } catch (IllegalArgumentException e) {
+        throw new RuntimeOperationsException(e, "The object name in parameter is null or the attribute in parameter is null");
+    } catch (AttributeNotFoundException e) {
+        throw e;
+    } catch (InvalidAttributeValueException e) {
+        throw e;
+    } catch (MBeanException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new ReflectionException(e, "An exception occurred when trying to invoke the getMBeanInfo of a Dynamic MBean");
+    }
+}
+```
+
+This updated method includes try-catch blocks to handle the following exceptions:
+
+- `InstanceNotFoundException`: Thrown if the specified MBean is not found.
+- `IntrospectionException`: Thrown if an exception occurs during introspection.
+- `ReflectionException`: Thrown if an exception occurs when trying to invoke the `getMBeanInfo` method of a Dynamic MBean.
+- `IllegalArgumentException`: Thrown if the object name or attribute is null.
+- `AttributeNotFoundException`: Thrown if the specified attribute is not accessible in the MBean.
+- `InvalidAttributeValueException`: Thrown if the value specified for the attribute is not valid.
+- `MBeanException`: Wraps an exception thrown by the MBean's setter.
+- `Exception`: Wraps a `java.lang.Exception` thrown when trying to invoke the setter.
+------------------------------------------------------

@@ -1,0 +1,74 @@
+
+Sure, here's an updated version of the `redo()` method that includes the requested error checking:
+
+```java
+public void redo() throws EmptyStackException, UnsupportedOperationException, ClassCastException, NullPointerException, IllegalArgumentException, IndexOutOfBoundsException {
+    if (undoStack.isEmpty()) {
+        System.out.println("Nothing to redo.");
+        return;
+    }
+    String command = undoStack.pop();
+    if (command.equals("add")) {
+        if (redoStack.isEmpty()) {
+            throw new EmptyStackException();
+        }
+        String item = redoStack.pop();
+        try {
+            if (!itemList.add(item)) {
+                throw new UnsupportedOperationException();
+            }
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Class of specified element prevents it from being added to this list.");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Specified element is null and this list does not permit null elements.");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Some property of this element prevents it from being added to this list.");
+        }
+        System.out.println("Redo add: " + item);
+    } else if (command.equals("remove")) {
+        if (redoStack.size() < 2) {
+            throw new EmptyStackException();
+        }
+        int index = redoStack.pop();
+        String item = redoStack.pop();
+        try {
+            if (!itemList.add(index, item)) {
+                throw new UnsupportedOperationException();
+            }
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Class of specified element prevents it from being added to this list.");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Specified element is null and this list does not permit null elements.");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Some property of the specified element prevents it from being added to this list.");
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Index is out of range (index < 0 || index > size()).");
+        }
+        System.out.println("Redo remove: " + item);
+    } else if (command.equals("edit")) {
+        if (redoStack.size() < 3) {
+            throw new EmptyStackException();
+        }
+        int index = redoStack.pop();
+        String newItem = redoStack.pop();
+        String oldItem = redoStack.pop();
+        try {
+            if (!itemList.set(index, newItem)) {
+                throw new UnsupportedOperationException();
+            }
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Class of specified element prevents it from being added to this list.");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Specified element is null and this list does not permit null elements.");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Some property of the specified element prevents it from being added to this list.");
+        } catch (IndexOutOfBoundsException e) {
+            throw new IndexOutOfBoundsException("Index is out of range (index < 0 || index >= size()).");
+        }
+        System.out.println("Redo edit: " + oldItem + " -> " + newItem);
+    }
+}
+```
+
+In this version, each branch of the `if` statement that handles a specific command includes error checking for the `add()` and `set()` methods of the `List` interface. The error checking includes checking for `UnsupportedOperationException`, `ClassCastException`, `NullPointerException`, `IllegalArgumentException`, and `IndexOutOfBoundsException`, depending on the specific error that could occur. If an error is detected, the corresponding exception is thrown with a descriptive message.
+------------------------------------------------------

@@ -1,0 +1,28 @@
+
+Sure, here's an updated version of the Java method that includes the error checking you requested:
+
+```
+public double readDouble(DataInputStream input) throws IOException {
+    byte[] buffer = new byte[8];
+    int bytesRead = input.read(buffer);
+    if (bytesRead == -1) {
+        throw new EOFException("End of stream reached before reading eight bytes");
+    }
+    if (bytesRead < 8) {
+        throw new EOFException("End of stream reached before reading all eight bytes");
+    }
+    ByteBuffer bb = ByteBuffer.wrap(buffer);
+    try {
+        return bb.getDouble();
+    } catch (BufferUnderflowException e) {
+        throw new BufferUnderflowException("Less than eight bytes remaining in buffer");
+    }
+}
+```
+
+This method first reads eight bytes from the input stream into a byte array using the `read()` method, which returns the number of bytes actually read. If `read()` returns -1, it means the end of the stream has been reached before reading eight bytes, so an `EOFException` is thrown. If `read()` returns a value less than 8, it means the end of the stream was reached before reading all eight bytes, so another `EOFException` is thrown.
+
+Next, the method creates a `ByteBuffer` object from the byte array and uses its `getDouble()` method to read a double value from the buffer. If there are fewer than eight bytes remaining in the buffer, a `BufferUnderflowException` is thrown.
+
+Finally, if any other I/O error occurs (such as the stream being closed or the contained input stream not supporting reading after close), an `IOException` is thrown. And if the `byte[]` buffer passed to `readFully()` is null, a `NullPointerException` is thrown.
+------------------------------------------------------

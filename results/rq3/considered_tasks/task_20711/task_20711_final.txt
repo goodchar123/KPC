@@ -1,0 +1,37 @@
+
+Sure, here's the updated Java method that includes error handling for the scenarios you mentioned:
+
+```java
+public String getSqlTypeName(Struct struct) throws SQLException {
+    Connection conn = struct.getConnection();
+    String typeName = null;
+    try {
+        typeName = struct.getSQLTypeName();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving SQL type name", e);
+    }
+    DatabaseMetaData metaData = conn.getMetaData();
+    ResultSet rs = null;
+    try {
+        rs = metaData.getUDTs(null, null, typeName, null);
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving UDT information", e);
+    }
+    if (rs.next()) {
+        try {
+            return rs.getString("TYPE_NAME");
+        } catch (SQLException e) {
+            throw new SQLException("Invalid column label or database access error occurred while retrieving SQL type name", e);
+        }
+    } else {
+        throw new SQLException("Unable to retrieve SQL type name for Struct object");
+    }
+}
+```
+
+This updated method includes try-catch blocks to handle the various error scenarios you mentioned. If a database access error occurs while calling `getSQLTypeName()`, the method throws a `SQLException` with a message indicating the error. If the JDBC driver does not support this method, the method throws a `SQLFeatureNotSupportedException`.
+
+If a database access error occurs while calling `getUDTs()`, the method throws a `SQLException` with a message indicating the error. If a database access error occurs or the method is called on a closed result set while calling `next()`, the method throws a `SQLException` with a message indicating the error.
+
+If the column label is not valid or a database access error occurs while calling `getString()`, the method throws a `SQLException` with a message indicating the error.
+------------------------------------------------------

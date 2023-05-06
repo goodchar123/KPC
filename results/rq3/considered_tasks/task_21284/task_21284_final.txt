@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the Java method that checks for database access errors and closed result sets for both `isClosed()` and `getStatement()` methods:
+
+```java
+public Statement getStatementFromResultSet(ResultSet resultSet) throws SQLException {
+    try {
+        if (resultSet.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking if result set is closed", e);
+    }
+    Statement statement = null;
+    try {
+        statement = resultSet.getStatement();
+        if (statement == null) {
+            throw new SQLException("Result set was not produced by a statement");
+        }
+        if (statement.getConnection().isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error retrieving statement from result set", e);
+    }
+    return statement;
+}
+```
+
+This updated method uses try-catch blocks to catch SQLExceptions that may occur when calling the `isClosed()` and `getStatement()` methods.
+
+For `isClosed()`, it catches any SQLException that may occur and throws a new SQLException with an appropriate error message and the original exception as the cause.
+
+For `getStatement()`, it first initializes the `statement` variable to null, then tries to retrieve the Statement object using the `getStatement()` method. If the Statement object is null, it throws a SQLException with an appropriate error message. If the connection associated with the Statement object is closed, it throws a SQLException with an appropriate error message.
+
+If any SQLException occurs during the `getStatement()` method, it catches the exception and throws a new SQLException with an appropriate error message and the original exception as the cause.
+
+If no SQLExceptions occur, the method returns the Statement object.
+------------------------------------------------------

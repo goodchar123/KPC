@@ -1,0 +1,48 @@
+
+Sure, here's an updated version of the `registerFileWithWatchService` method that checks if the watch service is closed before calling `take()` and throws a `ClosedWatchServiceException` if it is:
+
+```java
+import java.nio.file.*;
+
+public class WatchServiceExample {
+    public static void registerFileWithWatchService(String filePath) throws Exception {
+        // Get the file path as a Path object
+        Path path = Paths.get(filePath);
+
+        // Get the default file system's watch service
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+
+        // Register the file with the watch service for modification events
+        path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+
+        // Wait for events to occur
+        WatchKey key;
+        while (true) {
+            // Check if the watch service is closed
+            if (watchService.isOpen()) {
+                try {
+                    key = watchService.take();
+                } catch (InterruptedException e) {
+                    throw e;
+                }
+            } else {
+                throw new ClosedWatchServiceException();
+            }
+
+            // Process the events
+            for (WatchEvent<?> event : key.pollEvents()) {
+                System.out.println("Event kind: " + event.kind() + ". File affected: " + event.context() + ".");
+            }
+
+            // Reset the key
+            boolean valid = key.reset();
+            if (!valid) {
+                break;
+            }
+        }
+    }
+}
+```
+
+Now, if the watch service is closed while waiting for the next key, a `ClosedWatchServiceException` will be thrown.
+------------------------------------------------------

@@ -1,0 +1,53 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+import java.sql.*;
+
+public class ColumnInfo {
+    public static void getColumnInformation(Connection conn, String tableName) throws SQLException {
+        // Check if connection is closed
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        
+        // Get the metadata for the table
+        DatabaseMetaData metaData = conn.getMetaData();
+        
+        // Check for database access errors
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve metadata");
+        }
+        
+        // Get the columns for the table
+        ResultSet rs = metaData.getColumns(null, null, tableName, null);
+        
+        // Count the number of columns
+        int columnCount = 0;
+        while (rs.next()) {
+            columnCount++;
+        }
+        System.out.println("Number of columns: " + columnCount);
+        
+        // Get the column names and types
+        rs = metaData.getColumns(null, null, tableName, null);
+        while (rs.next()) {
+            String columnName = rs.getString("COLUMN_NAME");
+            String columnType = rs.getString("TYPE_NAME");
+            System.out.println("Column name: " + columnName + ", Column type: " + columnType);
+        }
+        
+        // Check for database access errors
+        if (rs.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+    }
+}
+```
+
+This updated method first checks if the connection is closed using the `isClosed()` method of the `Connection` object. If it is closed, it throws a `SQLException` with an appropriate message.
+
+It also checks for database access errors by verifying that the `DatabaseMetaData` object is not null after calling `conn.getMetaData()`. If it is null, it throws a `SQLException` with an appropriate message.
+
+Similarly, it checks if the result set is closed using the `isClosed()` method of the `ResultSet` object. If it is closed, it throws a `SQLException` with an appropriate message.
+------------------------------------------------------

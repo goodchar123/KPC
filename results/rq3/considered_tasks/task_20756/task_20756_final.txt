@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the `setStatementTimeout` method that checks for database access errors and closed connections:
+
+```java
+public void setStatementTimeout(Connection conn, int seconds) throws SQLException {
+    Statement stmt = null;
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        stmt = conn.createStatement();
+        stmt.setQueryTimeout(seconds);
+    } catch (SQLException e) {
+        if (stmt != null) {
+            stmt.close();
+        }
+        throw e;
+    }
+}
+```
+
+This method takes a Connection object and an integer value representing the number of seconds to wait for the statement to execute. It first checks if the connection is closed using the `isClosed` method of the Connection object. If the connection is closed, it throws a new SQLException with an appropriate error message.
+
+If the connection is open, the method creates a new Statement object using the `createStatement` method of the Connection object, and then sets the query timeout using the `setQueryTimeout` method of the Statement object.
+
+If a SQLException occurs during the creation of the Statement object or the setting of the query timeout, the method catches the exception, closes the Statement object (if it was successfully created), and then re-throws the exception.
+
+This updated version of the method should help to prevent errors related to closed connections or other database access issues.
+------------------------------------------------------

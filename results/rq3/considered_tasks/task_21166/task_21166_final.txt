@@ -1,0 +1,43 @@
+
+Thank you for pointing that out. Here's the updated code that checks if the `b` parameter is null and throws a `NullPointerException` if it is:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.SQLException;
+
+public class BlobReader {
+    public static Blob readBlob(InputStream inputStream) throws SQLException, IOException {
+        byte[] bytes;
+        try {
+            int available = inputStream.available();
+            if (available <= 0) {
+                throw new IOException("Input stream is empty");
+            }
+            bytes = new byte[available];
+        } catch (IOException e) {
+            throw new SQLException("Error reading input stream", e);
+        }
+        int bytesRead;
+        try {
+            if (bytes == null) {
+                throw new NullPointerException("Byte array is null");
+            }
+            bytesRead = inputStream.read(bytes);
+        } catch (IOException e) {
+            throw new SQLException("Error reading input stream", e);
+        }
+        if (bytesRead == -1) {
+            throw new IOException("End of input stream reached");
+        }
+        if (bytesRead != bytes.length) {
+            throw new IOException("Could not read entire input stream");
+        }
+        return new javax.sql.rowset.serial.SerialBlob(bytes);
+    }
+}
+```
+
+This updated version of the code checks if the `bytes` array is null before calling `inputStream.read(bytes)`. If `bytes` is null, a `NullPointerException` is thrown with a message indicating that the byte array is null.
+------------------------------------------------------

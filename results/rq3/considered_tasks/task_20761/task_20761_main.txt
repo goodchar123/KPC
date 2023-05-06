@@ -1,0 +1,88 @@
+Please write a java method that Executes the given SQL statement, which may return multiple results.
+Here is a Java method that executes the given SQL statement and returns multiple results:
+
+```java
+public void executeMultipleResultsQuery(String sql) {
+    try {
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        Statement stmt = conn.createStatement();
+        boolean hasResults = stmt.execute(sql);
+        int resultCount = 0;
+        while (hasResults) {
+            ResultSet rs = stmt.getResultSet();
+            // process the result set
+            while (rs.next()) {
+                // do something with each row of the result set
+            }
+            rs.close();
+            resultCount++;
+            hasResults = stmt.getMoreResults();
+        }
+        System.out.println("Query returned " + resultCount + " result sets.");
+        stmt.close();
+        conn.close();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+This method takes a SQL statement as a parameter and executes it using a JDBC connection to a MySQL database. It then loops through any result sets returned by the query and processes each row of each result set. Finally, it prints out the number of result sets returned by the query. Note that you will need to replace the database URL, username, and password with your own values.
+------------------------------------------------------
+Please check if a database access error occurs or this method is called on a closed connection for java.sql.Connection.createStatement() in the code snippet you provided, otherwise throw SQLException.
+Please check if a database access error occurs or this method is called on a closed Statement for java.sql.Statement.getResultSet() in the code snippet you provided, otherwise throw SQLException.
+Please check if a database access error occurs or this method is         called on a closed result set for java.sql.ResultSet.next() in the code snippet you provided, otherwise throw SQLException.
+Please check if a database access error occurs or this method is called on a closed Statement for java.sql.Statement.getMoreResults() in the code snippet you provided, otherwise throw SQLException.
+Sure, here's the updated code snippet that includes the error checking and SQLException throwing:
+
+```java
+public void executeMultipleResultsQuery(String sql) throws SQLException {
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        stmt = conn.createStatement();
+        boolean hasResults = stmt.execute(sql);
+        int resultCount = 0;
+        while (hasResults) {
+            rs = stmt.getResultSet();
+            // process the result set
+            while (rs.next()) {
+                // do something with each row of the result set
+            }
+            rs.close();
+            resultCount++;
+            hasResults = stmt.getMoreResults();
+        }
+        System.out.println("Query returned " + resultCount + " result sets.");
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+}
+```
+
+This updated method now includes a try-catch-finally block that checks for SQLExceptions and closes the ResultSet, Statement, and Connection objects in the finally block. This ensures that all resources are properly closed, even if an exception is thrown.
+------------------------------------------------------

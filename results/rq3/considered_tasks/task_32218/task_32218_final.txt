@@ -1,0 +1,73 @@
+
+Sure, here's the updated code snippet that includes the requested error checking:
+
+```java
+public static int getHorizontalTileGridOffset(Image image) {
+    String formatName = "jpeg";
+    ImageWriter writer = null;
+    try {
+        writer = ImageIO.getImageWritersByFormatName(formatName).next();
+    } catch (NullPointerException e) {
+        throw new IllegalArgumentException("Invalid format name: " + formatName);
+    }
+    ImageWriteParam writeParam = writer.getDefaultWriteParam();
+    int bufferedImageType = BufferedImage.TYPE_INT_RGB;
+    if (bufferedImageType == BufferedImage.TYPE_CUSTOM || bufferedImageType < 0 || bufferedImageType > 13) {
+        throw new IllegalArgumentException("Invalid buffered image type: " + bufferedImageType);
+    }
+    ImageTypeSpecifier typeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(bufferedImageType);
+    if (!writeParam.canWriteTiles()) {
+        throw new UnsupportedOperationException("Tiling not supported by writer");
+    }
+    int mode = ImageWriteParam.MODE_EXPLICIT;
+    if (mode != ImageWriteParam.MODE_EXPLICIT && mode != ImageWriteParam.MODE_COPY_FROM_METADATA) {
+        throw new IllegalArgumentException("Invalid tiling mode: " + mode);
+    }
+    writeParam.setTilingMode(mode);
+    int tileWidth = image.getWidth();
+    int tileHeight = image.getHeight();
+    int tileGridXOffset = 0;
+    int tileGridYOffset = 0;
+    try {
+        writeParam.setTiling(tileWidth, tileHeight, tileGridXOffset, tileGridYOffset);
+    } catch (UnsupportedOperationException e) {
+        throw new UnsupportedOperationException("Tiling not supported by writer");
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Invalid tiling mode: " + mode);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid tile size: " + tileWidth + "x" + tileHeight);
+    }
+    ImageTypeSpecifier destinationType = writeParam.getDestinationType();
+    if (destinationType == null) {
+        destinationType = typeSpecifier;
+    }
+    IIOMetadata metadata = writer.getDefaultImageMetadata(destinationType, writeParam);
+    String metadataFormat = metadata.getNativeMetadataFormatName();
+    if (metadataFormat == null || !Arrays.asList(metadata.getMetadataFormatNames()).contains(metadataFormat)) {
+        throw new IllegalArgumentException("Invalid metadata format: " + metadataFormat);
+    }
+    IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(metadataFormat);
+    IIOMetadataNode jpegVariety = getChildNode(root, "JPEGvariety");
+    IIOMetadataNode tileOffsets = getChildNode(jpegVariety, "tileOffsets");
+    int horizontalTileGridOffset = 0;
+    try {
+        horizontalTileGridOffset = Integer.parseInt(tileOffsets.getAttribute("h"));
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid tile offset value: " + tileOffsets.getAttribute("h"));
+    }
+    return horizontalTileGridOffset;
+}
+
+private static IIOMetadataNode getChildNode(IIOMetadataNode parentNode, String childName) {
+    NodeList children = parentNode.getElementsByTagName(childName);
+    if (children.getLength() > 0) {
+        return (IIOMetadataNode) children.item(0);
+    }
+    IIOMetadataNode childNode = new IIOMetadataNode(childName);
+    parentNode.appendChild(childNode);
+    return childNode;
+}
+```
+
+This updated code includes error checking for all the scenarios you mentioned. If any of the checks fail, an appropriate exception is thrown with a descriptive error message.
+------------------------------------------------------

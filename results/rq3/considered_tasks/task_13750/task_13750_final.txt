@@ -1,0 +1,39 @@
+
+Here's an updated version of the Java method that includes the requested checks:
+
+```java
+public <K, V> V computeIfPresent(Map<K, V> map, K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    Objects.requireNonNull(remappingFunction);
+    Objects.requireNonNull(map);
+    if (!map.containsKey(key)) {
+        return null;
+    }
+    V oldValue = map.get(key);
+    if (oldValue == null) {
+        if (!map.containsKey(null)) {
+            throw new NullPointerException("This map does not permit null keys");
+        }
+    } else {
+        if (!oldValue.getClass().isAssignableFrom(remappingFunction.apply(key, oldValue).getClass())) {
+            throw new ClassCastException("The key is of an inappropriate type for this map");
+        }
+    }
+    if (!map.remove(key, oldValue)) {
+        throw new UnsupportedOperationException("The remove operation is not supported by this map");
+    }
+    V newValue = remappingFunction.apply(key, oldValue);
+    if (newValue != null) {
+        map.put(key, newValue);
+        return newValue;
+    } else {
+        return null;
+    }
+}
+```
+
+This updated method first checks if the specified key is present in the map using `containsKey()`. If the key is not present, it returns null. If the key is present, it checks if the key is null and the map does not permit null keys using `containsKey(null)`. If the key is null and the map does not permit null keys, it throws a `NullPointerException`. If the key is not null, it checks if the key is of an inappropriate type for the map using `getClass()`. If the key is of an inappropriate type, it throws a `ClassCastException`.
+
+The method also checks if the remove operation is supported by the map using `remove(key, oldValue)`. If the remove operation is not supported, it throws an `UnsupportedOperationException`.
+
+If all checks pass, the method applies the `remappingFunction` to the key and its current mapped value, and if the result is not null, it updates the map with the new value and returns it. If the result is null, it removes the key from the map and returns null.
+------------------------------------------------------

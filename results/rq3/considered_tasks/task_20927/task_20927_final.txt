@@ -1,0 +1,57 @@
+
+Sure, here's the updated code snippet that checks for database access errors when closing the connection:
+
+```java
+import java.sql.*;
+
+public class DatabaseInfo {
+    public static void main(String[] args) {
+        Connection conn = null;
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.jdbc.Driver");
+
+            // Connect to the database
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+
+            // Get the database metadata
+            DatabaseMetaData metadata = conn.getMetaData();
+
+            // Check for closed connection
+            if (conn.isClosed()) {
+                throw new SQLException("Connection is closed");
+            }
+
+            // Retrieve the name of the database product
+            String productName = metadata.getDatabaseProductName();
+
+            // Check for database access errors
+            if (productName == null) {
+                throw new SQLException("Error retrieving database product name");
+            }
+
+            // Print the name of the database product
+            System.out.println("Database product name: " + productName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                // Close the connection
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                // Check for database access errors when closing the connection
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+This updated code snippet checks for database access errors when closing the connection by catching `SQLException` in the `finally` block that closes the connection. If a `SQLException` is caught, it prints the stack trace.
+
+Note that the `finally` block is used to ensure that the connection is always closed, even if an exception is thrown.
+------------------------------------------------------

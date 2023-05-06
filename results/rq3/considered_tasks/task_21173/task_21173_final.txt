@@ -1,0 +1,55 @@
+
+Sure, here's an updated version of the Java method that includes error handling for the scenarios you mentioned:
+
+```java
+import java.sql.SQLXML;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+public SQLXML readSQLXMLValueFromStream(InputStream inputStream) throws SQLException, SQLFeatureNotSupportedException {
+    SQLXML sqlxml = null;
+    try {
+        sqlxml = connection.createSQLXML();
+        if (sqlxml == null) {
+            throw new SQLException("Error creating SQLXML object");
+        }
+        if (!sqlxml.isValid(1)) {
+            throw new SQLException("SQLXML object is not valid");
+        }
+        if (!sqlxml.isWritable()) {
+            throw new SQLException("SQLXML object is not writable");
+        }
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        if (factory == null) {
+            throw new FactoryConfigurationError("Error creating XMLInputFactory");
+        }
+        XMLStreamReader reader = factory.createXMLStreamReader(inputStream);
+        if (reader.getEventType() != XMLStreamReader.CHARACTERS) {
+            throw new IllegalStateException("Invalid state for XMLStreamReader");
+        }
+        sqlxml.setString(reader.getText());
+    } catch (XMLStreamException e) {
+        throw new SQLException("Error reading SQL XML value from stream", e);
+    } catch (IllegalStateException e) {
+        throw e;
+    } catch (SQLFeatureNotSupportedException e) {
+        throw connection.isClosed() ? new SQLException("Connection is closed") : e;
+    } catch (SQLException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error creating SQLXML object", e);
+    }
+    return sqlxml;
+}
+```
+
+This updated method includes two additional error checks and handling:
+
+- It checks if the `Connection` object is closed, and throws a `SQLException` with an appropriate error message if it is.
+- It catches the `SQLFeatureNotSupportedException` exception thrown by the `createSQLXML()` method, and re-throws it with additional handling for the closed connection scenario.
+
+Note that the `SQLFeatureNotSupportedException` is a checked exception that is thrown when a JDBC driver does not support a particular feature. In this case, it is thrown when the JDBC driver does not support the `SQLXML` data type.
+------------------------------------------------------

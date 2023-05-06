@@ -1,0 +1,24 @@
+
+Sure, here's an updated version of the method that checks for errors and throws the appropriate exceptions:
+
+```java
+public void releaseClobResources(Clob clob) throws SQLException {
+    if (clob != null) {
+        try {
+            clob.free();
+        } catch (SQLException e) {
+            // Check if the error is due to unsupported operation
+            if (e.getErrorCode() == 0 && "Method not supported".equals(e.getMessage())) {
+                throw new SQLFeatureNotSupportedException("Clob.free() is not supported by the JDBC driver", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This method first checks if the Clob object is not null, and then calls its `free()` method. If an SQLException is thrown while calling `free()`, it checks if the error is due to the method not being supported by the JDBC driver. If that's the case, it throws a SQLFeatureNotSupportedException with the original exception as the cause. Otherwise, it rethrows the original exception.
+
+Note that this method still throws an SQLException if there is an error while releasing the resources, but it also handles the case where the method is not supported by the JDBC driver.
+------------------------------------------------------

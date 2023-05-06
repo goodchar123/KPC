@@ -1,0 +1,149 @@
+Please write a java method that Controls which particular protocols are enabled for use by accepted connections.
+Here is an example Java method that controls which particular protocols are enabled for use by accepted connections:
+
+```java
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
+public class ProtocolControl {
+
+    public static void main(String[] args) throws IOException {
+        int port = 8080;
+        boolean useSSL = true;
+        String[] enabledProtocols = {"TLSv1.2", "TLSv1.3"};
+
+        ServerSocketFactory socketFactory;
+        if (useSSL) {
+            socketFactory = SSLServerSocketFactory.getDefault();
+        } else {
+            socketFactory = ServerSocketFactory.getDefault();
+        }
+
+        ServerSocket serverSocket = socketFactory.createServerSocket(port);
+        ((javax.net.ssl.SSLServerSocket) serverSocket).setEnabledProtocols(enabledProtocols);
+
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            // handle client connection
+        }
+    }
+}
+```
+
+In this example, the `setEnabledProtocols` method is used to specify which protocols are enabled for use by accepted connections. The `useSSL` boolean variable is used to determine whether to use SSL/TLS or not. If `useSSL` is true, then an `SSLServerSocketFactory` is used to create the server socket, otherwise a regular `ServerSocketFactory` is used. The `enabledProtocols` array specifies which protocols are enabled for use by accepted connections. In this example, only TLSv1.2 and TLSv1.3 are enabled.
+------------------------------------------------------
+Please check if an I/O error occurs when waiting for a               connection. for java.net.ServerSocket.accept() in the code snippet you provided, otherwise throw IOException.
+Please check if a security manager exists and its             checkAccept method doesn't allow the operation. for java.net.ServerSocket.accept() in the code snippet you provided, otherwise throw SecurityException.
+Please check if a timeout was previously set with setSoTimeout and             the timeout has been reached. for java.net.ServerSocket.accept() in the code snippet you provided, otherwise throw SocketTimeoutException.
+Please check if this socket has an associated channel, the channel is in             non blocking mode, and there is no connection ready to be             accepted for java.net.ServerSocket.accept() in the code snippet you provided, otherwise throw IllegalBlockingModeException.
+Please check for networking errors for javax.net.ServerSocketFactory.createServerSocket(int) in the code snippet you provided, otherwise throw IOException.
+Please check if a security manager exists and its         checkListen method doesn't allow the operation. for javax.net.ServerSocketFactory.createServerSocket(int) in the code snippet you provided, otherwise throw SecurityException.
+Please check if the port parameter is outside the         specified range of valid port values, which is between 0 and         65535, inclusive. for javax.net.ServerSocketFactory.createServerSocket(int) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check when one or more of            the protocols named by the parameter is not supported or            when the protocols parameter is null. for javax.net.ssl.SSLServerSocket.setEnabledProtocols(java.lang.String[]) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Sure, here's an updated version of the code snippet that includes the error checking you requested:
+
+```java
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
+public class ProtocolControl {
+
+    public static void main(String[] args) throws IOException {
+        int port = 8080;
+        boolean useSSL = true;
+        String[] enabledProtocols = {"TLSv1.2", "TLSv1.3"};
+
+        ServerSocketFactory socketFactory;
+        if (useSSL) {
+            socketFactory = SSLServerSocketFactory.getDefault();
+        } else {
+            socketFactory = ServerSocketFactory.getDefault();
+        }
+
+        ServerSocket serverSocket = socketFactory.createServerSocket(port);
+        ((javax.net.ssl.SSLServerSocket) serverSocket).setEnabledProtocols(enabledProtocols);
+
+        while (true) {
+            try {
+                Socket clientSocket = serverSocket.accept();
+                // handle client connection
+            } catch (IOException e) {
+                // check for I/O error
+                throw new IOException("Error waiting for connection", e);
+            } catch (SecurityException e) {
+                // check for security manager
+                throw new SecurityException("Security manager doesn't allow accept operation", e);
+            } catch (SocketTimeoutException e) {
+                // check for timeout
+                throw new SocketTimeoutException("Timeout waiting for connection");
+            } catch (IllegalBlockingModeException e) {
+                // check for non-blocking mode
+                throw new IllegalBlockingModeException("Socket is in non-blocking mode and no connection is ready to be accepted");
+            }
+        }
+    }
+}
+```
+
+And for the `createServerSocket` method:
+
+```java
+import java.io.IOException;
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
+public class ProtocolControl {
+
+    public static void main(String[] args) throws IOException {
+        int port = 8080;
+        boolean useSSL = true;
+
+        ServerSocketFactory socketFactory;
+        if (useSSL) {
+            socketFactory = SSLServerSocketFactory.getDefault();
+        } else {
+            socketFactory = ServerSocketFactory.getDefault();
+        }
+
+        try {
+            ServerSocket serverSocket = socketFactory.createServerSocket(port);
+        } catch (IOException e) {
+            // check for networking errors
+            throw new IOException("Error creating server socket", e);
+        } catch (SecurityException e) {
+            // check for security manager
+            throw new SecurityException("Security manager doesn't allow listen operation", e);
+        } catch (IllegalArgumentException e) {
+            // check for invalid port
+            throw new IllegalArgumentException("Invalid port number", e);
+        }
+    }
+}
+```
+
+And for the `setEnabledProtocols` method:
+
+```java
+import javax.net.ssl.SSLServerSocketFactory;
+
+public class ProtocolControl {
+
+    public static void main(String[] args) {
+        String[] enabledProtocols = {"TLSv1.2", "TLSv1.3"};
+
+        try {
+            ((javax.net.ssl.SSLServerSocket) serverSocket).setEnabledProtocols(enabledProtocols);
+        } catch (IllegalArgumentException e) {
+            // check for unsupported or null protocols
+            throw new IllegalArgumentException("Invalid protocols", e);
+        }
+    }
+}
+```
+------------------------------------------------------

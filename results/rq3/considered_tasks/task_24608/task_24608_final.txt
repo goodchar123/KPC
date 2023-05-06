@@ -1,0 +1,46 @@
+
+Here's the updated Java method that includes the requested error checking:
+
+```java
+import java.util.prefs.*;
+
+public void storeObjectInDefaults(String key, Object value) {
+    if (key == null || value == null) {
+        throw new NullPointerException("Key or value is null");
+    }
+    
+    if (key.length() > Preferences.MAX_KEY_LENGTH || value.toString().length() > Preferences.MAX_VALUE_LENGTH) {
+        throw new IllegalArgumentException("Key or value length exceeds maximum allowed");
+    }
+    
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("preferences"));
+    }
+    
+    Preferences prefs = Preferences.userNodeForPackage(getClass());
+    if (prefs == null) {
+        throw new NullPointerException("Preferences node is null");
+    }
+    
+    if (prefs.isRemoved()) {
+        throw new IllegalStateException("Preferences node has been removed");
+    }
+    
+    String serializedValue = null;
+    try {
+        serializedValue = ObjectSerializer.serialize(value);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    
+    if (serializedValue == null || serializedValue.contains("\u0000")) {
+        throw new IllegalArgumentException("Serialized value is null or contains null control character");
+    }
+    
+    prefs.put(key, serializedValue);
+}
+```
+
+This method now checks for various error conditions before storing the object in the developer defaults. It throws a `NullPointerException` if the key or value is null, an `IllegalArgumentException` if the key or value length exceeds the maximum allowed, a `SecurityException` if a security manager is present and denies the `RuntimePermission("preferences")`, an `IllegalStateException` if the preferences node (or an ancestor) has been removed with the `removeNode()` method, and an `IllegalArgumentException` if either the key or serialized value contains the null control character.
+------------------------------------------------------

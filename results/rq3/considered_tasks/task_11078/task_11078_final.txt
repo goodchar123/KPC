@@ -1,0 +1,81 @@
+
+Sure, here's the updated code snippet that includes the error checking and exception handling:
+
+```java
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.NotYetBoundException;
+import java.nio.channels.SecurityException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+
+public class SocketChannelExample {
+    public static void main(String[] args) throws IOException {
+        int port = 8080;
+        ServerSocketChannel serverSocketChannel = null;
+        try {
+            serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.socket().bind(new InetSocketAddress(port));
+            System.out.println("Server started on port " + port);
+
+            while (true) {
+                SocketChannel socketChannel = null;
+                try {
+                    socketChannel = serverSocketChannel.accept();
+                    System.out.println("Connection accepted from " + socketChannel.getRemoteAddress());
+                    // Do something with the socketChannel
+                } catch (ClosedChannelException e) {
+                    // Channel is closed
+                    break;
+                } catch (AsynchronousCloseException e) {
+                    // Another thread closed the channel while accept operation was in progress
+                    break;
+                } catch (ClosedByInterruptException e) {
+                    // Another thread interrupted the current thread while accept operation was in progress
+                    break;
+                } catch (IOException e) {
+                    // I/O error occurred
+                    e.printStackTrace();
+                } catch (SecurityException e) {
+                    // Security manager denies access to the remote endpoint of the new connection
+                    e.printStackTrace();
+                } catch (NotYetBoundException e) {
+                    // Socket has not yet been bound
+                    e.printStackTrace();
+                } catch (UnsupportedOperationException e) {
+                    // Socket is not an Internet protocol socket
+                    e.printStackTrace();
+                } finally {
+                    if (socketChannel != null && socketChannel.isOpen()) {
+                        try {
+                            socketChannel.close();
+                        } catch (IOException e) {
+                            // Error occurred while closing socketChannel
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            // I/O error occurred while opening serverSocketChannel
+            e.printStackTrace();
+        } finally {
+            if (serverSocketChannel != null && serverSocketChannel.isOpen()) {
+                try {
+                    serverSocketChannel.close();
+                } catch (IOException e) {
+                    // Error occurred while closing serverSocketChannel
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
+This code includes try-catch blocks to handle the various exceptions that can occur during the `open()`, `accept()`, and `getRemoteAddress()` methods. It also includes a finally block to ensure that the channels and sockets are properly closed, even if an exception occurs.
+------------------------------------------------------

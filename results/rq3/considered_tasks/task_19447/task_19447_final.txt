@@ -1,0 +1,47 @@
+
+Sure, here's the updated Java method that checks for exceptions and throws `IllegalArgumentException` or `InterruptedException` if necessary:
+
+```java
+public boolean waitForCardPresent(long timeoutMillis) throws CardException, IllegalArgumentException, InterruptedException {
+    try {
+        CardTerminals cardTerminals = TerminalFactory.getDefault().terminals();
+        CardTerminal cardTerminal = null;
+        long startTime = System.currentTimeMillis();
+        while (cardTerminal == null && (System.currentTimeMillis() - startTime) < timeoutMillis) {
+            try {
+                List<CardTerminal> terminals = cardTerminals.list();
+                for (CardTerminal terminal : terminals) {
+                    try {
+                        if (terminal.isCardPresent()) {
+                            cardTerminal = terminal;
+                            break;
+                        }
+                    } catch (CardException e) {
+                        // If the status could not be determined, continue to the next terminal
+                        continue;
+                    }
+                }
+            } catch (CardException e) {
+                // If the card operation failed, throw an exception
+                throw new CardException("Failed to list card terminals", e);
+            }
+            Thread.sleep(100);
+        }
+        if (cardTerminal != null) {
+            return true;
+        } else {
+            throw new CardException("Card not present");
+        }
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid timeout value", e);
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new InterruptedException("Thread interrupted while waiting for card");
+    } catch (Exception e) {
+        throw new CardException("Failed to wait for card", e);
+    }
+}
+```
+
+This updated method checks for `IllegalArgumentException` and `InterruptedException` thrown by the `Thread.sleep()` method and throws a new `IllegalArgumentException` or `InterruptedException` with a more descriptive message. If any other exception occurs, it throws a `CardException` with a message "Failed to wait for card".
+------------------------------------------------------

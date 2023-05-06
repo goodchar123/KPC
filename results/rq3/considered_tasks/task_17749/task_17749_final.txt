@@ -1,0 +1,27 @@
+
+Sure, here's the updated code snippet that checks for a `NamingException` when performing the lookup using `javax.naming.Context.lookup(javax.naming.Name)`:
+
+```java
+public Object retrieveNamedObject(String name) throws NamingException {
+    Context ctx = new InitialContext();
+    Object obj = null;
+    String[] nameComponents = name.split("/");
+    for (int i = 0; i < nameComponents.length - 1; i++) {
+        obj = ctx.lookup(nameComponents[i]);
+        if (obj instanceof Context) {
+            ctx = (Context) obj;
+        } else {
+            throw new NamingException("Invalid name: " + name);
+        }
+    }
+    try {
+        obj = ctx.lookup(new CompositeName(nameComponents[nameComponents.length - 1]));
+    } catch (NamingException e) {
+        throw new NamingException("Error looking up object: " + e.getMessage());
+    }
+    return obj;
+}
+```
+
+This updated method now uses `javax.naming.CompositeName` to create a `Name` object from the terminal atomic component of the name, and then performs the lookup using `javax.naming.Context.lookup(javax.naming.Name)`. If a `NamingException` is encountered during the lookup, it is caught and re-thrown as a new `NamingException` with a more descriptive error message.
+------------------------------------------------------

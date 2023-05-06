@@ -1,0 +1,63 @@
+
+Here's an updated version of the Java method that checks for the conditions you specified:
+
+```java
+public static void addToClassPath(String path) throws Exception {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        ClassLoader callerClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (callerClassLoader != null && !isAncestor(systemClassLoader, callerClassLoader)) {
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+
+    ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+    if (isRecursiveConstruction(systemClassLoader)) {
+        throw new IllegalStateException("Class loader construction is recursive");
+    }
+
+    try {
+        Class<?> systemClassLoaderClass = Class.forName("java.lang.SystemClassLoader");
+        Constructor<?> constructor = systemClassLoaderClass.getDeclaredConstructor(String.class, ClassLoader.class);
+        constructor.setAccessible(true);
+        ClassLoader newClassLoader = (ClassLoader) constructor.newInstance(path, systemClassLoader);
+        Thread.currentThread().setContextClassLoader(newClassLoader);
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        throw new Error("Failed to create new class loader", e);
+    }
+}
+
+private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader current = descendant;
+    while (current != null) {
+        if (current == ancestor) {
+            return true;
+        }
+        current = current.getParent();
+    }
+    return false;
+}
+
+private static boolean isRecursiveConstruction(ClassLoader classLoader) {
+    String systemClassLoaderName = System.getProperty("java.system.class.loader");
+    if (systemClassLoaderName != null) {
+        try {
+            Class<?> systemClassLoaderClass = Class.forName(systemClassLoaderName);
+            if (classLoader.getClass() == systemClassLoaderClass) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            throw new Error("Failed to load system class loader", e);
+        }
+    }
+    return false;
+}
+```
+
+This updated method first checks for the presence of a security manager and verifies that the caller's class loader is not null and is not the same as or an ancestor of the system class loader, and that the caller has the `RuntimePermission("getClassLoader")` permission if necessary. If any of these conditions are not met, a `SecurityException` is thrown.
+
+Next, the method checks if it is being invoked recursively during the construction of the class loader specified by the `java.system.class.loader` property. If so, an `IllegalStateException` is thrown.
+
+Finally, the method attempts to create a new class loader using the specified path and the system class loader as its parent. If the system property `java.system.class.loader` is defined but the named class could not be loaded, the provider class does not define the required constructor, or an exception is thrown by that constructor when it is invoked, an `Error` is thrown with the underlying cause of the error retrieved via the `Throwable.getCause()` method.
+------------------------------------------------------

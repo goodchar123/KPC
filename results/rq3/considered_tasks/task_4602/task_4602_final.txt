@@ -1,0 +1,46 @@
+
+Sure, here's an updated version of the Java method that checks for the possible exceptions and throws a `DOMException` if any of them occur:
+
+```java
+public void setChildNodeBeforeInsert(Node parent, Node child, NodeList results) throws DOMException {
+    if (parent == null || child == null || results == null) {
+        throw new IllegalArgumentException("Invalid input parameters");
+    }
+    
+    Document document = parent.getOwnerDocument();
+    boolean isDocumentType = (parent.getNodeType() == Node.DOCUMENT_NODE);
+    
+    for (int i = 0; i < results.getLength(); i++) {
+        Node result = results.item(i);
+        
+        try {
+            if (result.getOwnerDocument() != document) {
+                throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, "New child was created from a different document");
+            }
+            
+            if (isDocumentType && (result.getNodeType() == Node.DOCUMENT_TYPE_NODE || result.getNodeType() == Node.ELEMENT_NODE)) {
+                throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "DOM implementation doesn't support the insertion of a DocumentType or Element node");
+            }
+            
+            if (parent.isSameNode(result) || parent.isAncestorOf(result)) {
+                throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, "New child is one of this node's ancestors or this node itself");
+            }
+            
+            if (child != null && !parent.isSameNode(child.getParentNode())) {
+                throw new DOMException(DOMException.NOT_FOUND_ERR, "Reference child is not a child of this node");
+            }
+            
+            if (parent.isReadOnly() || (child != null && child.isReadOnly())) {
+                throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Node or parent is read-only");
+            }
+            
+            parent.insertBefore(result, child);
+        } catch (DOMException e) {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method first checks if the input parameters are valid, as before. It then checks for the possible exceptions that can be raised by the `insertBefore` method, as described in the DOM specification. If any of these exceptions occur, it throws a `DOMException` with the appropriate error code and message. If no exceptions occur, it inserts each result node before the child node in the parent node.
+------------------------------------------------------

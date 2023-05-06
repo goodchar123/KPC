@@ -1,0 +1,49 @@
+Please write a java method that Tells the parser that if no external subset has been declared in the document text, none should be used.
+Here's a Java method that sets the external subset to be ignored if none has been declared in the document text:
+
+```java
+public void setExternalSubsetToBeIgnored(DocumentBuilder builder) {
+    try {
+        builder.setEntityResolver(new EntityResolver() {
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+                return new InputSource(new StringReader(""));
+            }
+        });
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+This method takes a `DocumentBuilder` object as a parameter and sets its `EntityResolver` to a new instance of an anonymous class that implements the `EntityResolver` interface. The `resolveEntity` method of this class returns an empty `InputSource`, effectively ignoring any external subset that may be declared in the document text.
+------------------------------------------------------
+Please check Any SAX exception, possibly            wrapping another exception. for org.xml.sax.EntityResolver.resolveEntity(java.lang.String,java.lang.String) in the code snippet you provided, otherwise throw SAXException.
+Please check A Java specific IO exception,            possibly the result of creating a new InputStream            or Reader for the InputSource. for org.xml.sax.EntityResolver.resolveEntity(java.lang.String,java.lang.String) in the code snippet you provided, otherwise throw IOException.
+Here's the updated Java method that checks for `SAXException` and `IOException` in the `resolveEntity` method of the `EntityResolver` interface:
+
+```java
+public void setExternalSubsetToBeIgnored(DocumentBuilder builder) throws SAXException, IOException {
+    try {
+        builder.setEntityResolver(new EntityResolver() {
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+                try {
+                    return new InputSource(new StringReader(""));
+                } catch (Exception e) {
+                    throw new SAXException(e);
+                }
+            }
+        });
+    } catch (SAXException e) {
+        throw e;
+    } catch (IOException e) {
+        throw e;
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+This method now throws `SAXException` and `IOException` if they are caught in the `resolveEntity` method. The `IOException` is thrown if there is an error creating a new `InputSource` with an empty `StringReader`. The `SAXException` is thrown if there is any other exception caught in the `resolveEntity` method, which is then wrapped in a `SAXException`.
+------------------------------------------------------

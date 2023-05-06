@@ -1,0 +1,47 @@
+
+Here is the updated Java method that includes the requested error handling:
+
+```java
+public void addRootModules(ModuleLayer layer, String... moduleNames) {
+    Set<Module> rootModules = new HashSet<>();
+    for (String moduleName : moduleNames) {
+        Optional<Module> module = layer.findModule(moduleName);
+        if (module.isPresent()) {
+            rootModules.add(module.get());
+        } else {
+            throw new IllegalArgumentException("Module " + moduleName + " not found in layer");
+        }
+    }
+    Configuration configuration = layer.configuration().resolveAndBind(ModuleFinder.of(), ModuleFinder.of(), rootModules);
+    try {
+        layer = layer.defineModulesWithOneLoader(configuration, ClassLoader.getSystemClassLoader());
+    } catch (IllegalArgumentException e) {
+        if (e.getMessage().contains("more than one parent") || !layer.configuration().parent().equals(configuration)) {
+            throw new IllegalArgumentException("Invalid configuration for layer", e);
+        } else {
+            throw e;
+        }
+    } catch (LayerInstantiationException e) {
+        throw new LayerInstantiationException("Could not create layer", e);
+    } catch (SecurityException e) {
+        if (e.getMessage().contains("createClassLoader") || e.getMessage().contains("getClassLoader")) {
+            throw new SecurityException("Permission denied", e);
+        } else {
+            throw e;
+        }
+    } catch (NoSuchElementException e) {
+        throw new NoSuchElementException("Optional value not present", e);
+    }
+}
+```
+
+This updated method includes try-catch blocks to handle the potential exceptions that may be thrown by the `defineModulesWithOneLoader` method.
+
+If the configuration has more than one parent or the parent of the configuration is not the configuration for this layer, an `IllegalArgumentException` is thrown with a message indicating an invalid configuration for the layer.
+
+If the layer cannot be created for any reason specified by the `defineModulesWithOneLoader` method, a `LayerInstantiationException` is thrown with a message indicating that the layer could not be created.
+
+If the security manager denies the `createClassLoader` or `getClassLoader` permission, a `SecurityException` is thrown with a message indicating that permission was denied.
+
+If no value is present for the `Optional.get()` method, a `NoSuchElementException` is thrown with a message indicating that the optional value was not present.
+------------------------------------------------------

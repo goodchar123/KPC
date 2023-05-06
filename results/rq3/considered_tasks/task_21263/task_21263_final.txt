@@ -1,0 +1,34 @@
+
+Sure, here's an updated version of the `updateColumnWithLong` method that checks for these exceptions:
+
+```java
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+
+public class UpdateLongValue {
+    
+    public void updateColumnWithLong(Connection conn, String tableName, String columnName, long value, int id, int timeoutSeconds) throws SQLException {
+        String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, value);
+            pstmt.setInt(2, id);
+            pstmt.setQueryTimeout(timeoutSeconds);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            if (e.getMessage().contains("closed connection")) {
+                throw new SQLException("Connection is closed", e);
+            } else if (e.getMessage().contains("parameter marker")) {
+                throw new SQLException("Invalid parameter index", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This updated method catches `SQLException` and checks the error message to determine the cause of the exception. If the message contains "closed connection", it means that the connection was closed, so the method throws a new `SQLException` with a more descriptive error message. If the message contains "parameter marker", it means that the parameter index was invalid, so the method throws a new `SQLException` with a more descriptive error message. Otherwise, the original exception is re-thrown.
+------------------------------------------------------

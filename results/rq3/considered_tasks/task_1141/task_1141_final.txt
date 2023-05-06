@@ -1,0 +1,66 @@
+
+Sure, here's the updated Java method that includes the exception handling you requested:
+
+```java
+import javax.management.*;
+import java.lang.management.*;
+
+public class MBeanInvoker {
+    public static void invokeOperation(String mbeanObjectName, String operationName, Object[] params, String[] signature) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName objectName = new ObjectName(mbeanObjectName);
+        if (!mbs.isRegistered(objectName)) {
+            throw new InstanceNotFoundException("MBean not found: " + mbeanObjectName);
+        }
+        Object proxy = MBeanServerInvocationHandler.newProxyInstance(mbs, objectName, DynamicMBean.class, false);
+        MBeanInfo info;
+        try {
+            info = mbs.getMBeanInfo(objectName);
+        } catch (InstanceNotFoundException e) {
+            throw e;
+        } catch (IntrospectionException e) {
+            throw e;
+        } catch (ReflectionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected exception while getting MBean info", e);
+        }
+        MBeanOperationInfo[] operations = info.getOperations();
+        MBeanOperationInfo operation = null;
+        for (MBeanOperationInfo op : operations) {
+            if (op.getName().equals(operationName) && Arrays.equals(op.getSignature(), signature)) {
+                operation = op;
+                break;
+            }
+        }
+        if (operation == null) {
+            throw new NoSuchMethodException("No such operation: " + operationName);
+        }
+        Object result;
+        try {
+            result = mbs.invoke(objectName, operation.getName(), params, signature);
+        } catch (InstanceNotFoundException e) {
+            throw e;
+        } catch (MBeanException e) {
+            throw e;
+        } catch (ReflectionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected exception while invoking MBean operation", e);
+        }
+        System.out.println("Result: " + result);
+    }
+}
+```
+
+This updated method includes the following exception handling:
+
+- If the MBean specified by `mbeanObjectName` is not found, an `InstanceNotFoundException` is thrown.
+- If an exception occurs during introspection of the MBean using `MBeanServer.getMBeanInfo()`, an `IntrospectionException` is thrown.
+- If an exception occurs when trying to invoke the `getMBeanInfo()` method of a dynamic MBean, a `ReflectionException` is thrown.
+- If the MBean specified by `mbeanObjectName` is not registered in the MBean server, an `InstanceNotFoundException` is thrown when invoking the operation using `MBeanServer.invoke()`.
+- If an exception occurs while invoking the operation using `MBeanServer.invoke()`, a `MBeanException` or `ReflectionException` is thrown.
+- If there is a security manager and the caller does not have the required permission to access the platform MBean server using `ManagementFactory.getPlatformMBeanServer()`, a `SecurityException` is thrown.
+
+Note that in some cases, we catch a generic `Exception` and re-throw it as a `RuntimeException`. This is because the `invokeOperation()` method is declared to throw `Exception`, so we cannot add additional checked exceptions to the method signature. However, we still want to handle unexpected exceptions and re-throw them as unchecked exceptions so that the caller can handle them appropriately.
+------------------------------------------------------

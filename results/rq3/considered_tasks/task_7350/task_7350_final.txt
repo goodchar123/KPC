@@ -1,0 +1,37 @@
+
+You're right again, we should also check if a module of the given name is not defined in this layer or any parent of this layer before calling `parentLayer.findLoader(name)`. Here's an updated version of the method that includes this check:
+
+```java
+public static ModuleLayer createModuleLayer(Configuration config, ModuleLayer parentLayer) throws Exception {
+    ModuleFinder finder = config.moduleFinder();
+    Set<String> roots = config.modules().stream().map(Module::getName).collect(Collectors.toSet());
+    ModuleLayer.Controller controller = parentLayer.controller();
+    ModuleLayer layer = controller.newModuleLayer(parentLayer, ModuleFinder.of(), roots);
+    ModuleFinder parentFinder = parentLayer.configuration().moduleFinder();
+    for (ModuleReference ref : finder.findAll()) {
+        ModuleDescriptor descriptor = ref.descriptor();
+        String name = descriptor.name();
+        if (!roots.contains(name)) {
+            ModuleFinder finderWithParent = ModuleFinder.of(ref, parentFinder);
+            ModuleLayer parent = null;
+            if (layer.findLoader(name) == null) {
+                if (parentLayer.findLoader(name) == null) {
+                    throw new IllegalArgumentException("Module " + name + " is not defined in this layer or any parent layer");
+                } else {
+                    parent = parentLayer.findLoader(name);
+                }
+            } else {
+                parent = layer.findLoader(name);
+            }
+            ModuleLayer newLayer = controller.newModuleLayer(parent, finderWithParent, Set.of(name));
+            layer = layer.defineModulesWithOneLoader(finderWithParent, parent);
+        }
+    }
+    return layer;
+}
+```
+
+In this updated version, we've added an if-else block to check if the module of the given name is defined in this layer or any parent layer. If it's not defined in this layer, we check if it's defined in the parent layer. If it's not defined in any layer, we throw an `IllegalArgumentException` with a clear message explaining the problem.
+
+If the module is defined in a layer, we get the loader for the module from that layer and use it as the parent for the new layer. This way, we ensure that the new layer is properly layered on top of the existing layers.
+------------------------------------------------------

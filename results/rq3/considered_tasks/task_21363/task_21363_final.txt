@@ -1,0 +1,61 @@
+
+Sure, here's an updated version of the Java method that checks if the JDBC driver supports the `cancel()` method:
+
+```java
+public void updateColumn(String columnName, Object value, int timeout) throws SQLException {
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    try {
+        // create a connection to the database
+        conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+
+        // create a statement to update the column
+        String sql = "UPDATE mytable SET " + columnName + " = ? WHERE id = ?";
+        stmt = conn.prepareStatement(sql);
+
+        // set the value of the column to the Object value
+        stmt.setObject(1, value);
+
+        // set the id of the row to update
+        stmt.setInt(2, 1);
+
+        // set the query timeout
+        stmt.setQueryTimeout(timeout);
+
+        // execute the update statement
+        stmt.executeUpdate();
+
+    } catch (SQLException e) {
+        // check if the exception is due to a query timeout
+        if (e instanceof SQLTimeoutException) {
+            // attempt to cancel the currently running statement
+            if (stmt != null) {
+                try {
+                    // check if the JDBC driver supports the cancel() method
+                    if (stmt.isWrapperFor(com.mysql.jdbc.Statement.class)) {
+                        com.mysql.jdbc.Statement mysqlStmt = stmt.unwrap(com.mysql.jdbc.Statement.class);
+                        mysqlStmt.cancel();
+                    } else {
+                        throw new SQLFeatureNotSupportedException("JDBC driver does not support Statement.cancel()");
+                    }
+                } catch (SQLException ex) {
+                    // log the exception
+                    ex.printStackTrace();
+                }
+            }
+        }
+        throw e;
+    } finally {
+        // close the statement and connection
+        if (stmt != null) {
+            stmt.close();
+        }
+        if (conn != null) {
+            conn.close();
+        }
+    }
+}
+```
+
+This updated method checks if the JDBC driver supports the `cancel()` method using the `isWrapperFor()` and `unwrap()` methods. If the driver supports the method, it attempts to cancel the currently running statement using `cancel()`. If the driver does not support the method, a `SQLFeatureNotSupportedException` is thrown. If a `SQLTimeoutException` is caught, it attempts to cancel the currently running statement. Finally, it closes the statement and connection in a `finally` block.
+------------------------------------------------------

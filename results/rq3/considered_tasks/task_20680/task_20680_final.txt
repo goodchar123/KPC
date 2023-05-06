@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the method that checks for a database access error when calling `getParameterCount()` on the `ParameterMetaData` object:
+
+```java
+public void setReaderParameter(PreparedStatement statement, int parameterIndex, Reader reader) throws SQLException {
+    if (statement.isClosed()) {
+        throw new SQLException("PreparedStatement is closed");
+    }
+    ParameterMetaData parameterMetaData = null;
+    try {
+        parameterMetaData = statement.getParameterMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter metadata", e);
+    }
+    int parameterCount = 0;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter count", e);
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index");
+    }
+    if (statement.isWrapperFor(OraclePreparedStatement.class)) {
+        // Oracle JDBC driver does not support setCharacterStream method for PreparedStatement
+        throw new SQLFeatureNotSupportedException("setCharacterStream method not supported by Oracle JDBC driver");
+    } else {
+        statement.setCharacterStream(parameterIndex, reader);
+    }
+}
+```
+
+This updated method first checks if the `PreparedStatement` object is closed. If it is, it throws a `SQLException` with an appropriate error message.
+
+Next, it tries to get the `ParameterMetaData` object for the `PreparedStatement` object. If a database access error occurs, it throws a `SQLException` with an appropriate error message and the original exception as the cause.
+
+Then, it tries to get the number of parameters in the SQL statement using the `getParameterCount()` method on the `ParameterMetaData` object. If a database access error occurs, it throws a `SQLException` with an appropriate error message and the original exception as the cause.
+
+Next, it checks if the `parameterIndex` is valid based on the number of parameters in the SQL statement. If it is not, it throws a `SQLException` with an appropriate error message.
+
+Then, it checks if the `PreparedStatement` object is a wrapper for the `OraclePreparedStatement` class. If it is, it means that the Oracle JDBC driver does not support the `setCharacterStream` method for `PreparedStatement` objects, so it throws a `SQLFeatureNotSupportedException` with an appropriate error message.
+
+If the `PreparedStatement` object is not a wrapper for the `OraclePreparedStatement` class, it means that the driver supports the `setCharacterStream` method, so the method calls this method on the `PreparedStatement` object with the specified `parameterIndex` and `reader` objects as arguments.
+------------------------------------------------------

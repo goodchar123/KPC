@@ -1,0 +1,49 @@
+
+Sure, here's the modified code snippet that checks for a database access error when calling `java.sql.DatabaseMetaData.getDatabaseProductName()` and throws a `SQLException` if an error occurs:
+
+```java
+import java.sql.*;
+
+public class DatabaseUtils {
+    public static boolean isMixedCaseIdentifiersEnabled(Connection conn) throws SQLException {
+        boolean isMixedCaseEnabled = false;
+        DatabaseMetaData metaData = null;
+        try {
+            metaData = conn.getMetaData();
+        } catch (SQLException e) {
+            throw new SQLException("Error getting database metadata: " + e.getMessage());
+        }
+        String dbName = null;
+        try {
+            dbName = metaData.getDatabaseProductName().toLowerCase();
+        } catch (SQLException e) {
+            throw new SQLException("Error getting database product name: " + e.getMessage());
+        }
+        if (dbName.contains("mysql")) {
+            // MySQL treats mixed case unquoted SQL identifiers as case sensitive by default
+            isMixedCaseEnabled = true;
+        } else if (dbName.contains("oracle")) {
+            // Oracle treats mixed case unquoted SQL identifiers as case insensitive by default
+            String value = null;
+            try {
+                value = metaData.getIdentifierQuoteString();
+            } catch (SQLException e) {
+                throw new SQLException("Error getting identifier quote string: " + e.getMessage());
+            }
+            isMixedCaseEnabled = "\"".equals(value);
+        } else if (dbName.contains("postgresql")) {
+            // PostgreSQL treats mixed case unquoted SQL identifiers as case sensitive by default
+            isMixedCaseEnabled = true;
+        } else if (dbName.contains("sql server")) {
+            // SQL Server treats mixed case unquoted SQL identifiers as case insensitive by default
+            isMixedCaseEnabled = false;
+        }
+        return isMixedCaseEnabled;
+    }
+}
+```
+
+In this modified code snippet, we added try-catch blocks to catch `SQLException` when calling `conn.getMetaData()` and `metaData.getDatabaseProductName()`. If an exception occurs, we throw a new `SQLException` with a descriptive error message.
+
+Note that this is just an example of how to handle database access errors. Depending on your specific use case, you may want to handle these errors differently (e.g., logging the error, retrying the operation, etc.).
+------------------------------------------------------

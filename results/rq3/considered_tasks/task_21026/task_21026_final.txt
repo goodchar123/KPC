@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed result sets:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    public static int getMaxTableNameLength(Connection conn) throws SQLException {
+        int maxTableNameLength = 0;
+        DatabaseMetaData metaData = conn.getMetaData();
+        ResultSet resultSet = metaData.getTables(null, null, null, new String[] {"TABLE"});
+        try {
+            while (resultSet.next()) {
+                String tableName = resultSet.getString("TABLE_NAME");
+                int tableNameLength = tableName.length();
+                if (tableNameLength > maxTableNameLength) {
+                    maxTableNameLength = tableNameLength;
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Database access error occurred while retrieving table names", e);
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    throw new SQLException("Error occurred while closing result set", e);
+                }
+            }
+        }
+        return maxTableNameLength;
+    }
+}
+```
+
+In this updated code, we have added a try-catch block to catch any `SQLException` that may occur while iterating through the `ResultSet`. If an exception occurs, we throw a new `SQLException` with a custom message and the original exception as the cause.
+
+We have also added a `finally` block to ensure that the `ResultSet` is closed properly, even if an exception occurs. If the `ResultSet` is not `null`, we close it and catch any `SQLException` that may occur while closing it. If an exception occurs, we throw a new `SQLException` with a custom message and the original exception as the cause.
+------------------------------------------------------

@@ -1,0 +1,37 @@
+
+Sure, here's an updated implementation that includes the error checking and exception throwing:
+
+```java
+public boolean moveToNextResultSet(Statement stmt) throws SQLException {
+    if (stmt.isClosed()) {
+        throw new SQLException("Statement is closed");
+    }
+    boolean hasResultSet;
+    try {
+        hasResultSet = stmt.getMoreResults();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error", e);
+    }
+    if (hasResultSet) {
+        ResultSet rs;
+        try {
+            rs = stmt.getResultSet();
+        } catch (SQLException e) {
+            throw new SQLException("Database access error", e);
+        }
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Database access error", e);
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+```
+
+This implementation first checks if the `Statement` object is closed and throws a `SQLException` if it is. It then calls `getMoreResults()` and catches any `SQLException` that may occur, throwing a new `SQLException` with a more informative message. Similarly, it calls `getResultSet()` and `close()` on the `ResultSet` object, catching any `SQLException` and throwing a new `SQLException` with a more informative message.
+------------------------------------------------------

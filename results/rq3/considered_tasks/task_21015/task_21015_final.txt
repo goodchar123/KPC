@@ -1,0 +1,36 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    public int getMaxColumns(Connection conn, String tableName) throws SQLException {
+        int maxColumns = 0;
+        try {
+            if (conn.isClosed()) {
+                throw new SQLException("Connection is closed");
+            }
+            DatabaseMetaData metaData = conn.getMetaData();
+            ResultSet rs = metaData.getColumns(null, null, tableName, null);
+            while (rs.next()) {
+                maxColumns++;
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Database access error or closed connection/result set", e);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                throw new SQLException("Error closing result set", e);
+            }
+        }
+        return maxColumns;
+    }
+}
+```
+
+This updated method now includes a try-catch block that catches any `SQLException` that may occur when calling `getMetaData()` or `next()`. If an exception is caught, a new `SQLException` is thrown with a custom error message that indicates a database access error or closed connection/result set. Additionally, a `finally` block is added to close the `ResultSet` object after it has been used. If an exception occurs while closing the `ResultSet`, a new `SQLException` is thrown with a custom error message indicating an error closing the result set.
+------------------------------------------------------

@@ -1,0 +1,38 @@
+
+Sure, here's the updated Java method that checks for database access errors and closed connections:
+
+```java
+import java.sql.*;
+
+public class DatabaseHelper {
+    public static int getMaxColumns(Connection conn) throws SQLException {
+        try {
+            if (conn.isClosed()) {
+                throw new SQLException("Connection is closed.");
+            }
+            DatabaseMetaData metaData = conn.getMetaData();
+            if (metaData == null) {
+                throw new SQLException("Failed to retrieve database metadata.");
+            }
+            int maxColumns = metaData.getMaxColumnsInSelect();
+            if (maxColumns == 0) {
+                throw new SQLException("Database does not support retrieving maximum columns in SELECT list.");
+            }
+            return maxColumns;
+        } catch (SQLException e) {
+            throw new SQLException("Error retrieving maximum columns in SELECT list: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method first checks if the given `Connection` object is closed using the `isClosed()` method. If the connection is closed, it throws a `SQLException` with an appropriate error message.
+
+Next, it retrieves the `DatabaseMetaData` object for the database using the `getMetaData()` method of the `Connection` object. If the metadata object is null, it means that there was an error retrieving it, so it throws a `SQLException` with an appropriate error message.
+
+Then, it calls the `getMaxColumnsInSelect()` method of the `DatabaseMetaData` object to retrieve the maximum number of columns allowed in a SELECT list.
+
+If the maximum number of columns is 0, it means that the database does not support retrieving this information, so it throws a `SQLException` with an appropriate error message.
+
+Finally, if any `SQLException` occurs during the execution of this method, it throws a new `SQLException` with an error message that includes the original exception message.
+------------------------------------------------------

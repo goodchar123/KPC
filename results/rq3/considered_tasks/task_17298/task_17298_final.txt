@@ -1,0 +1,77 @@
+
+Sure, here's the updated Java method that includes the requested error handling:
+
+```
+public boolean checkFilter(Object value, String filter) throws SQLException, PatternSyntaxException, NullPointerException {
+    if (value == null || filter == null) {
+        return true;
+    }
+    
+    String[] filters = filter.split(" AND ");
+    for (String f : filters) {
+        String[] parts = f.split(" ");
+        if (parts.length != 3) {
+            throw new PatternSyntaxException("Invalid filter: " + filter, filter, -1);
+        }
+        
+        String columnName = parts[0];
+        String operator = parts[1];
+        String filterValue = parts[2];
+        
+        Object columnValue = getColumnValue(columnName);
+        if (columnValue == null) {
+            return false;
+        }
+        
+        int compare = compareValues(columnValue, filterValue);
+        if (operator.equals("=") && compare != 0) {
+            return false;
+        } else if (operator.equals("<>") && compare == 0) {
+            return false;
+        } else if (operator.equals("<") && compare >= 0) {
+            return false;
+        } else if (operator.equals(">") && compare <= 0) {
+            return false;
+        } else if (operator.equals("<=") && compare > 0) {
+            return false;
+        } else if (operator.equals(">=") && compare < 0) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+private Object getColumnValue(String columnName) throws SQLException {
+    ResultSetMetaData metaData = getMetaData();
+    int columnCount = metaData.getColumnCount();
+    for (int i = 1; i <= columnCount; i++) {
+        if (metaData.getColumnName(i).equals(columnName)) {
+            return getObject(i);
+        }
+    }
+    throw new SQLException("Column not found: " + columnName);
+}
+
+private int compareValues(Object value1, Object value2) throws NullPointerException {
+    if (value1 instanceof String && value2 instanceof String) {
+        return ((String) value1).compareTo((String) value2);
+    } else if (value1 instanceof Number && value2 instanceof Number) {
+        return Double.compare(((Number) value1).doubleValue(), ((Number) value2).doubleValue());
+    } else if (value1 instanceof Date && value2 instanceof Date) {
+        if (value1 == null || value2 == null) {
+            throw new NullPointerException("Date cannot be null");
+        }
+        return ((Date) value1).compareTo((Date) value2);
+    } else {
+        return value1.toString().compareTo(value2.toString());
+    }
+}
+```
+
+The checkFilter method now throws a PatternSyntaxException if the filter criteria is invalid, a SQLException if there is a database access error, or a NullPointerException if the date value is null.
+
+The getColumnValue method now throws a SQLException if the column name is not found in the result set.
+
+The compareValues method now throws a NullPointerException if either date value is null.
+------------------------------------------------------

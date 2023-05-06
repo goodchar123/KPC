@@ -1,0 +1,77 @@
+
+Here's the updated Java method that includes the requested error handling:
+
+```java
+public void cancelStatement(Statement stmt) throws SQLException {
+    // Check if a database access error occurs when calling isClosed() on the Statement object
+    try {
+        if (stmt.isClosed()) {
+            throw new SQLException("Statement is closed");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking if statement is closed", e);
+    }
+    
+    // Check if the connection is closed
+    Connection conn;
+    try {
+        conn = stmt.getConnection();
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error getting connection or checking if it is closed", e);
+    }
+    
+    // Check if a database access error occurs when calling getMetaData() on the Connection object
+    DatabaseMetaData metaData;
+    try {
+        metaData = conn.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting database metadata", e);
+    }
+    
+    // Check if a database access error occurs when calling supportsStatementPooling() on the DatabaseMetaData object
+    try {
+        if (!metaData.supportsStatementPooling()) {
+            throw new SQLException("DBMS does not support statement pooling");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking if DBMS supports statement pooling", e);
+    }
+    
+    // Check if the statement is poolable
+    try {
+        if (!stmt.isPoolable()) {
+            throw new SQLException("Statement is not poolable");
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking if statement is poolable", e);
+    }
+    
+    // Check if the JDBC driver supports the cancel() method
+    if (!stmt.isWrapperFor(com.mysql.jdbc.Statement.class)) {
+        throw new SQLFeatureNotSupportedException("Cancel not supported by JDBC driver");
+    }
+    
+    // Cancel the statement
+    try {
+        stmt.cancel();
+    } catch (SQLException e) {
+        throw new SQLException("Error cancelling statement", e);
+    }
+}
+```
+
+This updated method first checks if a database access error occurs when calling `isClosed()` on the `Statement` object. If an error occurs, it throws a `SQLException`.
+
+Next, it checks if the `Connection` object associated with the `Statement` object is closed. If it is, it throws a `SQLException`.
+
+Then, it attempts to get the database metadata using the `getMetaData()` method on the `Connection` object. If a database access error occurs, it throws a `SQLException`.
+
+Next, it checks if a database access error occurs when calling `supportsStatementPooling()` on the `DatabaseMetaData` object. If an error occurs, it throws a `SQLException`.
+
+Then, it checks if the `Statement` object is poolable. If it is not, it throws a `SQLException`. If a database access error occurs during this check, it throws a `SQLException`.
+
+Finally, it checks if the JDBC driver supports the `cancel()` method. If it does not, it throws a `SQLFeatureNotSupportedException`. If the driver does support the method, it attempts to cancel the statement using the `cancel()` method. If a database access error occurs, it throws a `SQLException` with an appropriate error message.
+------------------------------------------------------

@@ -1,0 +1,54 @@
+
+Sure, here's an updated version of the code snippet that includes the requested error checking:
+
+```java
+import javax.sound.midi.*;
+
+public class MidiSender {
+    public static void sendMidiMessage(Receiver receiver, MidiMessage message, long timeStamp) throws IllegalStateException {
+        if (receiver == null || receiver.isClosed()) {
+            throw new IllegalStateException("Receiver is closed");
+        }
+        receiver.send(message, timeStamp);
+    }
+}
+
+public class MidiDeviceManager {
+    public static MidiDevice getMidiDevice(MidiDevice.Info info) throws MidiUnavailableException, IllegalArgumentException, NullPointerException {
+        if (info == null) {
+            throw new NullPointerException("MidiDevice.Info is null");
+        }
+        if (!MidiSystem.isMidiDevice(info)) {
+            throw new IllegalArgumentException("MidiDevice.Info does not represent a MIDI device installed on the system");
+        }
+        MidiDevice device = MidiSystem.getMidiDevice(info);
+        if (!device.isOpen()) {
+            try {
+                device.open();
+            } catch (MidiUnavailableException e) {
+                throw new MidiUnavailableException("Device cannot be opened due to resource restrictions");
+            } catch (SecurityException e) {
+                throw new SecurityException("Device cannot be opened due to security restrictions");
+            }
+        }
+        return device;
+    }
+    
+    public static Receiver getReceiver(MidiDevice device) throws MidiUnavailableException {
+        Receiver receiver = device.getReceiver();
+        if (receiver == null) {
+            throw new MidiUnavailableException("Receiver is not available due to resource restrictions");
+        }
+        return receiver;
+    }
+}
+```
+
+In the `sendMidiMessage()` method, we first check if the `Receiver` object is null or closed using the `isClosed()` method. If it is, we throw an `IllegalStateException` with an appropriate error message.
+
+In the `getMidiDevice()` method, we first check if the `MidiDevice.Info` object is null using a `NullPointerException`. We then check if it represents a MIDI device installed on the system using the `isMidiDevice()` method. If it doesn't, we throw an `IllegalArgumentException` with an appropriate error message.
+
+We then get the `MidiDevice` object using the `getMidiDevice()` method and check if it is open. If it isn't, we try to open it and catch any `MidiUnavailableException` or `SecurityException` that may be thrown. If the device cannot be opened due to resource restrictions, we throw a `MidiUnavailableException` with an appropriate error message. If it cannot be opened due to security restrictions, we throw a `SecurityException` with an appropriate error message.
+
+In the `getReceiver()` method, we get the `Receiver` object from the `MidiDevice` and check if it is null using a `MidiUnavailableException`. If it is, we throw a `MidiUnavailableException` with an appropriate error message.
+------------------------------------------------------

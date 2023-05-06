@@ -1,0 +1,50 @@
+Please write a java method that Makes a method handle that adapts a target method handle by wrapping it in a try-finally block.
+Here's an example Java method that creates a method handle that adapts a target method handle by wrapping it in a try-finally block:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class TryFinallyWrapper {
+    public static MethodHandle wrapWithTryFinally(MethodHandle target) {
+        MethodType targetType = target.type();
+        MethodHandle finallyHandler = MethodHandles.empty(targetType);
+        MethodHandle tryFinallyHandler = MethodHandles.tryFinally(target, finallyHandler);
+        return tryFinallyHandler;
+    }
+}
+```
+
+This method takes a `MethodHandle` as input and returns a new `MethodHandle` that wraps the input handle in a try-finally block. The `MethodHandles.tryFinally` method is used to create the new handle, with an empty `finally` block. The resulting handle can be used to invoke the original method handle with the added try-finally behavior.
+------------------------------------------------------
+Please check if any argument is null for java.lang.invoke.MethodHandles.tryFinally(java.lang.invoke.MethodHandle,java.lang.invoke.MethodHandle) in the code snippet you provided, otherwise throw NullPointerException.
+Please check if cleanup does not accept          the required leading arguments, or if the method handle types do          not match in their return types and their          corresponding trailing parameters for java.lang.invoke.MethodHandles.tryFinally(java.lang.invoke.MethodHandle,java.lang.invoke.MethodHandle) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Here's the updated Java method that includes the null and type checking you requested:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class TryFinallyWrapper {
+    public static MethodHandle wrapWithTryFinally(MethodHandle target, MethodHandle cleanup) {
+        if (target == null || cleanup == null) {
+            throw new NullPointerException("MethodHandle arguments cannot be null");
+        }
+        MethodType targetType = target.type();
+        MethodType cleanupType = cleanup.type();
+        if (!cleanupType.equals(MethodType.methodType(void.class, targetType.parameterList()))) {
+            throw new IllegalArgumentException("Cleanup method handle does not accept the required leading arguments");
+        }
+        if (!cleanupType.returnType().equals(void.class) || !cleanupType.parameterList().equals(targetType.parameterList())) {
+            throw new IllegalArgumentException("Method handle types do not match in their return types and their corresponding trailing parameters");
+        }
+        MethodHandle tryFinallyHandler = MethodHandles.tryFinally(target, cleanup);
+        return tryFinallyHandler;
+    }
+}
+```
+
+This method now checks if the `target` and `cleanup` method handles are null, and throws a `NullPointerException` if either of them are null. It also checks if the `cleanup` method handle accepts the required leading arguments and if the method handle types match in their return types and corresponding trailing parameters. If either of these checks fail, an `IllegalArgumentException` is thrown.
+------------------------------------------------------

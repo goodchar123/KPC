@@ -1,0 +1,41 @@
+
+Sure, here's the updated Java method that checks for the security manager and null inputs:
+
+```java
+public static URL findResource(String resourceName) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("getClassLoader"));
+    }
+
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader callerClassLoader = findResource.class.getClassLoader();
+
+    if (callerClassLoader != null && !callerClassLoader.equals(contextClassLoader) && !isAncestor(callerClassLoader, contextClassLoader)) {
+        throw new SecurityException("Caller class loader is not allowed to access the resource");
+    }
+
+    if (resourceName == null) {
+        throw new NullPointerException("Resource name cannot be null");
+    }
+
+    URL resourceUrl = contextClassLoader.getResource(resourceName);
+    return resourceUrl;
+}
+
+private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader current = descendant;
+    while (current != null) {
+        if (current.equals(ancestor)) {
+            return true;
+        }
+        current = current.getParent();
+    }
+    return false;
+}
+```
+
+This updated method checks for the presence of a security manager and throws a `SecurityException` if the caller does not have the required permission. It also checks if the resource name is null and throws a `NullPointerException` if it is.
+
+Additionally, the method checks if the caller's class loader is not null and is not the same as or an ancestor of the context class loader. If this condition is not met, a `SecurityException` is thrown. The `isAncestor` method is used to check if a class loader is an ancestor of another class loader.
+------------------------------------------------------

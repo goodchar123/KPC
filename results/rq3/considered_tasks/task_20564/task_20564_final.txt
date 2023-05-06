@@ -1,0 +1,29 @@
+
+Sure, here's the updated code snippet that checks for I/O errors when closing the `OutputStream` and `InputStream`:
+
+```java
+public byte[] getBlobBytes(Blob blob, long pos, int length) throws SQLException, IOException {
+    InputStream inputStream = blob.getBinaryStream(pos, length);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    byte[] buffer = new byte[4096];
+    int bytesRead = -1;
+    while ((bytesRead = inputStream.read(buffer)) != -1) {
+        outputStream.write(buffer, 0, bytesRead);
+    }
+    byte[] bytes = outputStream.toByteArray();
+    try {
+        outputStream.close();
+    } catch (IOException e) {
+        throw new IOException("Error closing output stream", e);
+    }
+    try {
+        inputStream.close();
+    } catch (IOException e) {
+        throw new IOException("Error closing input stream", e);
+    }
+    return bytes;
+}
+```
+
+This updated method now includes try-catch blocks around the `close()` calls for both the `OutputStream` and `InputStream`. If an I/O error occurs while closing either stream, the method will throw an `IOException` with a message indicating which stream caused the error.
+------------------------------------------------------

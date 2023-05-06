@@ -1,0 +1,51 @@
+
+Sure, here's the updated code snippet that includes the requested error checking:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.List;
+
+public class VarArgsInvocation {
+    public static void invoke(MethodHandle mh, List<Object> args) throws Throwable {
+        if (mh == null) {
+            throw new NullPointerException("MethodHandle cannot be null");
+        }
+        if (args == null) {
+            throw new NullPointerException("Argument list cannot be null");
+        }
+        MethodType mt = mh.type();
+        int argCount = args.size();
+        MethodHandle asType = null;
+        try {
+            asType = mh.asType(mt.changeParameterType(0, Object.class));
+        } catch (IndexOutOfBoundsException e) {
+            throw new WrongMethodTypeException("Cannot change parameter type", e);
+        } catch (IllegalArgumentException e) {
+            throw new WrongMethodTypeException("Cannot change parameter type", e);
+        } catch (NullPointerException e) {
+            throw new WrongMethodTypeException("Cannot change parameter type", e);
+        }
+        MethodHandle exactInvoker = MethodHandles.exactInvoker(mt);
+        MethodHandle inexactInvoker = MethodHandles.invoker(mt);
+        if (exactInvoker != null && exactInvoker.type().parameterCount() == argCount) {
+            if (!exactInvoker.type().equals(mt)) {
+                throw new WrongMethodTypeException("Exact invoker type does not match method type");
+            }
+            exactInvoker.invokeExact(args.toArray());
+        } else if (inexactInvoker != null) {
+            inexactInvoker.invoke(asType.invokeWithArguments(args));
+        } else {
+            throw new IllegalArgumentException("Cannot perform variable arity invocation");
+        }
+    }
+}
+```
+
+The updated code includes the following error checking:
+
+- If `mh` or `args` is `null`, a `NullPointerException` is thrown.
+- If `mh.asType()` throws an `IndexOutOfBoundsException`, `IllegalArgumentException`, or `NullPointerException`, a `WrongMethodTypeException` is thrown with the original exception as the cause.
+- If the resulting method handle from `mh.asType()` has too many parameters for `MethodHandles.exactInvoker()` or `MethodHandles.invoker()`, an `IllegalArgumentException` is thrown.
+------------------------------------------------------

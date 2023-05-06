@@ -1,0 +1,64 @@
+Please write a java method that Submits a Runnable task for execution and returns a Future representing that task.
+Here's an example Java method that submits a Runnable task for execution and returns a Future representing that task:
+
+```java
+import java.util.concurrent.*;
+
+public class TaskExecutor {
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public Future<?> submitTask(Runnable task) {
+        return executor.submit(task);
+    }
+
+    public void shutdown() {
+        executor.shutdown();
+    }
+}
+```
+
+In this example, we create an ExecutorService with a single thread using the `Executors.newSingleThreadExecutor()` method. We then define a `submitTask()` method that takes a `Runnable` task as a parameter and submits it to the executor using the `executor.submit()` method. This method returns a `Future` object that represents the task that was submitted.
+
+Finally, we define a `shutdown()` method that shuts down the executor when it is no longer needed. This is important to ensure that all tasks have completed before the program exits.
+------------------------------------------------------
+Please check if the task cannot be         scheduled for execution for java.util.concurrent.ExecutorService.submit(java.lang.Runnable) in the code snippet you provided, otherwise throw RejectedExecutionException.
+Please check if the task is null for java.util.concurrent.ExecutorService.submit(java.lang.Runnable) in the code snippet you provided, otherwise throw NullPointerException.
+Please check if a security manager exists and         shutting down this ExecutorService may manipulate         threads that the caller is not permitted to modify         because it does not hold RuntimePermission("modifyThread"),         or the security manager's checkAccess method         denies access. for java.util.concurrent.ExecutorService.shutdown() in the code snippet you provided, otherwise throw SecurityException.
+Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+import java.security.Permission;
+import java.util.concurrent.*;
+
+public class TaskExecutor {
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public Future<?> submitTask(Runnable task) {
+        if (task == null) {
+            throw new NullPointerException("Task cannot be null");
+        }
+        try {
+            return executor.submit(task);
+        } catch (RejectedExecutionException e) {
+            throw new RejectedExecutionException("Task cannot be scheduled for execution", e);
+        }
+    }
+
+    public void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("modifyThread"));
+        }
+        try {
+            executor.shutdown();
+        } catch (SecurityException e) {
+            throw new SecurityException("Shutting down this ExecutorService may manipulate threads that the caller is not permitted to modify", e);
+        }
+    }
+}
+```
+
+In the `submitTask()` method, we first check if the task is null and throw a `NullPointerException` if it is. We then attempt to submit the task to the executor using the `executor.submit()` method. If the task cannot be scheduled for execution, a `RejectedExecutionException` is thrown with a message indicating that the task cannot be scheduled.
+
+In the `shutdown()` method, we first check if a security manager exists and if so, we check if the caller has the `RuntimePermission("modifyThread")` permission. If the caller does not have this permission, a `SecurityException` is thrown with a message indicating that shutting down the executor may manipulate threads that the caller is not permitted to modify. We then attempt to shut down the executor using the `executor.shutdown()` method. If a `SecurityException` is thrown during this process, we re-throw it with a more descriptive message.
+------------------------------------------------------

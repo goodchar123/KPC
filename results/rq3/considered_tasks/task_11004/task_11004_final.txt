@@ -1,0 +1,61 @@
+
+Here is the updated code snippet that includes the checks you requested:
+
+```
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+
+public class MyChannel implements ReadableByteChannel {
+
+    private ByteBuffer buffer;
+
+    public MyChannel(ByteBuffer buffer) {
+        this.buffer = buffer;
+    }
+
+    @Override
+    public int read(ByteBuffer dst) throws IOException {
+        int bytesToRead = Math.min(dst.remaining(), buffer.remaining());
+        if (bytesToRead == 0) {
+            return -1;
+        }
+        byte[] bytes = new byte[bytesToRead];
+        buffer.get(bytes);
+        dst.put(bytes);
+        return bytesToRead;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return true;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // do nothing
+    }
+    
+    public void put(byte[] bytes) {
+        if (bytes.length > buffer.remaining()) {
+            throw new BufferOverflowException();
+        }
+        if (buffer.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        }
+        buffer.put(bytes);
+    }
+    
+    public void get(byte[] bytes) {
+        if (bytes.length > buffer.remaining()) {
+            throw new BufferUnderflowException();
+        }
+        buffer.get(bytes);
+    }
+}
+```
+
+The put() method now checks if there is sufficient space in the buffer for the byte array being put. If there is not enough space, it throws a BufferOverflowException. It also checks if the buffer is read-only, and if so, throws a ReadOnlyBufferException.
+
+The get() method now checks if there are fewer than length bytes remaining in the buffer for the byte array being retrieved. If there are not enough bytes remaining, it throws a BufferUnderflowException.
+------------------------------------------------------

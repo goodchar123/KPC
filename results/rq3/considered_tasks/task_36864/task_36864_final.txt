@@ -1,0 +1,82 @@
+
+Thank you for the input. Here's an updated version of the Java method that includes the necessary error checking:
+
+```java
+import java.security.*;
+import javax.xml.crypto.*;
+import javax.xml.crypto.dsig.*;
+import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.keyinfo.*;
+import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+import org.w3c.dom.Document;
+
+public class XMLSignatureExample {
+
+    public static void signDocument(Document document, PrivateKey privateKey, X509Certificate cert) throws Exception {
+        // Create a DOM XMLSignatureFactory that will be used to generate the signature
+        XMLSignatureFactory sigFactory = XMLSignatureFactory.getInstance("DOM");
+
+        // Create a Reference to the document (we are signing the whole document)
+        Reference ref = sigFactory.newReference("", sigFactory.newDigestMethod(DigestMethod.SHA1, null),
+                Collections.singletonList(sigFactory.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null)), null, null);
+
+        // Create the SignedInfo
+        SignedInfo signedInfo = sigFactory.newSignedInfo(sigFactory.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE,
+                (C14NMethodParameterSpec) null), sigFactory.newSignatureMethod(SignatureMethod.RSA_SHA1, null),
+                Collections.singletonList(ref));
+
+        // Create the KeyInfo containing the X509Data
+        KeyInfoFactory keyInfoFactory = sigFactory.getKeyInfoFactory();
+        X509Data x509Data = keyInfoFactory.newX509Data(Collections.singletonList(cert));
+        KeyInfo keyInfo = keyInfoFactory.newKeyInfo(Collections.singletonList(x509Data));
+
+        // Create the XMLSignature using the SignedInfo and KeyInfo
+        XMLSignature signature = sigFactory.newXMLSignature(signedInfo, keyInfo);
+
+        // Create a DOMSignContext and specify the PrivateKey and Document
+        DOMSignContext signContext = new DOMSignContext(privateKey, document.getDocumentElement());
+
+        // Sign the document
+        try {
+            signature.sign(signContext);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("One or more transforms are not of type Transform");
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("uri is not RFC 2396 compliant")) {
+                throw new IllegalArgumentException("URI is not RFC 2396 compliant");
+            } else {
+                throw e;
+            }
+        } catch (NullPointerException e) {
+            if (e.getMessage().contains("dm is null")) {
+                throw new NullPointerException("DigestMethod is null");
+            } else if (e.getMessage().contains("specified parameters are inappropriate for the requested algorithm")) {
+                throw new InvalidAlgorithmParameterException("Invalid algorithm parameters");
+            } else if (e.getMessage().contains("algorithm is null")) {
+                throw new NullPointerException("Algorithm is null");
+            } else if (e.getMessage().contains("references is empty")) {
+                throw new IllegalArgumentException("References is empty");
+            } else if (e.getMessage().contains("content is null")) {
+                throw new NullPointerException("Content is null");
+            } else if (e.getMessage().contains("content is empty")) {
+                throw new IllegalArgumentException("Content is empty");
+            } else if (e.getMessage().contains("si is null")) {
+                throw new NullPointerException("SignedInfo is null");
+            } else if (e.getMessage().contains("signContext is null")) {
+                throw new NullPointerException("SignContext is null");
+            } else {
+                throw e;
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new NoSuchAlgorithmException("Algorithm not found");
+        } catch (MarshalException e) {
+            throw new MarshalException("Error while marshalling");
+        } catch (XMLSignatureException e) {
+            throw new XMLSignatureException("Error while generating signature");
+        }
+    }
+}
+```
+
+This updated version includes try-catch blocks to catch potential errors and throw the appropriate exceptions with helpful error messages.
+------------------------------------------------------

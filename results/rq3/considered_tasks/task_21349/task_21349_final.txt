@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the method that checks for these exceptions:
+
+```java
+public void updateColumnWithCharacterStream(Connection conn, String tableName, String columnName, String value, int id, int timeoutSeconds) throws SQLException {
+    String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        if (value == null) {
+            int sqlType = pstmt.getParameterMetaData().getParameterType(1);
+            switch (sqlType) {
+                case Types.ARRAY:
+                case Types.BLOB:
+                case Types.CLOB:
+                case Types.DATALINK:
+                case Types.JAVA_OBJECT:
+                case Types.NCHAR:
+                case Types.NCLOB:
+                case Types.NVARCHAR:
+                case Types.LONGNVARCHAR:
+                case Types.REF:
+                case Types.ROWID:
+                case Types.SQLXML:
+                case Types.STRUCT:
+                    throw new SQLFeatureNotSupportedException("setNull is not supported for this data type");
+                default:
+                    pstmt.setNull(1, Types.VARCHAR);
+            }
+        } else {
+            pstmt.setCharacterStream(1, new StringReader(value));
+        }
+        pstmt.setInt(2, id);
+        pstmt.setQueryTimeout(timeoutSeconds);
+        int updateCount = pstmt.executeUpdate();
+        if (updateCount == 0) {
+            throw new SQLException("No rows were updated");
+        }
+    } catch (SQLTimeoutException e) {
+        // Attempt to cancel the statement if it has exceeded the timeout value
+        PreparedStatement cancelStmt = conn.prepareStatement("SELECT pg_cancel_backend(pg_backend_pid())");
+        cancelStmt.execute();
+        throw e;
+    } catch (SQLException e) {
+        if (e.getMessage().contains("closed")) {
+            throw new SQLException("PreparedStatement is closed", e);
+        } else if (e.getMessage().contains("parameter index out of range")) {
+            throw new SQLException("Invalid parameter index", e);
+        } else {
+            throw e;
+        }
+    } catch (SQL
+------------------------------------------------------

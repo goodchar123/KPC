@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the Java method that includes all the requested checks:
+
+```java
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
+import java.nio.channels.NonWritableChannelException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ClosedByInterruptException;
+
+public void writeToChannel(WritableByteChannel channel, ByteBuffer buffer) throws IOException {
+    if (!channel.isOpen()) {
+        throw new ClosedChannelException();
+    }
+    if (!(channel instanceof WritableByteChannel)) {
+        throw new NonWritableChannelException();
+    }
+    while (buffer.hasRemaining()) {
+        try {
+            channel.write(buffer);
+        } catch (AsynchronousCloseException e) {
+            throw new AsynchronousCloseException();
+        } catch (ClosedByInterruptException e) {
+            throw new ClosedByInterruptException();
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
+    }
+}
+```
+
+This updated method first checks if the channel is open using the `isOpen()` method. If the channel is closed, it throws a `ClosedChannelException`. It then checks if the channel is writable using the `instanceof` operator. If the channel is not writable, it throws a `NonWritableChannelException`.
+
+During the write operation, the method catches `AsynchronousCloseException` and `ClosedByInterruptException` exceptions and rethrows them with the appropriate exception type. This handles the cases where the channel is closed or interrupted while the write operation is in progress. It also catches `IOException` exceptions and rethrows them with the appropriate exception type.
+
+Note that this method only throws an `IOException` if there is an error while writing to the channel. You can handle this exception in your code as needed.
+------------------------------------------------------

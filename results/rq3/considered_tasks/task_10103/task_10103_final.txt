@@ -1,0 +1,28 @@
+
+You're right, it's important to handle potential exceptions when using `System.arraycopy()` in the code snippet I provided. Here's an updated version of the method that includes the necessary exception handling:
+
+```java
+public void pushbackByte(byte b) throws IOException {
+    if (pushbackBuffer == null) {
+        pushbackBuffer = new byte[1];
+    } else if (pushbackBuffer.length == pushbackIndex) {
+        byte[] newBuffer = new byte[pushbackBuffer.length * 2];
+        try {
+            System.arraycopy(pushbackBuffer, 0, newBuffer, 0, pushbackBuffer.length);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("Error pushing back byte: " + e.getMessage());
+        } catch (ArrayStoreException e) {
+            throw new IOException("Error pushing back byte: " + e.getMessage());
+        } catch (NullPointerException e) {
+            throw new IOException("Error pushing back byte: " + e.getMessage());
+        }
+        pushbackBuffer = newBuffer;
+    }
+    pushbackBuffer[pushbackIndex++] = b;
+}
+```
+
+This updated method includes a try-catch block around the call to `System.arraycopy()`. If an `IndexOutOfBoundsException`, `ArrayStoreException`, or `NullPointerException` is thrown, the method catches the exception and throws an `IOException` with a message indicating the error.
+
+By handling these exceptions, we ensure that the method will not cause an access of data outside array bounds, will not store an element in the wrong type of array, and will not attempt to copy from or to a null array.
+------------------------------------------------------

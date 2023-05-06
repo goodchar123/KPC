@@ -1,0 +1,72 @@
+
+Thank you for the feedback. Here is the updated code snippet that checks for `NoSuchAlgorithmException` and `NullPointerException`:
+
+```java
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertPathValidatorResult;
+import java.security.cert.CertPathValidatorSpi;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertPathParameters;
+import java.security.cert.CertPathValidatorException.BasicReason;
+import java.security.cert.PKIXParameters;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CertPathValidatorExample {
+
+    public static void validateCertPath(CertPath certPath, CertPathParameters params) throws CertPathValidatorException, NoSuchAlgorithmException, NullPointerException {
+        if (certPath == null || params == null) {
+            throw new NullPointerException("Certification path and algorithm parameters must not be null");
+        }
+        try {
+            CertPathValidator validator = CertPathValidator.getInstance("PKIX");
+            validator.validate(certPath, params);
+        } catch (NoSuchAlgorithmException e) {
+            throw e;
+        } catch (CertPathValidatorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CertPathValidatorException("Error validating certification path", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            // Load the certificates from a file or other source
+            List<X509Certificate> certs = new ArrayList<X509Certificate>();
+            // Add the certificates to the list
+
+            // Create a certification path from the certificates
+            CertPath certPath = CertPath.getInstance("X.509");
+            certPath.init(certs.toArray(new X509Certificate[certs.size()]));
+
+            // Create the parameters for the certification path validator
+            PKIXParameters params = new PKIXParameters(null);
+            params.setRevocationEnabled(false);
+
+            // Validate the certification path
+            validateCertPath(certPath, params);
+
+            System.out.println("Certification path is valid");
+        } catch (CertPathValidatorException e) {
+            System.out.println("Certification path is invalid: " + e.getMessage());
+            if (e.getReason() == BasicReason.EXPIRED) {
+                System.out.println("The certification path has expired");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("No Provider supports a CertPathValidatorSpi implementation for the specified algorithm");
+        } catch (NullPointerException e) {
+            System.out.println("Algorithm must not be null");
+        } catch (Exception e) {
+            System.out.println("Error validating certification path: " + e.getMessage());
+        }
+    }
+}
+```
+
+Now, the `validateCertPath` method checks for `NoSuchAlgorithmException` and `NullPointerException` before calling `CertPathValidator.getInstance`. If either of these exceptions is thrown, it is propagated to the calling method. In the `main` method, we catch these exceptions and print appropriate error messages.
+------------------------------------------------------

@@ -1,0 +1,50 @@
+
+Sure, here's an updated version of the Java method that handles the `unregisterMBean(ObjectName)` method of the `MBeanServerConnection` interface, with the additional checks and exception handling you requested:
+
+```
+import javax.management.*;
+
+public class MBeanServerConnectionHandler {
+    
+    private MBeanServerConnection mbsc;
+    
+    // Constructor that initializes the MBeanServerConnection instance
+    public MBeanServerConnectionHandler(MBeanServerConnection mbsc) {
+        this.mbsc = mbsc;
+    }
+    
+    // Method that unregisters an MBean with the given ObjectName
+    public void unregisterMBean(ObjectName objectName) throws Exception {
+        try {
+            if (objectName == null || objectName.equals(mbsc.getMBeanServerDelegate().getMBeanObjectName())) {
+                throw new RuntimeOperationsException(new IllegalArgumentException("The object name in parameter is null or the MBean you are trying to unregister is the MBeanServerDelegate MBean."));
+            }
+            mbsc.unregisterMBean(objectName);
+        } catch (InstanceNotFoundException e) {
+            throw e;
+        } catch (MBeanRegistrationException e) {
+            throw e;
+        } catch (RuntimeMBeanException e) {
+            throw e;
+        } catch (RuntimeErrorException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("An unexpected exception occurred while unregistering the MBean.", e);
+        }
+    }
+}
+```
+
+This updated method includes the following checks and exception handling:
+
+- If the specified `ObjectName` is not registered in the MBean server, it throws an `InstanceNotFoundException`.
+- If the `preDeregister()` method of the MBean throws an exception, it throws an `MBeanRegistrationException`.
+- If the `postDeregister()` method of the MBean throws a `RuntimeException`, it throws a `RuntimeMBeanException`.
+- If the `postDeregister()` method of the MBean throws an `Error`, it throws a `RuntimeErrorException`.
+- If the specified `ObjectName` is null or refers to the `MBeanServerDelegate` MBean, it throws a `RuntimeOperationsException`.
+- If there is a communication problem with the MBean server, it throws an `IOException`.
+
+Note that for all other unexpected exceptions, it throws a `RuntimeException` with a generic error message.
+------------------------------------------------------

@@ -1,0 +1,28 @@
+
+Here's a Java code snippet that checks if a security manager is present and if any of the conditions mentioned are met:
+
+```java
+SecurityManager s = System.getSecurityManager();
+if (s != null) {
+    Class<?> callerClass = Reflection.getCallerClass();
+    Class<?> currentClass = MyClass.class;
+    ClassLoader callerClassLoader = callerClass.getClassLoader();
+    ClassLoader currentClassLoader = currentClass.getClassLoader();
+    if (callerClassLoader != currentClassLoader &&
+        s.checkPermission(new RuntimePermission("accessDeclaredMembers")) != null) {
+        throw new SecurityException("Access to declared fields denied");
+    }
+    if (!callerClassLoader.equals(currentClassLoader) &&
+        !callerClassLoader.isAncestor(currentClassLoader) &&
+        s.checkPackageAccess(currentClass.getPackage().getName()) != null) {
+        throw new SecurityException("Access to package denied");
+    }
+}
+```
+
+This code snippet first gets the current security manager using `System.getSecurityManager()`. If a security manager is present, it then gets the caller class and the current class, as well as their respective class loaders.
+
+The code then checks if the caller's class loader is not the same as the class loader of the current class and if the security manager denies access to the declared fields within this class using `s.checkPermission(new RuntimePermission("accessDeclaredMembers"))`. If this condition is true, a `SecurityException` is thrown with the message "Access to declared fields denied".
+
+The code also checks if the caller's class loader is not the same as or an ancestor of the class loader for the current class and if the security manager denies access to the package of this class using `s.checkPackageAccess(currentClass.getPackage().getName())`. If this condition is true, a `SecurityException` is thrown with the message "Access to package denied".
+------------------------------------------------------

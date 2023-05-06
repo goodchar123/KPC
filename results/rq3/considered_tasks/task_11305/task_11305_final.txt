@@ -1,0 +1,64 @@
+
+Sure, here's the updated Java method that checks if the resource name is null and throws a `NullPointerException`, and also checks for a security manager and throws a `SecurityException` if necessary:
+
+```java
+import java.io.InputStream;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class ResourceOpener {
+    public static InputStream openResource(String resourceName) {
+        if (resourceName == null) {
+            throw new NullPointerException("Resource name cannot be null");
+        }
+        
+        // Check for a security manager
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            // Get the caller's class loader
+            ClassLoader callerClassLoader = AccessController.doPrivileged(
+                new PrivilegedAction<ClassLoader>() {
+                    public ClassLoader run() {
+                        return ResourceOpener.class.getClassLoader();
+                    }
+                }
+            );
+            
+            // Get the context class loader
+            ClassLoader contextClassLoader = AccessController.doPrivileged(
+                new PrivilegedAction<ClassLoader>() {
+                    public ClassLoader run() {
+                        return Thread.currentThread().getContextClassLoader();
+                    }
+                }
+            );
+            
+            // Check if the caller's class loader is the same as or an ancestor of the context class loader
+            if (callerClassLoader != null && !callerClassLoader.equals(contextClassLoader) && !isAncestor(callerClassLoader, contextClassLoader)) {
+                // Check if the caller has the required permission
+                security.checkPermission(new RuntimePermission("getClassLoader"));
+            }
+        }
+        
+        // Use the context class loader to get the input stream for the resource
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
+        
+        // Return the input stream
+        return inputStream;
+    }
+    
+    private static boolean isAncestor(ClassLoader ancestor, ClassLoader descendant) {
+        ClassLoader current = descendant;
+        while (current != null) {
+            if (current.equals(ancestor)) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+}
+```
+
+Now, if you call the `openResource` method with a `null` resource name, it will throw a `NullPointerException` with the message "Resource name cannot be null". And if a security manager is present and the caller's class loader is not allowed to access the context class loader, it will throw a `SecurityException`.
+------------------------------------------------------

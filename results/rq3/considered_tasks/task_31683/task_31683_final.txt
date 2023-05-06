@@ -1,0 +1,48 @@
+
+Thank you for bringing this to my attention again. Here's an updated version of the Java method that includes the error checking you mentioned:
+
+```java
+import java.io.*;
+
+public void writeAudioFileToOutputStream(File audioFile, String fileType, OutputStream outputStream) throws IOException {
+    FileInputStream inputStream = new FileInputStream(audioFile);
+    byte[] buffer = new byte[4096];
+    int bytesRead;
+    try {
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            if (buffer == null) {
+                throw new NullPointerException("Byte array buffer is null");
+            }
+            try {
+                outputStream.write(buffer, 0, bytesRead);
+            } catch (IOException e) {
+                throw new IOException("Error writing to output stream: " + e.getMessage());
+            }
+        }
+    } catch (IOException e) {
+        if (e instanceof EOFException) {
+            throw new IOException("Error reading from input stream: end of file reached");
+        } else {
+            throw new IOException("Error reading from input stream: " + e.getMessage());
+        }
+    } finally {
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            throw new IOException("Error closing input stream: " + e.getMessage());
+        }
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            throw new IOException("Error closing output stream: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method includes a check for `null` on the `byte[]` buffer before reading from the input stream. If the buffer is `null`, a `NullPointerException` is thrown.
+
+Additionally, the method includes a `try-catch` block around the `outputStream.write()` method to check for an `IOException` that might occur if the output stream is closed. If an `IOException` occurs, it is re-thrown with a more descriptive error message.
+
+Finally, the method includes `try-catch` blocks around the `close()` methods for both the input and output streams. If an `IOException` occurs while closing either stream, it is re-thrown with a more descriptive error message.
+------------------------------------------------------

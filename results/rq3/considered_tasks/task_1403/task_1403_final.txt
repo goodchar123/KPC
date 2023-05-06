@@ -1,0 +1,55 @@
+
+Here is an updated version of the code snippet that checks if the listener is registered with the MBean and with the given filter and handback before removing it. If the listener is not found, it throws a ListenerNotFoundException:
+
+```
+public class MyNotificationEmitter implements NotificationEmitter {
+
+    private NotificationListener listener;
+    private NotificationFilter filter;
+    private Object handback;
+
+    @Override
+    public void addNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws IllegalArgumentException {
+        this.listener = listener;
+        this.filter = filter;
+        this.handback = handback;
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener) throws ListenerNotFoundException {
+        if (this.listener == listener) {
+            this.listener = null;
+            this.filter = null;
+            this.handback = null;
+        } else {
+            throw new ListenerNotFoundException("Listener not found");
+        }
+    }
+
+    @Override
+    public void removeNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws ListenerNotFoundException {
+        if (this.listener == listener && this.filter == filter && this.handback == handback) {
+            this.listener = null;
+            this.filter = null;
+            this.handback = null;
+        } else {
+            throw new ListenerNotFoundException("Listener not found with the given filter and handback");
+        }
+    }
+
+    @Override
+    public void sendNotification(Notification notification) {
+        if (listener != null) {
+            listener.handleNotification(notification, handback);
+        }
+    }
+
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return new MBeanNotificationInfo[0];
+    }
+}
+```
+
+This implementation stores the filter and handback objects along with the listener, and checks if they match when removing the listener. If the listener is not found, it throws a ListenerNotFoundException with an appropriate message.
+------------------------------------------------------

@@ -1,0 +1,28 @@
+
+You're right, it's important to handle potential I/O errors when writing to an OutputStream. Here's an updated version of the method that checks for I/O errors and throws an IOException if necessary:
+
+```java
+public void writeSQLREF(SQLREF ref, OutputStream out) throws IOException {
+    // Get the object's SQL type name
+    String typeName = ref.getBaseTypeName();
+
+    // Write the type name to the stream
+    byte[] typeNameBytes = typeName.getBytes(StandardCharsets.UTF_8);
+    out.write(typeNameBytes.length);
+    out.write(typeNameBytes);
+
+    // Write the object's value to the stream
+    byte[] valueBytes = ref.getBytes();
+    out.write(valueBytes.length);
+    try {
+        out.write(valueBytes);
+    } catch (IOException e) {
+        throw new IOException("Error writing SQLREF value to stream", e);
+    }
+}
+```
+
+In this updated version, we use a try-catch block to catch any IOException that may occur when writing the value bytes to the stream. If an IOException is caught, we throw a new IOException with a more descriptive error message and the original exception as the cause.
+
+This way, if an I/O error occurs, the method will throw an IOException with a clear error message that can be used to diagnose and fix the issue.
+------------------------------------------------------

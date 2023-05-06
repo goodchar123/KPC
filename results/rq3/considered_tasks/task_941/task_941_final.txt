@@ -1,0 +1,61 @@
+
+Thank you for bringing these potential issues to my attention. Here is the updated code snippet with the requested error handling:
+
+```java
+import javax.management.*;
+import javax.management.relation.*;
+
+public Set<ObjectInstance> getAssociatedMBeans(ObjectName mbeanName, String relationId, String roleName) throws Exception {
+    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+    try {
+        ObjectInstance mbeanInstance = mbs.getObjectInstance(mbeanName);
+    } catch (InstanceNotFoundException e) {
+        throw new InstanceNotFoundException("MBean " + mbeanName + " is not registered in the MBean server.");
+    }
+    ObjectName relationServiceName = new ObjectName(AdminService.RELATION_SERVICE_NAME);
+    RelationServiceMBean relationService = JMX.newMBeanProxy(mbs, relationServiceName, RelationServiceMBean.class);
+    ObjectName relationObjectName = relationService.findRelation(mbeanName.toString());
+    if (relationObjectName == null) {
+        throw new Exception("No relation found for MBean " + mbeanName);
+    }
+    RelationSupport relation;
+    try {
+        relation = (RelationSupport) mbs.getAttribute(relationObjectName, "Relation");
+    } catch (InstanceNotFoundException | ReflectionException | RuntimeOperationsException | MBeanException | AttributeNotFoundException e) {
+        throw new Exception("Error getting relation for MBean " + mbeanName, e);
+    }
+    RoleList roleList = relation.getRoles(roleName);
+    if (roleList == null) {
+        throw new IllegalArgumentException("No role found with name " + roleName + " in relation " + relationId);
+    }
+    Set<ObjectInstance> associatedMBeans = new HashSet<>();
+    for (Object roleObj : roleList.asList()) {
+        if (!(roleObj instanceof Role)) {
+            throw new IllegalArgumentException("RoleList contains an element that is not a Role.");
+        }
+        Role role = (Role) roleObj;
+        ObjectName associatedMBeanName = role.getRoleValue();
+        try {
+            ObjectInstance associatedMBeanInstance = mbs.getObjectInstance(associatedMBeanName);
+            associatedMBeans.add(associatedMBeanInstance);
+        } catch (InstanceNotFoundException e) {
+            throw new InstanceNotFoundException("Associated MBean " + associatedMBeanName + " is not registered in the MBean server.");
+        }
+        try {
+            Object attributeValue = mbs.getAttribute(associatedMBeanName, "SomeAttribute");
+        } catch (InstanceNotFoundException e) {
+            throw new InstanceNotFoundException("MBean " + associatedMBeanName + " is not registered in the MBean server.");
+        } catch (IllegalArgumentException | RuntimeOperationsException e) {
+            throw e;
+        } catch (MBeanException e) {
+            throw new MBeanException(e, "Error getting attribute value for MBean " + associatedMBeanName);
+        } catch (AttributeNotFoundException e) {
+            throw new AttributeNotFoundException("Attribute SomeAttribute is not accessible in MBean " + associatedMBeanName);
+        }
+    }
+    return associatedMBeans;
+}
+```
+
+This updated code now includes additional try-catch blocks to handle potential exceptions that may be thrown by the `MBeanServer` method `getAttribute`. If an `InstanceNotFoundException` is caught, the method will throw a more informative exception with the original exception as the cause. If an `IllegalArgumentException`, `RuntimeOperationsException`, `MBeanException`, or `AttributeNotFoundException` is caught, the method will throw the corresponding exception with a more informative message.
+------------------------------------------------------

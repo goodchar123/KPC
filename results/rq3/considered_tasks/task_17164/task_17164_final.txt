@@ -1,0 +1,43 @@
+
+Here's the updated Java method that includes handling for `SQLTimeoutException`:
+
+```java
+public void setBytes(int parameterIndex, byte[] bytes) throws SQLException {
+    PreparedStatement pstmt = null;
+    try {
+        pstmt = conn.prepareStatement("UPDATE my_table SET my_column = ? WHERE id = ?");
+        pstmt.setBytes(parameterIndex, bytes);
+        pstmt.setInt(parameterIndex + 1, id);
+        int rowsAffected = pstmt.executeUpdate();
+        if (rowsAffected == 0) {
+            throw new SQLException("No rows were updated");
+        }
+    } catch (SQLException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("An error occurred while setting bytes", e);
+    } finally {
+        if (pstmt != null) {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                // log the exception or rethrow it
+            }
+        }
+    }
+    SQLWarning warning = pstmt.getWarnings();
+    if (warning != null) {
+        throw new SQLWarningException(warning);
+    }
+    if (pstmt.getQueryTimeout() > 0 && pstmt.getUpdateCount() == -1) {
+        throw new SQLTimeoutException("The query timed out");
+    }
+}
+```
+
+This method now includes handling for `SQLTimeoutException` in addition to the other exceptions. The `finally` block still ensures that the `PreparedStatement` is closed properly, even if an exception is thrown.
+
+After executing the update, the method checks for any warnings using the `getWarnings` method. If there are any warnings, a `SQLWarningException` is thrown.
+
+The method also checks if the query timeout has been exceeded using the `getQueryTimeout` method. If the timeout has been exceeded and the update count is still -1 (meaning the update is still running), a `SQLTimeoutException` is thrown.
+------------------------------------------------------

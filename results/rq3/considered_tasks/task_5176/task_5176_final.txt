@@ -1,0 +1,83 @@
+
+Sure, here's the updated code snippet that includes the requested checks:
+
+```java
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleElementVisitor8;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+public class DocTreePathHelper {
+
+    public static List<Element> getDocTreePath(Path filePath) throws IOException {
+        Objects.requireNonNull(filePath, "File path cannot be null");
+
+        if (!filePath.toFile().exists()) {
+            throw new IllegalArgumentException("File does not exist: " + filePath);
+        }
+
+        if (!filePath.toFile().isFile()) {
+            throw new IllegalArgumentException("Path is a directory: " + filePath);
+        }
+
+        if (!filePath.getFileSystem().provider().equals(FileSystems.getDefault().provider())) {
+            throw new UnsupportedOperationException("Path is not associated with the default provider: " + filePath);
+        }
+
+        List<Path> filePaths = Arrays.asList(filePath);
+        return getDocTreePath(filePaths);
+    }
+
+    public static List<Element> getDocTreePath(List<Path> filePaths) throws IOException {
+        Objects.requireNonNull(filePaths, "File paths cannot be null");
+
+        if (filePaths.contains(null)) {
+            throw new NullPointerException("File path cannot be null");
+        }
+
+        StandardJavaFileManager fileManager = ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null);
+        Iterable<? extends JavaFileObject> fileObjects = fileManager.getJavaFileObjectsFromPaths(filePaths);
+        Elements elements = ToolProvider.getSystemJavaCompiler().getStandardFileManager(null, null, null).getElementUtils();
+
+        List<Element> docTreePath = new ArrayList<>();
+        for (JavaFileObject fileObject : fileObjects) {
+            TypeElement typeElement = elements.getTypeElement(fileObject.getName());
+            if (typeElement != null) {
+                typeElement.accept(new SimpleElementVisitor8<Void, Void>() {
+                    @Override
+                    public Void visitPackage(PackageElement e, Void p) {
+                        docTreePath.add(e);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visitType(TypeElement e, Void p) {
+                        docTreePath.add(e);
+                        return null;
+                    }
+
+                    @Override
+                    public Void visit(Element e, Void p) {
+                        if (e.getKind() == ElementKind.PACKAGE) {
+                            docTreePath.add(e);
+                        }
+                        return null;
+                    }
+                }, null);
+            }
+        }
+
+        return
+------------------------------------------------------

@@ -1,0 +1,66 @@
+
+Sure, here's the updated code with the requested exception handling for `AudioSystem.getLine`:
+
+```java
+import javax.sound.sampled.*;
+
+public class AudioLineOpener {
+    
+    public static TargetDataLine openTargetDataLine(AudioFormat format, int bufferSize) throws LineUnavailableException {
+        DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+        if (!AudioSystem.isLineSupported(info)) {
+            throw new IllegalArgumentException("Line not supported");
+        }
+        TargetDataLine line;
+        try {
+            line = (TargetDataLine) AudioSystem.getLine(info);
+        } catch (SecurityException e) {
+            throw new SecurityException("TargetDataLine cannot be accessed due to security restrictions");
+        } catch (LineUnavailableException e) {
+            throw new LineUnavailableException("TargetDataLine cannot be accessed due to resource restrictions");
+        }
+        try {
+            line.open(format, bufferSize);
+        } catch (LineUnavailableException e) {
+            throw new LineUnavailableException("TargetDataLine cannot be opened due to resource restrictions");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid format or buffer size for TargetDataLine");
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("TargetDataLine is already open");
+        } catch (SecurityException e) {
+            throw new SecurityException("TargetDataLine cannot be opened due to security restrictions");
+        }
+        return line;
+    }
+    
+    public static SourceDataLine openSourceDataLine(AudioFormat format, int bufferSize) throws LineUnavailableException {
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+        if (!AudioSystem.isLineSupported(info)) {
+            throw new IllegalArgumentException("Line not supported");
+        }
+        SourceDataLine line;
+        try {
+            line = (SourceDataLine) AudioSystem.getLine(info);
+        } catch (SecurityException e) {
+            throw new SecurityException("SourceDataLine cannot be accessed due to security restrictions");
+        } catch (LineUnavailableException e) {
+            throw new LineUnavailableException("SourceDataLine cannot be accessed due to resource restrictions");
+        }
+        try {
+            line.open(format, bufferSize);
+        } catch (LineUnavailableException e) {
+            throw new LineUnavailableException("SourceDataLine cannot be opened due to resource restrictions");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid format or buffer size for SourceDataLine");
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("SourceDataLine is already open");
+        } catch (SecurityException e) {
+            throw new SecurityException("SourceDataLine cannot be opened due to security restrictions");
+        }
+        return line;
+    }
+}
+```
+
+This code checks for various exceptions that can occur when getting a line from the `AudioSystem`. If any of these exceptions occur, the method throws the appropriate exception with a descriptive message.
+------------------------------------------------------

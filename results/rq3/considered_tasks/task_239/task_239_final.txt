@@ -1,0 +1,51 @@
+
+Here is an updated version of the Java method that includes the requested error checking:
+
+```
+public byte[] processToken(byte[] token) throws GSSException, IllegalStateException {
+    try {
+        // Create a GSSContext object
+        GSSManager manager = GSSManager.getInstance();
+        GSSContext context = manager.createContext((GSSCredential) null);
+
+        // Process the token
+        byte[] outputToken = context.acceptSecContext(token, 0, token.length);
+
+        // Check if the context is established
+        if (!context.isEstablished()) {
+            throw new GSSException(GSSException.NO_CONTEXT, -1, "Context not established");
+        }
+
+        // Get the authenticated user's name
+        String userName = context.getSrcName().toString();
+
+        // Check if the ticket is destroyed for getEncoded()
+        KerberosTicket ticket = (KerberosTicket) context.getDelegCred().getPrivate();
+        if (ticket.isDestroyed()) {
+            throw new IllegalStateException("Kerberos ticket is destroyed for getEncoded()");
+        }
+
+        // Check if the ticket is destroyed for getSessionKey()
+        if (ticket.getSessionKey().isDestroyed()) {
+            throw new IllegalStateException("Kerberos ticket is destroyed for getSessionKey()");
+        }
+
+        // Print the user's name
+        System.out.println("Authenticated user: " + userName);
+
+        // Return the output token
+        return outputToken;
+    } catch (GSSException e) {
+        // Check for major error codes
+        if (e.getMajor() == GSSException.FAILURE) {
+            throw e;
+        } else {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+```
+
+This updated method includes checks for whether the Kerberos ticket is destroyed for both `getEncoded()` and `getSessionKey()`. If the ticket is destroyed, an `IllegalStateException` is thrown. Additionally, the method checks for the `GSSException.FAILURE` error code when calling `getSrcName()`, and throws a `GSSException` if that error code is encountered.
+------------------------------------------------------

@@ -1,0 +1,27 @@
+
+Sure, here's the updated code that checks for a security manager and calls its `checkDelete()` method before deleting the cache file:
+
+```java
+public static void closeAndRemoveCacheFile(FileCacheImageInputStream stream) throws IOException, SecurityException {
+    if (stream != null) {
+        File cacheFile = stream.getCacheFile();
+        stream.close();
+        if (cacheFile != null) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkDelete(cacheFile.getAbsolutePath());
+            }
+            if (!cacheFile.delete()) {
+                throw new IOException("Failed to delete cache file: " + cacheFile.getAbsolutePath());
+            }
+        }
+    }
+}
+```
+
+This updated method first checks if a security manager is present using `System.getSecurityManager()`. If it's not null, it calls the `checkDelete()` method on the security manager, passing in the absolute path of the cache file. If the security manager denies delete access, a `SecurityException` is thrown.
+
+If the security manager allows delete access or if there's no security manager, the method attempts to delete the cache file using the `delete()` method on the `File` object. If the deletion fails, an `IOException` is thrown.
+
+Note that this method now throws both `IOException` and `SecurityException`, so you'll need to handle both exceptions in the calling code using a try-catch block.
+------------------------------------------------------

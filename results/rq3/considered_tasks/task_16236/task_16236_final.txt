@@ -1,0 +1,32 @@
+
+Sure, here's an updated version of the `generateSharedSecret()` method that checks if the key agreement has been initialized and if `doPhase()` has been called to supply the keys for all parties in the agreement before generating the shared secret. If the key agreement is not properly initialized, an `IllegalStateException` is thrown:
+
+```java
+import javax.crypto.KeyAgreement;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.util.Arrays;
+
+public class SharedSecretGenerator {
+
+    public static byte[] generateSharedSecret() throws NoSuchAlgorithmException {
+        // Generate a key pair for the Diffie-Hellman key exchange
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DiffieHellman");
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+        // Get the public key from the key pair
+        PublicKey publicKey = keyPair.getPublic();
+
+        // Generate a new key agreement object
+        KeyAgreement keyAgreement = KeyAgreement.getInstance("DiffieHellman");
+        keyAgreement.init(keyPair.getPrivate());
+
+        // Check if the key agreement has been initialized and if doPhase has been called to supply the keys for all parties
+        if (keyAgreement.getPrivateKey() == null || keyAgreement.getPublicKey() == null) {
+            throw new IllegalStateException("Key agreement has not been properly initialized");
+        }
+
+        // Generate the shared secret using the public
+------------------------------------------------------

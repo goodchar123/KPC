@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the `getCSSPropertyValue` method that checks for the two conditions you mentioned:
+
+```
+public static String getCSSPropertyValue(File cssFile, String propertyName) throws IOException {
+    CSSOMParser parser = new CSSOMParser();
+    CSSStyleSheet stylesheet = parser.parseStyleSheet(cssFile.toURI().toURL());
+    CSSRuleList ruleList = stylesheet.getCssRules();
+    for (int i = 0; i < ruleList.getLength(); i++) {
+        if (ruleList.item(i).getType() == org.w3c.dom.css.CSSRule.STYLE_RULE) {
+            org.w3c.dom.css.CSSStyleRule styleRule = (org.w3c.dom.css.CSSStyleRule) ruleList.item(i);
+            if (styleRule.getStyle().getPropertyCSSValue(propertyName) != null) {
+                CSSValue cssValue = styleRule.getStyle().getPropertyCSSValue(propertyName);
+                return cssValue.getCssText();
+            }
+        }
+    }
+    return null;
+}
+
+public static void main(String[] args) {
+    File cssFile = new File("style.css");
+    String propertyName = "direction";
+    try {
+        String propertyValue = getCSSPropertyValue(cssFile, propertyName);
+        System.out.println(propertyName + ": " + propertyValue);
+    } catch (IllegalArgumentException e) {
+        System.err.println("Error: URL is not absolute");
+    } catch (MalformedURLException e) {
+        System.err.println("Error: protocol handler not found or other URL construction error");
+    } catch (IOException e) {
+        System.err.println("Error: IO exception occurred while parsing CSS file");
+    }
+}
+```
+
+In this version, the `getCSSPropertyValue` method remains the same. In the `main` method, we wrap the call to `getCSSPropertyValue` in a try-catch block that catches `IllegalArgumentException` and `MalformedURLException` in addition to `IOException`. If an `IllegalArgumentException` is thrown, we print an error message indicating that the URL is not absolute. If a `MalformedURLException` is thrown, we print an error message indicating that a protocol handler could not be found or some other URL construction error occurred.
+------------------------------------------------------

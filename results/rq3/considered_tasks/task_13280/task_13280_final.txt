@@ -1,0 +1,132 @@
+
+Sure, here's the updated code snippet that includes the requested checks:
+
+```java
+public Type getEnclosingType(Type type) {
+    SecurityManager s = System.getSecurityManager();
+    ClassLoader callerClassLoader = getClass().getClassLoader();
+    Class<?> enclosingClass = null;
+    if (type instanceof Class) {
+        enclosingClass = ((Class<?>) type).getEnclosingClass();
+    } else if (type instanceof ParameterizedType) {
+        enclosingClass = getEnclosingType(((ParameterizedType) type).getRawType());
+    } else if (type instanceof WildcardType) {
+        Type[] upperBounds = ((WildcardType) type).getUpperBounds();
+        if (upperBounds.length == 1) {
+            Type upperBound = upperBounds[0];
+            if (upperBound instanceof Class) {
+                enclosingClass = ((Class<?>) upperBound).getEnclosingClass();
+            } else if (upperBound instanceof ParameterizedType) {
+                enclosingClass = getEnclosingType(((ParameterizedType) upperBound).getRawType());
+            } else if (upperBound instanceof WildcardType) {
+                throw new MalformedParameterizedTypeException();
+            } else if (upperBound instanceof TypeVariable) {
+                Type[] bounds = ((TypeVariable<?>) upperBound).getBounds();
+                if (bounds.length == 1) {
+                    Type bound = bounds[0];
+                    if (bound instanceof Class) {
+                        enclosingClass = ((Class<?>) bound).getEnclosingClass();
+                    } else if (bound instanceof ParameterizedType) {
+                        enclosingClass = getEnclosingType(((ParameterizedType) bound).getRawType());
+                    } else if (bound instanceof WildcardType) {
+                        throw new MalformedParameterizedTypeException();
+                    } else if (bound instanceof TypeVariable) {
+                        throw new MalformedParameterizedTypeException();
+                    }
+                } else {
+                    throw new MalformedParameterizedTypeException();
+                }
+            } else if (upperBound instanceof GenericArrayType) {
+                Type componentType = ((GenericArrayType) upperBound).getGenericComponentType();
+                if (componentType instanceof Class) {
+                    checkPackageAccess(s, callerClassLoader, ((Class<?>) componentType).getEnclosingClass());
+                } else if (componentType instanceof ParameterizedType) {
+                    checkPackageAccess(s, callerClassLoader, getEnclosingType(((ParameterizedType) componentType).getRawType()));
+                } else if (componentType instanceof WildcardType) {
+                    throw new MalformedParameterizedTypeException();
+                } else if (componentType instanceof TypeVariable) {
+                    Type[] bounds = ((TypeVariable<?>) componentType).getBounds();
+                    if (bounds.length == 1) {
+                        Type bound = bounds[0];
+                        if (bound instanceof Class) {
+                            checkPackageAccess(s, callerClassLoader, ((Class<?>) bound).getEnclosingClass());
+                        } else if (bound instanceof ParameterizedType) {
+                            checkPackageAccess(s, callerClassLoader, getEnclosingType(((ParameterizedType) bound).getRawType()));
+                        } else if (bound instanceof WildcardType) {
+                            throw new MalformedParameterizedTypeException();
+                        } else if (bound instanceof TypeVariable) {
+                            throw new MalformedParameterizedTypeException();
+                        }
+                    } else {
+                        throw new MalformedParameterizedTypeException();
+                    }
+                } else {
+                    throw new TypeNotPresentException("", null);
+                }
+            } else {
+                throw new TypeNotPresentException("", null);
+            }
+        } else {
+            throw new MalformedParameterizedTypeException();
+        }
+    } else if (type instanceof TypeVariable) {
+        Type[] bounds = ((TypeVariable<?>) type).getBounds();
+        if (bounds.length == 1) {
+            Type bound = bounds[0];
+            if (bound instanceof Class) {
+                enclosingClass = ((Class<?>) bound).getEnclosingClass();
+            } else if (bound instanceof ParameterizedType) {
+                enclosingClass = getEnclosingType(((ParameterizedType) bound).getRawType());
+            } else if (bound instanceof WildcardType) {
+                throw new MalformedParameterizedTypeException();
+            } else if (bound instanceof TypeVariable) {
+                throw new MalformedParameterizedTypeException();
+            }
+        } else {
+            throw new MalformedParameterizedTypeException();
+        }
+    } else if (type instanceof GenericArrayType) {
+        Type componentType = ((GenericArrayType) type).getGenericComponentType();
+        if (componentType instanceof Class) {
+            checkPackageAccess(s, callerClassLoader, ((Class<?>) componentType).getEnclosingClass());
+        } else if (componentType instanceof ParameterizedType) {
+            checkPackageAccess(s, callerClassLoader, getEnclosingType(((ParameterizedType) componentType).getRawType()));
+        } else if (componentType instanceof WildcardType) {
+            throw new MalformedParameterizedTypeException();
+        } else if (componentType instanceof TypeVariable) {
+            Type[] bounds = ((TypeVariable<?>) componentType).getBounds();
+            if (bounds.length == 1) {
+                Type bound = bounds[0];
+                if (bound instanceof Class) {
+                    checkPackageAccess(s, callerClassLoader, ((Class<?>) bound).getEnclosingClass());
+                } else if (bound instanceof ParameterizedType) {
+                    checkPackageAccess(s, callerClassLoader, getEnclosingType(((ParameterizedType) bound).getRawType()));
+                } else if (bound instanceof WildcardType) {
+                    throw new MalformedParameterizedTypeException();
+                } else if (bound instanceof TypeVariable) {
+                    throw new MalformedParameterizedTypeException();
+                }
+            } else {
+                throw new MalformedParameterizedTypeException();
+            }
+        } else {
+            throw new TypeNotPresentException("", null);
+        }
+    } else {
+        throw new TypeNotPresentException("", null);
+    }
+    if (enclosingClass != null) {
+        checkPackageAccess(s, callerClassLoader, enclosingClass);
+    }
+    return enclosingClass;
+}
+
+private void checkPackageAccess(SecurityManager s, ClassLoader callerClassLoader, Class<?> clazz) {
+    if (s != null && callerClassLoader != clazz.getClassLoader() && !callerClassLoader.isAncestorOf(clazz.getClassLoader())) {
+        s.checkPackageAccess(clazz.getPackage().getName());
+    }
+}
+```
+
+This updated code snippet includes the requested checks for each of the methods that were previously provided. It checks for the presence of a security manager and the caller's class loader, and throws a `SecurityException` if access to the package of the enclosing class is denied. It also checks for non-existent type declarations and parameterized types that cannot be instantiated, and throws `TypeNotPresentException` and `MalformedParameterizedTypeException` respectively.
+------------------------------------------------------

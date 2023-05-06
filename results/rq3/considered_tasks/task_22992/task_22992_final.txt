@@ -1,0 +1,29 @@
+
+You are correct, it is important to check if the `glyphIndex` is within the valid range of the `GlyphVector` before calling `getGlyphCode()` to avoid an `IndexOutOfBoundsException`. Here is the updated code snippet with the added check:
+
+```
+public static ContextualShaper getContextualShaper(int... unicodeRanges) {
+    Font font = Font.getDefault(); // or any other font you want to use
+    FontRenderContext frc = new FontRenderContext(null, true, true);
+    GlyphVector gv = font.createGlyphVector(frc, " "); // create a dummy glyph vector
+    int numGlyphs = gv.getNumGlyphs(); // get the number of glyphs in the glyph vector
+    int glyphCode = -1;
+    if (numGlyphs > 0) {
+        int glyphIndex = Math.max(0, Math.min(numGlyphs - 1, 0)); // clamp the glyph index to the valid range
+        glyphCode = gv.getGlyphCode(glyphIndex); // get the glyph code for the dummy glyph
+    }
+    if (glyphCode < 0) {
+        throw new IndexOutOfBoundsException("Invalid glyph index: " + glyphIndex);
+    }
+    GlyphMetrics gm = font.getGlyphMetrics(glyphCode); // get the glyph metrics for the dummy glyph
+    float advance = gm.getAdvance(); // get the advance for the dummy glyph
+    int flags = 0; // set the flags to 0
+    for (int range : unicodeRanges) {
+        flags |= FontUtilities.getShapingFlags(range); // set the flags based on the Unicode range(s)
+    }
+    return new ContextualShaper(font, flags, advance); // return the contextual shaper
+}
+```
+
+This code first gets the number of glyphs in the dummy glyph vector using `getNumGlyphs()`. It then clamps the `glyphIndex` to the valid range using `Math.max()` and `Math.min()`. If the resulting `glyphCode` is less than 0, it throws an `IndexOutOfBoundsException`. Otherwise, it proceeds to get the glyph metrics and advance as before, and creates and returns a new `ContextualShaper` object with the specified font, shaping flags, and advance value.
+------------------------------------------------------

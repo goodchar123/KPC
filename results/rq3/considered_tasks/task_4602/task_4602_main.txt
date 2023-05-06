@@ -1,0 +1,64 @@
+Please write a java method that Set the child node before which the result nodes will be inserted.
+Here's an example Java method that sets the child node before which the result nodes will be inserted:
+
+```java
+public void setChildNodeBeforeInsert(Node parent, Node child, NodeList results) {
+    if (parent == null || child == null || results == null) {
+        throw new IllegalArgumentException("Invalid input parameters");
+    }
+    
+    for (int i = 0; i < results.getLength(); i++) {
+        Node result = results.item(i);
+        parent.insertBefore(result, child);
+    }
+}
+```
+
+This method takes in three parameters: the parent node, the child node before which the result nodes will be inserted, and the list of result nodes. It first checks if the input parameters are valid. Then, it loops through the result nodes and inserts each one before the child node in the parent node.
+------------------------------------------------------
+Please check HIERARCHY_REQUEST_ERR: Raised if this node is of a type that does not   allow children of the type of the newChild node, or if   the node to insert is one of this node's ancestors or this node   itself, or if this node is of type Document and the   DOM application attempts to insert a second   DocumentType or Element node.   WRONG_DOCUMENT_ERR: Raised if newChild was created   from a different document than the one that created this node.   NO_MODIFICATION_ALLOWED_ERR: Raised if this node is readonly or   if the parent of the node being inserted is readonly.   NOT_FOUND_ERR: Raised if refChild is not a child of   this node.   NOT_SUPPORTED_ERR: if this node is of type Document,   this exception might be raised if the DOM implementation doesn't   support the insertion of a DocumentType or   Element node. for org.w3c.dom.Node.insertBefore(org.w3c.dom.Node,org.w3c.dom.Node) in the code snippet you provided, otherwise throw DOMException.
+Sure, here's an updated version of the Java method that checks for the possible exceptions and throws a `DOMException` if any of them occur:
+
+```java
+public void setChildNodeBeforeInsert(Node parent, Node child, NodeList results) throws DOMException {
+    if (parent == null || child == null || results == null) {
+        throw new IllegalArgumentException("Invalid input parameters");
+    }
+    
+    Document document = parent.getOwnerDocument();
+    boolean isDocumentType = (parent.getNodeType() == Node.DOCUMENT_NODE);
+    
+    for (int i = 0; i < results.getLength(); i++) {
+        Node result = results.item(i);
+        
+        try {
+            if (result.getOwnerDocument() != document) {
+                throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, "New child was created from a different document");
+            }
+            
+            if (isDocumentType && (result.getNodeType() == Node.DOCUMENT_TYPE_NODE || result.getNodeType() == Node.ELEMENT_NODE)) {
+                throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "DOM implementation doesn't support the insertion of a DocumentType or Element node");
+            }
+            
+            if (parent.isSameNode(result) || parent.isAncestorOf(result)) {
+                throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, "New child is one of this node's ancestors or this node itself");
+            }
+            
+            if (child != null && !parent.isSameNode(child.getParentNode())) {
+                throw new DOMException(DOMException.NOT_FOUND_ERR, "Reference child is not a child of this node");
+            }
+            
+            if (parent.isReadOnly() || (child != null && child.isReadOnly())) {
+                throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Node or parent is read-only");
+            }
+            
+            parent.insertBefore(result, child);
+        } catch (DOMException e) {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method first checks if the input parameters are valid, as before. It then checks for the possible exceptions that can be raised by the `insertBefore` method, as described in the DOM specification. If any of these exceptions occur, it throws a `DOMException` with the appropriate error code and message. If no exceptions occur, it inserts each result node before the child node in the parent node.
+------------------------------------------------------

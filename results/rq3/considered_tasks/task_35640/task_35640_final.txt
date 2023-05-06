@@ -1,0 +1,41 @@
+
+Sure, here's the updated Java method that checks for errors loading assistive technologies and security manager access:
+
+```java
+import java.awt.AWTError;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
+import java.awt.Window;
+
+public class ActiveWindowHelper {
+    public static Window getActiveWindow() {
+        Window activeWindow = null;
+        try {
+            activeWindow = (Window) Toolkit.getDefaultToolkit().getSystemEventQueue().getCurrentEvent().getSource();
+        } catch (NullPointerException e) {
+            // If there is no current event, use EventQueue to get the active Window
+            EventQueue queue = null;
+            try {
+                queue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+            } catch (AWTError awtError) {
+                throw new AWTError("Error loading assistive technologies");
+            }
+            if (queue != null) {
+                SecurityManager securityManager = System.getSecurityManager();
+                if (securityManager != null) {
+                    try {
+                        securityManager.checkPermission(new java.awt.AWTPermission("accessEventQueue"));
+                    } catch (SecurityException securityException) {
+                        throw new SecurityException("Access to EventQueue denied by SecurityManager");
+                    }
+                }
+                activeWindow = queue.peekEvent().getSource() instanceof Window ? (Window) queue.peekEvent().getSource() : null;
+            }
+        }
+        return activeWindow;
+    }
+}
+```
+
+This updated method first tries to get the active Window from the current event using `Toolkit.getDefaultToolkit().getSystemEventQueue().getCurrentEvent().getSource()`. If there is no
+------------------------------------------------------

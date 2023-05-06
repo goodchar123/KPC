@@ -1,0 +1,93 @@
+
+Sure, here's the updated code snippet with the requested error handling:
+
+```java
+public void setColumnSchemaName(Connection conn, String tableName, String columnName, String schemaName) throws SQLException {
+    DatabaseMetaData metaData = null;
+    try {
+        metaData = conn.getMetaData();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 || e.getErrorCode() == 1043) {
+            throw new SQLException("Database access error or closed connection", e);
+        } else {
+            throw e;
+        }
+    }
+    ResultSet columns = null;
+    try {
+        columns = metaData.getColumns(null, schemaName, tableName, columnName);
+    } catch (SQLException e) {
+        throw new SQLException("Database access error", e);
+    }
+    if (columns.next()) {
+        String tableSchema = columns.getString("TABLE_SCHEM");
+        String tableName = columns.getString("TABLE_NAME");
+        String columnName = columns.getString("COLUMN_NAME");
+        int dataType = columns.getInt("DATA_TYPE");
+        String typeName = columns.getString("TYPE_NAME");
+        int columnSize = columns.getInt("COLUMN_SIZE");
+        int decimalDigits = columns.getInt("DECIMAL_DIGITS");
+        int nullable = columns.getInt("NULLABLE");
+        String remarks = columns.getString("REMARKS");
+        String columnDefault = columns.getString("COLUMN_DEF");
+        String isNullable = columns.getString("IS_NULLABLE");
+        int ordinalPosition = columns.getInt("ORDINAL_POSITION");
+        String autoIncrement = columns.getString("IS_AUTOINCREMENT");
+        String generatedColumn = columns.getString("IS_GENERATEDCOLUMN");
+        PreparedStatement statement = null;
+        try {
+            statement = conn.prepareStatement("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET SCHEMA " + schemaName);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 0 || e.getErrorCode() == 1043) {
+                throw new SQLException("Database access error or closed connection", e);
+            } else if (e.getErrorCode() == 1205) {
+                throw new SQLTimeoutException("Timeout exceeded while attempting to cancel running statement", e);
+            } else {
+                throw e;
+            }
+        } finally {
+            if (statement != null) {
+                statement.close();
+            }
+        }
+    } else {
+        throw new SQLException("Column does not exist in table");
+    }
+    if (columns.isClosed()) {
+        throw new SQLException("Result set is closed");
+    }
+    String tableSchema = columns.getString("TABLE_SCHEM");
+    String tableName = columns.getString("TABLE_NAME");
+    String columnName = columns.getString("COLUMN_NAME");
+    if (tableSchema == null || tableName == null || columnName == null) {
+        throw new SQLException("Invalid column label");
+    }
+    int dataType = columns.getInt("DATA_TYPE");
+    String typeName = columns.getString("TYPE_NAME");
+    int columnSize = columns.getInt("COLUMN_SIZE");
+    int decimalDigits = columns.getInt("DECIMAL_DIGITS");
+    int nullable = columns.getInt("NULLABLE");
+    String remarks = columns.getString("REMARKS");
+    String columnDefault = columns.getString("COLUMN_DEF");
+    String isNullable = columns.getString("IS_NULLABLE");
+    int ordinalPosition = columns.getInt("ORDINAL_POSITION");
+    String autoIncrement = columns.getString("IS_AUTOINCREMENT");
+    String generatedColumn = columns.getString("IS_GENERATEDCOLUMN");
+    if (columns.isClosed()) {
+        throw new SQLException("Result set is closed");
+    }
+    if (dataType == 0) {
+        throw new SQLException("Invalid column label");
+    }
+}
+```
+
+This updated code snippet includes error handling for the following scenarios:
+
+- If a database access error occurs or the method is called on a closed connection when retrieving the database metadata, a `SQLException` is thrown with a descriptive message and the original exception as the cause.
+- If a database access error occurs when retrieving column information, a `SQLException` is thrown with a descriptive message.
+- If a database access error occurs or the method is called on a closed result set when retrieving column information, a `SQLException` is thrown with a descriptive message.
+- If the column label is not valid when retrieving column information, a `SQLException` is thrown with a descriptive message.
+- If the data type of the column is invalid when retrieving column information, a `SQLException` is thrown with a descriptive message.
+------------------------------------------------------

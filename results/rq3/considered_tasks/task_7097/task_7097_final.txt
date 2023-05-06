@@ -1,0 +1,23 @@
+
+Sure, here's the updated Java method that checks for security manager and implementation support:
+
+```java
+public static ProcessHandle getCurrentProcessHandle() {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new RuntimePermission("manageProcess"));
+    }
+    try {
+        return ProcessHandle.current();
+    } catch (UnsupportedOperationException e) {
+        throw new UnsupportedOperationException("ProcessHandle.current() is not supported on this platform", e);
+    } catch (SecurityException e) {
+        throw new SecurityException("Access to ProcessHandle.current() is denied by the security manager", e);
+    }
+}
+```
+
+This method first checks if a security manager is installed and if it denies the `RuntimePermission("manageProcess")` for `ProcessHandle.current()`. If the permission is denied, it throws a `SecurityException`.
+
+Next, it tries to get the current process handle using `ProcessHandle.current()`. If the implementation does not support this operation, it throws an `UnsupportedOperationException`.
+------------------------------------------------------

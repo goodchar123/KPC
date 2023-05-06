@@ -1,0 +1,31 @@
+
+Sure, here's the updated code that checks for a security manager and calls its `checkDelete()` method before deleting the file:
+
+```java
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class FileDeleter {
+    public static void deleteFile(String filePath) {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            securityManager.checkDelete(filePath);
+        }
+        File file = new File(filePath);
+        boolean deleted = AccessController.doPrivileged((PrivilegedAction<Boolean>) file::delete);
+        if (deleted) {
+            System.out.println("File deleted successfully.");
+        } else {
+            throw new SecurityException("Failed to delete the file.");
+        }
+    }
+}
+```
+
+This updated method first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it calls its `checkDelete()` method to check if the file can be deleted. If the security manager denies delete access, a `SecurityException` is thrown.
+
+The `File` object is then created and the `delete()` method is called inside a `doPrivileged()` block. This is necessary because the `delete()` method requires the `java.io.FilePermission` permission, which may not be granted to the code calling this method. By calling `delete()` inside a `doPrivileged()` block, the code is granted the necessary permission to delete the file.
+
+If the file is deleted successfully, a success message is printed to the console. If the file cannot be deleted, a `SecurityException` is thrown.
+------------------------------------------------------

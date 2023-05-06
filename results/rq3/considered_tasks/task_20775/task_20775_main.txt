@@ -1,0 +1,77 @@
+Please write a java method that Moves to this Statement object's next result, deals with any current ResultSet object(s) according  to the instructions specified by the given flag, and returns true if the next result is a ResultSet object.
+Here's a possible implementation of the method you described:
+
+```java
+public boolean moveToNextResult(Statement stmt, int flag) throws SQLException {
+    boolean hasResultSet = stmt.getMoreResults(flag);
+    if (hasResultSet) {
+        ResultSet rs = stmt.getResultSet();
+        // Do something with the ResultSet object
+    } else {
+        int updateCount = stmt.getUpdateCount();
+        // Do something with the update count
+    }
+    return hasResultSet;
+}
+```
+
+This method takes a `Statement` object and a flag as input, and returns a boolean indicating whether the next result is a `ResultSet` object. It uses the `getMoreResults()` method of the `Statement` object to move to the next result and deal with any current `ResultSet` object(s) according to the specified flag. If the next result is a `ResultSet` object, it retrieves it using the `getResultSet()` method and performs some operation on it. If the next result is an update count, it retrieves it using the `getUpdateCount()` method and performs some operation on it. Finally, it returns the boolean indicating whether the next result is a `ResultSet` object.
+------------------------------------------------------
+Please check if a database access error occurs or this method is called on a closed Statement for java.sql.Statement.getResultSet() in the code snippet you provided, otherwise throw SQLException.
+Please check if a database access error occurs or this method is called on a closed Statement for java.sql.Statement.getUpdateCount() in the code snippet you provided, otherwise throw SQLException.
+You're right, it's important to handle potential exceptions when calling `getResultSet()` and `getUpdateCount()` methods on a `Statement` object. Here's an updated implementation of the `moveToNextResult()` method that includes exception handling:
+
+```java
+public boolean moveToNextResult(Statement stmt, int flag) throws SQLException {
+    boolean hasResultSet = stmt.getMoreResults(flag);
+    if (hasResultSet) {
+        ResultSet rs = stmt.getResultSet();
+        if (rs == null) {
+            throw new SQLException("getResultSet() returned null");
+        }
+        // Do something with the ResultSet object
+    } else {
+        int updateCount = stmt.getUpdateCount();
+        if (updateCount == -1) {
+            throw new SQLException("getUpdateCount() returned -1");
+        }
+        // Do something with the update count
+    }
+    return hasResultSet;
+}
+```
+
+This updated implementation checks if the `ResultSet` object returned by `getResultSet()` is null, and throws a `SQLException` if it is. Similarly, it checks if the update count returned by `getUpdateCount()` is -1, which indicates that there are no more results, and throws a `SQLException` if it is. This ensures that any potential errors are caught and handled properly.
+------------------------------------------------------
+Please check if a database access error occurs, this method is called on a closed Statement or the argument         supplied is not one of the following:        Statement.CLOSE_CURRENT_RESULT,        Statement.KEEP_CURRENT_RESULT or        Statement.CLOSE_ALL_RESULTS for java.sql.Statement.getMoreResults(int) in the code snippet you provided, otherwise throw SQLException.
+Please check if DatabaseMetaData.supportsMultipleOpenResults returns false and either        Statement.KEEP_CURRENT_RESULT or        Statement.CLOSE_ALL_RESULTS are supplied as the argument. for java.sql.Statement.getMoreResults(int) in the code snippet you provided, otherwise throw SQLFeatureNotSupportedException.
+You're right again, it's important to handle potential exceptions and unsupported operations when calling `getMoreResults(int)` method on a `Statement` object. Here's an updated implementation of the `moveToNextResult()` method that includes exception handling and unsupported operation handling:
+
+```java
+public boolean moveToNextResult(Statement stmt, int flag) throws SQLException {
+    if (!stmt.getConnection().getMetaData().supportsMultipleOpenResults() &&
+            (flag == Statement.KEEP_CURRENT_RESULT || flag == Statement.CLOSE_ALL_RESULTS)) {
+        throw new SQLFeatureNotSupportedException("Multiple open results not supported");
+    }
+    boolean hasResultSet = stmt.getMoreResults(flag);
+    if (hasResultSet) {
+        ResultSet rs = stmt.getResultSet();
+        if (rs == null) {
+            throw new SQLException("getResultSet() returned null");
+        }
+        // Do something with the ResultSet object
+    } else {
+        int updateCount = stmt.getUpdateCount();
+        if (updateCount == -1) {
+            throw new SQLException("getUpdateCount() returned -1");
+        }
+        // Do something with the update count
+    }
+    return hasResultSet;
+}
+```
+
+This updated implementation first checks if the database supports multiple open results using the `supportsMultipleOpenResults()` method of the `DatabaseMetaData` object obtained from the `Connection` object associated with the `Statement`. If multiple open results are not supported and the flag is `KEEP_CURRENT_RESULT` or `CLOSE_ALL_RESULTS`, it throws a `SQLFeatureNotSupportedException`. 
+
+Then, it calls `getMoreResults(int)` method on the `Statement` object with the specified flag, and checks if the `ResultSet` object returned by `getResultSet()` is null, and throws a `SQLException` if it is. Similarly, it checks if the update count returned by `getUpdateCount()` is -1, which indicates that there are no more results, and throws a `SQLException` if it is. This ensures that any potential errors and unsupported operations are caught and handled properly.
+------------------------------------------------------

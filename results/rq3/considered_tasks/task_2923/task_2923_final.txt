@@ -1,0 +1,19 @@
+
+You're right, it's important to handle the case where no value is present in the `Optional` object returned by the `getModuleLocation` method. Here's an updated version of the method that throws a `NoSuchElementException` if no value is present:
+
+```java
+public static Path getModuleLocation(Path location, String fileName) {
+    ModuleFinder finder = ModuleFinder.of(location);
+    Optional<ModuleReference> moduleRef = finder.findAll().stream()
+            .filter(ref -> ref.descriptor().exports().stream()
+                    .anyMatch(exp -> exp.source().orElse("").endsWith(fileName)))
+            .findFirst();
+    return moduleRef.map(ModuleReference::location)
+            .orElseThrow(() -> new NoSuchElementException("No module found containing file " + fileName));
+}
+```
+
+This version of the method uses the `map` method to extract the location of the module from the `Optional<ModuleReference>` object returned by the `findFirst` method. If a value is present, the method returns the location as a `Path` object. If no value is present, the method throws a `NoSuchElementException` with a message indicating that no module was found containing the specified file.
+
+Note that this version of the method assumes that there is exactly one module containing the specified file. If there are multiple modules containing the file, the method will return the location of the first module found. If there are no modules containing the file, the method will throw a `NoSuchElementException`.
+------------------------------------------------------

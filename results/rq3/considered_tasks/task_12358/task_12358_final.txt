@@ -1,0 +1,47 @@
+
+Here's the updated Java method that includes the requested error checking:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class AdapterMethodHandle {
+    public static MethodHandle adaptMethodHandle(MethodHandle mh, Class<?> newType) throws Throwable {
+        if (mh.type().parameterCount() != 1) {
+            throw new IllegalArgumentException("MethodHandle must take exactly one argument");
+        }
+        if (mh.type().parameterType(0) != double.class) {
+            throw new IllegalArgumentException("MethodHandle argument must be of type double");
+        }
+        if (newType == null) {
+            throw new NullPointerException("New return type cannot be null");
+        }
+        if (newType == void.class) {
+            throw new IllegalArgumentException("New return type cannot be void");
+        }
+        MethodType newMhType = mh.type().changeReturnType(newType);
+        MethodHandle adaptedMh = mh.asType(newMhType);
+        if (!adaptedMh.type().equals(newMhType)) {
+            throw new WrongMethodTypeException("Conversion to new return type failed");
+        }
+        return adaptedMh;
+    }
+
+    public static void main(String[] args) throws Throwable {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle mh = lookup.findStatic(Math.class, "sqrt", MethodType.methodType(double.class, double.class));
+        MethodHandle adaptedMh = adaptMethodHandle(mh, int.class);
+        if (!adaptedMh.type().equals(MethodType.methodType(int.class, double.class))) {
+            throw new WrongMethodTypeException("Conversion to new return type failed");
+        }
+        int result = (int) adaptedMh.invokeExact(25.0);
+        System.out.println(result);
+    }
+}
+```
+
+In this updated version, we've added several error checks to the `adaptMethodHandle` method. First, we check that the `MethodHandle` object takes exactly one argument of type `double`. If not, we throw an `IllegalArgumentException`. Next, we check that the new return type is not `void.class` and is not null. If it is, we throw a `IllegalArgumentException` or `NullPointerException`, respectively. We then create the new method handle and check that the conversion was successful by comparing the new method handle's type to the expected type. If they don't match, we throw a `WrongMethodTypeException`.
+
+In the `main` method, we've also added a check to ensure that the new method handle's type matches the expected type before invoking it. Finally, we've added a `throws Throwable` clause to the `adaptMethodHandle` method to ensure that any exceptions thrown by the underlying method propagate unchanged through the method handle call.
+------------------------------------------------------

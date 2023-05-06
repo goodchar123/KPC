@@ -1,0 +1,37 @@
+
+Sure, here's an updated version of the Java method that checks for the conditions you mentioned and throws the appropriate exceptions:
+
+```java
+import java.awt.Point;
+import java.awt.image.*;
+
+public class RasterCreator {
+    public static Raster createRaster(int dataType, int width, int height, int[] bandMasks) {
+        SampleModel sampleModel = new SinglePixelPackedSampleModel(dataType, width, height, bandMasks);
+        DataBuffer dataBuffer = new DataBuffer(dataType, width * height);
+        Point location = new Point(0, 0);
+        
+        // Check for integer overflow
+        if (location.x + sampleModel.getWidth() < location.x || location.y + sampleModel.getHeight() < location.y) {
+            throw new RasterFormatException("Integer overflow when computing raster size");
+        }
+        
+        // Check for invalid sample model and data buffer combination
+        if (dataBuffer.getNumBanks() > 1 && (sampleModel instanceof PixelInterleavedSampleModel ||
+                                             sampleModel instanceof SinglePixelPackedSampleModel ||
+                                             sampleModel instanceof MultiPixelPackedSampleModel)) {
+            throw new RasterFormatException("Invalid sample model and data buffer combination");
+        }
+        
+        // Check for null sample model or data buffer
+        if (sampleModel == null || dataBuffer == null) {
+            throw new NullPointerException("Sample model or data buffer is null");
+        }
+        
+        return Raster.createWritableRaster(sampleModel, dataBuffer, location);
+    }
+}
+```
+
+This updated method checks for the conditions you mentioned using if statements and throws the appropriate exceptions if any of the conditions are met.
+------------------------------------------------------

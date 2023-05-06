@@ -1,0 +1,56 @@
+
+Sure, here's the updated code snippet that includes error handling for the scenarios you mentioned:
+
+```java
+import java.io.Reader;
+import java.sql.*;
+
+public class Example {
+    public Reader getParameterAsReader(Connection conn, String query, int parameterIndex) throws SQLException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Reader reader = null;
+        try {
+            stmt = conn.prepareStatement(query);
+            stmt.setInt(parameterIndex, 1);
+            rs = stmt.executeQuery();
+            if (!rs.next()) {
+                throw new SQLException("No rows returned from query");
+            }
+            reader = rs.getCharacterStream(parameterIndex);
+        } catch (SQLException e) {
+            if (e instanceof SQLTimeoutException) {
+                throw (SQLTimeoutException) e;
+            } else {
+                throw new SQLException("Error executing query", e);
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    // log error or handle it as appropriate
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    // log error or handle it as appropriate
+                }
+            }
+        }
+        if (reader == null) {
+            throw new SQLException("Error retrieving reader object");
+        }
+        return reader;
+    }
+}
+```
+
+In this updated code, we've added a try-catch block to handle any `SQLException` that may occur during the execution of the query. We've also added a check to ensure that the result set contains at least one row before attempting to retrieve the value of the designated parameter as a `Reader` object.
+
+We've also added error handling for the scenarios you mentioned. If a `SQLTimeoutException` is thrown during the execution of the query, we re-throw it. If any other `SQLException` is thrown, we wrap it in a new `SQLException` with a more descriptive error message.
+
+Finally, we've added a `finally` block to ensure that the `ResultSet` and `PreparedStatement` objects are closed properly, even if an exception is thrown. If the `Reader` object is still null after all error handling, we throw a new `SQLException` with an appropriate error message.
+------------------------------------------------------

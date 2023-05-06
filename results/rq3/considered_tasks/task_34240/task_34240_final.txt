@@ -1,0 +1,50 @@
+
+Sure, here's the updated Java method that checks for the availability of the `Sequencer`, `Receiver`, and `Transmitter` and throws a `MidiUnavailableException` if they are not available due to resource restrictions or if no device providing them is installed in the system:
+
+```
+import javax.sound.midi.*;
+
+public class MidiHelper {
+    public static Sequencer getDefaultSequencer(boolean connectToDevice) throws MidiUnavailableException {
+        Sequencer sequencer = null;
+        try {
+            sequencer = MidiSystem.getSequencer();
+        } catch (MidiUnavailableException e) {
+            throw new MidiUnavailableException("No sequencer available: " + e.getMessage());
+        }
+        if (sequencer == null) {
+            throw new MidiUnavailableException("No sequencer available");
+        }
+        if (connectToDevice) {
+            Receiver receiver = null;
+            try {
+                receiver = MidiSystem.getReceiver();
+            } catch (MidiUnavailableException e) {
+                throw new MidiUnavailableException("No receiver available: " + e.getMessage());
+            }
+            if (receiver == null) {
+                throw new MidiUnavailableException("No receiver available");
+            }
+            Transmitter transmitter = null;
+            try {
+                transmitter = MidiSystem.getTransmitter();
+            } catch (MidiUnavailableException e) {
+                throw new MidiUnavailableException("No transmitter available: " + e.getMessage());
+            }
+            if (transmitter == null) {
+                throw new MidiUnavailableException("No transmitter available");
+            }
+            sequencer.getTransmitter().setReceiver(receiver);
+            transmitter.setReceiver(sequencer.getReceiver());
+        }
+        return sequencer;
+    }
+}
+```
+
+This method first tries to obtain the default `Sequencer` and catches any `MidiUnavailableException` that may occur. If a `MidiUnavailableException` is caught, it throws a new `MidiUnavailableException` with the message "No sequencer available" and the original exception's message.
+
+If the `Sequencer` is obtained successfully, the method checks if `connectToDevice` is `true`. If it is, the method tries to obtain the default `Receiver` and `Transmitter` and catches any `MidiUnavailableException` that may occur. If a `MidiUnavailableException` is caught, it throws a new `MidiUnavailableException` with the message "No receiver available" or "No transmitter available" and the original exception's message.
+
+If all the required components are available, the method connects the `Sequencer` to the default `Receiver` and `Transmitter` and returns the `Sequencer`.
+------------------------------------------------------

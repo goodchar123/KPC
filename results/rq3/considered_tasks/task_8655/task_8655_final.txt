@@ -1,0 +1,50 @@
+
+Sure, here's an updated version of the `addTask` method that checks if the task cannot be scheduled for execution and if the task is null for `java.util.concurrent.ExecutorService.submit(java.util.concurrent.Callable)`, and throws a `RejectedExecutionException` or `NullPointerException` respectively:
+
+```
+import java.util.concurrent.*;
+
+public class FutureExample {
+    private final BlockingQueue<Future<?>> queue = new LinkedBlockingQueue<>();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public <T> T getNextResult(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, CancellationException {
+        Future<?> future = queue.poll(timeout, unit);
+        if (future == null) {
+            throw new TimeoutException();
+        }
+        if (future.isCancelled()) {
+            throw new CancellationException();
+        }
+        try {
+            return (T) future.get();
+        } catch (ExecutionException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        } catch (CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException(e);
+        }
+    }
+
+    public void addTask(Callable<?> task) throws RejectedExecutionException, NullPointerException {
+        if (task == null) {
+            throw new NullPointerException();
+        }
+        try {
+            Future<?> future = executor.submit(task);
+            queue.add(future);
+        } catch (RejectedExecutionException e) {
+            throw e;
+        }
+    }
+}
+```
+
+In this updated version, we use a try-catch block to catch any `RejectedExecutionException` thrown by the `executor.submit()` method. If the task is null, we throw a `NullPointerException`.
+
+We also catch `InterruptedException` and cancel the future if it occurs, before re-throwing it.
+------------------------------------------------------

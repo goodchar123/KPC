@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the `getClassLoader()` method that includes the checks you requested:
+
+```java
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.SecurityPermission;
+
+public class ClassLoaderHelper {
+    
+    public static ClassLoader getClassLoader(Class<?> clazz) throws SecurityException, NullPointerException {
+        if (clazz == null) {
+            throw new NullPointerException("Class cannot be null.");
+        }
+        
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Class<?> callerClass = Reflection.getCallerClass();
+            ClassLoader callerClassLoader = callerClass.getClassLoader();
+            ClassLoader classClassLoader = clazz.getClassLoader();
+            
+            if (callerClassLoader != null && callerClassLoader != classClassLoader && !callerClassLoader.isAncestorOf(classClassLoader)) {
+                sm.checkPermission(new SecurityPermission("getClassLoader"));
+            }
+        }
+        
+        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return clazz.getClassLoader();
+            }
+        });
+    }
+    
+}
+```
+
+This updated method includes the following checks:
+
+- It checks if the `clazz` parameter is null and throws a `NullPointerException` if it is.
+- It checks if a security manager is present and if the caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested. If this is the case, it checks if the security manager grants the `RuntimePermission("getClassLoader")`. If access is denied, it throws a `SecurityException`.
+- If all checks pass, it uses `AccessController.doPrivileged()` to retrieve the class loader for the specified class.
+
+Note that the `SecurityManager` checks are optional and can be removed if not needed.
+------------------------------------------------------

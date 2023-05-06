@@ -1,0 +1,226 @@
+
+Sure, here's an updated version of the code snippet that includes the necessary checks and exceptions:
+
+```
+import java.util.*;
+
+public class MyCollection<E> implements List<E> {
+
+    private List<E> elements;
+
+    public MyCollection() {
+        elements = new ArrayList<>();
+    }
+
+    @Override
+    public int size() {
+        return elements.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return elements.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        if (o == null && !containsNull()) {
+            throw new NullPointerException();
+        }
+        try {
+            E e = (E) o;
+            return elements.contains(e);
+        } catch (ClassCastException ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return elements.iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return elements.toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        if (a == null) {
+            throw new NullPointerException();
+        }
+        if (a.length < size()) {
+            return (T[]) Arrays.copyOf(elements.toArray(), size(), a.getClass());
+        }
+        System.arraycopy(elements.toArray(), 0, a, 0, size());
+        if (a.length > size()) {
+            a[size()] = null;
+        }
+        return a;
+    }
+
+    @Override
+    public boolean add(E e) {
+        if (!isElementAllowed(e)) {
+            throw new IllegalArgumentException();
+        }
+        return elements.add(e);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if (o == null && !containsNull()) {
+            throw new NullPointerException();
+        }
+        try {
+            E e = (E) o;
+            return elements.remove(e);
+        } catch (ClassCastException ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        for (Object o : c) {
+            if (!contains(o)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+        boolean modified = false;
+        for (E e : c) {
+            if (add(e)) {
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends E> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        boolean modified = false;
+        for (Object o : c) {
+            if (remove(o)) {
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        boolean modified = false;
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            E e = it.next();
+            if (!c.contains(e)) {
+                it.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public void clear() {
+        elements.clear();
+    }
+
+    @Override
+    public E get(int index) {
+        return elements.get(index);
+    }
+
+    @Override
+    public E set(int index, E element) {
+        if (!isElementAllowed(element)) {
+            throw new IllegalArgumentException();
+        }
+        return elements.set(index, element);
+    }
+
+    @Override
+    public void add(int index, E element) {
+        if (!isElementAllowed(element)) {
+            throw new IllegalArgumentException();
+        }
+        elements.add(index, element);
+    }
+
+    @Override
+    public E remove(int index) {
+        return elements.remove(index);
+    }
+
+    @Override
+    public int indexOf(Object o) {
+        if (o == null && !containsNull()) {
+            throw new NullPointerException();
+        }
+        try {
+            E e = (E) o;
+            return elements.indexOf(e);
+        } catch (ClassCastException ex) {
+            return -1;
+        }
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        if (o == null && !containsNull()) {
+            throw new NullPointerException();
+        }
+        try {
+            E e = (E) o;
+            return elements.lastIndexOf(e);
+        } catch (ClassCastException ex) {
+            return -1;
+        }
+    }
+
+    @Override
+    public ListIterator<E> listIterator() {
+        return elements.listIterator();
+    }
+
+    @Override
+    public ListIterator<E> listIterator(int index) {
+        return elements.listIterator(index);
+    }
+
+    @Override
+    public List<E> subList(int fromIndex, int toIndex) {
+        return elements.subList(fromIndex, toIndex);
+    }
+
+    private boolean containsNull() {
+        return elements.contains(null);
+    }
+
+    private boolean isElementAllowed(E e) {
+        if (e == null && !allowsNull()) {
+            throw new NullPointerException();
+        }
+        // Add any additional checks for element validity here
+        return true;
+    }
+
+    private boolean allowsNull() {
+        return true; // Change to false if null elements are not allowed
+    }
+}
+```
+
+This updated version includes the necessary checks and exceptions for the `contains`, `toArray`, `add`, and `remove` methods, as well as the `get`, `set`, `add`, `remove`, `indexOf`, and `lastIndexOf` methods required by the List interface. The `containsNull`, `isElementAllowed`, and `allowsNull` methods are used to perform the necessary checks and throw the appropriate exceptions.
+------------------------------------------------------

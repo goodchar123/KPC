@@ -1,0 +1,25 @@
+
+Sure, here's an updated version of the `setIntParameter` method that checks for a query timeout and attempts to cancel the currently running statement if the timeout has been exceeded:
+
+```
+public void setIntParameter(int parameterIndex, int value, int queryTimeout) throws SQLException {
+    try {
+        PreparedStatement pstmt = conn.prepareStatement("UPDATE my_table SET my_column = ? WHERE id = ?");
+        pstmt.setInt(parameterIndex, value);
+        pstmt.setInt(parameterIndex + 1, id);
+        pstmt.setQueryTimeout(queryTimeout);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout occurred, attempt to cancel the statement
+            pstmt.cancel();
+        }
+        throw e;
+    }
+}
+```
+
+This updated method takes an additional parameter `queryTimeout` which specifies the maximum time in seconds that the statement should be allowed to run before timing out. The `setQueryTimeout` method is called on the PreparedStatement object to set the timeout value.
+
+If a SQLTimeoutException is thrown during the execution of the statement, the method checks if the exception was caused by a query timeout. If so, it attempts to cancel the statement using the `cancel` method on the PreparedStatement object. Finally, the original exception is re-thrown to the calling code.
+------------------------------------------------------

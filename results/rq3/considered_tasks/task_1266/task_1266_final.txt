@@ -1,0 +1,63 @@
+
+Sure, here's an updated version of the `registerMBean` method that checks for the additional exceptions you mentioned:
+
+```java
+import javax.management.*;
+
+public class MBeanRegistrationExample {
+
+    public static void registerMBean(Object object, String objectName) throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        ObjectName name = new ObjectName(objectName);
+        
+        // Check if MBean is already registered
+        try {
+            if (mbs.isRegistered(name)) {
+                throw new InstanceAlreadyExistsException("MBean is already registered: " + objectName);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(new RuntimeException(e), "Object name is null");
+        }
+        
+        // Call preRegister method of MBeanRegistration interface
+        if (object instanceof MBeanRegistration) {
+            try {
+                ((MBeanRegistration) object).preRegister(mbs, name);
+            } catch (Exception e) {
+                throw new MBeanRegistrationException(e, "preRegister method threw an exception");
+            }
+        }
+        
+        // Register the MBean with the MBean server
+        try {
+            mbs.registerMBean(object, name);
+        } catch (InstanceAlreadyExistsException e) {
+            throw new InstanceAlreadyExistsException("MBean is already registered: " + objectName);
+        } catch (NotCompliantMBeanException e) {
+            throw new NotCompliantMBeanException("Object is not a JMX compliant MBean");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeOperationsException(new RuntimeException(e), "Object name is null");
+        } catch (RuntimeException e) {
+            throw new RuntimeMBeanException(e, "postRegister method threw a RuntimeException");
+        } catch (Error e) {
+            throw new RuntimeErrorException(e, "postRegister method threw an Error");
+        }
+        
+        // Call postRegister method of MBeanRegistration interface
+        if (object instanceof MBeanRegistration) {
+            try {
+                ((MBeanRegistration) object).postRegister(true);
+            } catch (RuntimeException e) {
+                throw new RuntimeMBeanException(e, "postRegister method threw a RuntimeException");
+            } catch (Error e) {
+                throw new RuntimeErrorException(e, "postRegister method threw an Error");
+            }
+        }
+    }
+}
+```
+
+In this updated version, we first check for a `IllegalArgumentException` when calling `MBeanServer.isRegistered()`, and throw a `RuntimeOperationsException` if the object name is null.
+
+We also check for an exception thrown by the `preRegister()` method of the `MBeanRegistration` interface, and throw an `MBeanRegistrationException` if an exception is caught.
+------------------------------------------------------

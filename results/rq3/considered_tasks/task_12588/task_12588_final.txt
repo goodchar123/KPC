@@ -1,0 +1,29 @@
+
+Here's the updated Java method that includes the requested checks:
+
+```
+public static void ensureInitialized(Class<?> targetClass) {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        ClassLoader callerClassLoader = ClassUtils.class.getClassLoader();
+        if (callerClassLoader != null && targetClass.getClassLoader() == null
+                && !callerClassLoader.equals(targetClass.getClassLoader())
+                && !callerClassLoader.checkPermission(new RuntimePermission("getClassLoader"))) {
+            throw new SecurityException("Caller does not have permission to get class loader");
+        }
+    }
+
+    try {
+        Class.forName(targetClass.getName(), true, targetClass.getClassLoader());
+    } catch (ClassNotFoundException e) {
+        throw new LinkageError("Failed to find class " + targetClass.getName(), e);
+    } catch (ExceptionInInitializerError e) {
+        throw new ExceptionInInitializerError("Failed to initialize class " + targetClass.getName() + ": " + e.getMessage());
+    }
+}
+```
+
+This method first checks if a security manager is present and if so, checks if the caller has permission to get the class loader. If not, a `SecurityException` is thrown.
+
+Next, the method attempts to load and initialize the target class using `Class.forName()`. If the class cannot be found, a `LinkageError` is thrown. If the initialization of the class fails, an `ExceptionInInitializerError` is thrown.
+------------------------------------------------------

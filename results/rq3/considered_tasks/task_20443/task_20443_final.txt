@@ -1,0 +1,23 @@
+
+Sure, here's the updated Java method that checks for the conditions you mentioned:
+
+```java
+public void setRowSetParameter(RowSet rowSet, int parameterIndex, InputStream inputStream) throws SQLException {
+    try {
+        rowSet.getCommand().setBinaryStream(parameterIndex, inputStream);
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support this method", e);
+        } else if (e.getErrorCode() == 17003) {
+            throw new SQLException("Parameter index does not correspond to a parameter marker in the SQL statement", e);
+        } else if (e.getErrorCode() == 17007) {
+            throw new SQLException("This method is called on a closed PreparedStatement", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+In this updated method, we catch the SQLException thrown by the `setBinaryStream` method and check its error code to determine the cause of the exception. If the error code is 0, we throw a `SQLFeatureNotSupportedException` indicating that the JDBC driver does not support this method. If the error code is 17003, we throw a `SQLException` indicating that the parameter index does not correspond to a parameter marker in the SQL statement. If the error code is 17007, we throw a `SQLException` indicating that the method is called on a closed PreparedStatement. If the error code is anything else, we re-throw the original SQLException.
+------------------------------------------------------

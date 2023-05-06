@@ -1,0 +1,41 @@
+
+Sure, here's an updated version of the method that checks for I/O errors and throws an `IOException` if necessary:
+
+```java
+public static void writeBufferToStream(BufferedReader bufferedReader, Writer writer) throws IOException {
+    String line;
+    try {
+        while ((line = bufferedReader.readLine()) != null) {
+            try {
+                writer.write(line);
+                writer.write(System.lineSeparator());
+            } catch (IOException e) {
+                throw new IOException("Error while writing to stream", e);
+            }
+        }
+        try {
+            writer.flush();
+        } catch (IOException e) {
+            throw new IOException("Error while flushing stream", e);
+        }
+    } catch (IOException e) {
+        throw new IOException("Error while reading from buffer", e);
+    } finally {
+        try {
+            bufferedReader.close();
+            writer.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+}
+```
+
+In this version, we've added a try-catch block around the `flush()` method call to check for any `IOException` that may occur during the flushing process. If an `IOException` occurs, we throw a new `IOException` with a message indicating that there was an error while flushing the stream.
+
+We've also updated the catch block around the while loop to indicate that an error occurred while reading from the buffer, rather than a general error.
+
+Finally, we've added a finally block that closes both the `BufferedReader` and `Writer` objects, even if an exception is thrown. This ensures that all resources are properly released.
+
+Note that we're also catching any `IOException` that occurs when closing the streams, but we're ignoring them since we've already thrown an exception for any errors that occurred during the main processing loop.
+------------------------------------------------------

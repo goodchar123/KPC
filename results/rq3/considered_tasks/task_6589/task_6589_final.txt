@@ -1,0 +1,50 @@
+
+Sure, here's the updated code snippet that checks for database access errors when calling `createStatement()` method, and throws a `SQLException` if one occurs:
+
+```java
+public static void getFieldRange(String tableName, String fieldName) throws SQLException {
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery("SELECT MIN(" + fieldName + "), MAX(" + fieldName + ") FROM " + tableName);
+        if (rs.next()) {
+            int min = rs.getInt(1);
+            int max = rs.getInt(2);
+            System.out.println("The range of valid values for " + fieldName + " in " + tableName + " is " + min + " to " + max);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing result set", e);
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing statement", e);
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing database connection", e);
+            }
+        }
+    }
+}
+```
+
+In this updated code, we added a check for a closed connection using the `isClosed()` method before calling `createStatement()`. If the connection is closed, we throw a new `SQLException` with a message indicating that the connection is closed. This ensures that any errors that occur due to a closed connection are properly handled and reported.
+------------------------------------------------------

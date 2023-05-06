@@ -1,0 +1,51 @@
+
+Here's an updated version of the code snippet that includes the requested error checking:
+
+```
+public static float getAbsoluteFloat(String prompt) {
+    Scanner scanner = new Scanner(System.in);
+    float value = 0.0f;
+    boolean validInput = false;
+    
+    while (!validInput) {
+        System.out.print(prompt);
+        if (scanner.hasNextFloat()) {
+            if (scanner.ioException() != null) {
+                scanner.close();
+                throw new IllegalStateException("Scanner is closed.");
+            }
+            try {
+                value = Math.abs(scanner.nextFloat());
+            } catch (InputMismatchException e) {
+                scanner.close();
+                throw new InputMismatchException("Input does not match Float regular expression or is out of range.");
+            }
+            validInput = true;
+        } else {
+            if (scanner.ioException() != null) {
+                scanner.close();
+                throw new IllegalStateException("Scanner is closed.");
+            }
+            if (!scanner.hasNext()) {
+                scanner.close();
+                throw new NoSuchElementException("Input is exhausted.");
+            }
+            scanner.next();
+            System.out.println("Invalid input. Please enter a valid float value.");
+        }
+    }
+    
+    scanner.close();
+    return value;
+}
+```
+
+This updated version includes error checking for the following scenarios:
+
+- If the scanner is closed when checking for the next float value using `hasNextFloat()`, an `IllegalStateException` is thrown.
+- If the next token does not match the Float regular expression or is out of range when calling `nextFloat()`, an `InputMismatchException` is thrown.
+- If there is no more input available when calling `nextFloat()`, a `NoSuchElementException` is thrown.
+- If the scanner is closed when calling `nextFloat()` or `next()`, an `IllegalStateException` is thrown.
+
+Note that the scanner is closed at the end of the method to ensure that all resources are properly released.
+------------------------------------------------------

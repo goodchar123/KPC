@@ -1,0 +1,37 @@
+
+You're right, I apologize for the oversight. Here's an updated version of the `serializeNode` method that checks for the `SERIALIZE_ERR` error and throws an `LSException` if it occurs:
+
+```java
+import org.w3c.dom.*;
+import org.w3c.dom.ls.*;
+
+public void serializeNode(Node node) throws LSException {
+    try {
+        // Create a new instance of the DOM implementation
+        DOMImplementationLS domImplLS = (DOMImplementationLS) node.getOwnerDocument().getImplementation().getFeature("LS", "3.0");
+
+        // Create a new instance of the LSSerializer interface
+        LSSerializer serializer = domImplLS.createLSSerializer();
+
+        // Set the output format options
+        LSOutput output = domImplLS.createLSOutput();
+        output.setEncoding("UTF-8");
+        output.setByteStream(System.out);
+
+        // Serialize the node
+        boolean success = serializer.write(node, output);
+
+        // Check for errors
+        if (!success) {
+            throw new LSException(LSException.SERIALIZE_ERR, "Unable to serialize node");
+        }
+    } catch (LSException e) {
+        throw e;
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+This updated version of the method now checks the return value of the `write` method to see if serialization was successful. If it was not successful, it throws an `LSException` with the `SERIALIZE_ERR` error code and a message indicating that serialization failed. If any other exception is thrown during serialization, it is caught and printed to the console.
+------------------------------------------------------

@@ -1,0 +1,46 @@
+
+Here's the updated Java method that includes the error handling you requested:
+
+```java
+public static void writeXmlDeclaration() throws FactoryConfigurationError, DOMException, TransformerFactoryConfigurationError {
+    try {
+        // Create a new XML document
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+        Document doc = docBuilder.newDocument();
+
+        // Create the XML declaration
+        String version = "1.0";
+        String encoding = "UTF-8";
+        String declaration = "version=\"" + version + "\" encoding=\"" + encoding + "\"";
+        ProcessingInstruction pi = doc.createProcessingInstruction("xml", declaration);
+
+        // Add the declaration to the document
+        if (doc.getDoctype() != null) {
+            doc.insertBefore(pi, doc.getDoctype());
+        } else {
+            doc.insertBefore(pi, doc.getDocumentElement());
+        }
+
+        // Write the document to a file
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(new File("output.xml"));
+        transformer.transform(source, result);
+
+        System.out.println("XML declaration written to output.xml");
+    } catch (ParserConfigurationException e) {
+        throw new FactoryConfigurationError(e.getMessage());
+    } catch (TransformerConfigurationException e) {
+        throw new TransformerFactoryConfigurationError(e.getMessage());
+    } catch (TransformerException e) {
+        e.printStackTrace();
+    } catch (DOMException e) {
+        throw new DOMException(DOMException.INVALID_CHARACTER_ERR, e.getMessage());
+    }
+}
+```
+
+This method now includes error handling for the `DocumentBuilderFactory.newInstance()`, `Document.createProcessingInstruction()`, and `TransformerFactory.newInstance()` methods. If any of these methods encounter an error, the appropriate exception will be thrown.
+------------------------------------------------------

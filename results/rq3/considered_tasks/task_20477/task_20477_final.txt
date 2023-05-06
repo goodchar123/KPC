@@ -1,0 +1,46 @@
+
+Here's the updated Java method that includes the SQLException check for `PreparedStatement.getParameterMetaData()`:
+
+```java
+public void setSqlDateParameter(PreparedStatement preparedStatement, int parameterIndex, java.sql.Date date) throws SQLException {
+    if (date == null) {
+        throw new NullPointerException("Date cannot be null");
+    }
+    if (preparedStatement.isClosed()) {
+        throw new SQLException("PreparedStatement is closed");
+    }
+    ParameterMetaData parameterMetaData;
+    try {
+        parameterMetaData = preparedStatement.getParameterMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred", e);
+    }
+    int parameterCount;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred", e);
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index");
+    }
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(date);
+    try {
+        preparedStatement.setDate(parameterIndex, date, calendar);
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred", e);
+    }
+}
+```
+
+This updated method first checks if the `date` parameter is null, and throws a `NullPointerException` if it is. It then checks if the `PreparedStatement` object is closed using the `isClosed()` method, and throws a `SQLException` if it is.
+
+Afterwards, it tries to retrieve the `ParameterMetaData` object using the `getParameterMetaData()` method. If a `SQLException` occurs during this process, it throws a new `SQLException` with the original exception as the cause.
+
+Next, it retrieves the parameter count using the `getParameterCount()` method. If a `SQLException` occurs during this process, it throws a new `SQLException` with the original exception as the cause.
+
+It then checks if the `parameterIndex` parameter is within the valid range of parameter markers using the `getParameterCount()` method. If it is not, it throws a `SQLException`.
+
+Finally, it sets the `Calendar` object and calls the `PreparedStatement.setDate()` method as before, but now it also catches any `SQLException` that occurs during this process and throws a new `SQLException` with the original exception as the cause.
+------------------------------------------------------

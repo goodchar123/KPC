@@ -1,0 +1,39 @@
+
+Sure, here's the updated Java method that checks for I/O errors during both the write operation and the closing of the `FileOutputStream`, and throws an `IOException` if either occurs:
+
+```java
+import java.io.*;
+
+public class WriteIntToFile {
+    public static void writeInt(File file, int value) throws IOException {
+        FileOutputStream fos = null;
+        DataOutputStream dos = null;
+        try {
+            fos = new FileOutputStream(file);
+            dos = new DataOutputStream(fos);
+            dos.writeInt(value);
+        } catch (IOException e) {
+            throw new IOException("Error writing int to file: " + e.getMessage());
+        } finally {
+            if (dos != null) {
+                try {
+                    dos.close();
+                } catch (IOException e) {
+                    throw new IOException("Error closing DataOutputStream: " + e.getMessage());
+                }
+            } else if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    throw new IOException("Error closing FileOutputStream: " + e.getMessage());
+                }
+            }
+        }
+    }
+}
+```
+
+This method now uses a `FileOutputStream` and a `DataOutputStream` separately, so that we can close them individually and check for I/O errors during each close operation. The `try-catch-finally` block ensures that both streams are closed, even if an exception occurs during the write operation. 
+
+If an `IOException` occurs during the write operation, it is caught and re-thrown as a new `IOException` with a custom error message that includes the original exception's message. If an `IOException` occurs during the closing of the `DataOutputStream`, a new `IOException` is thrown with a custom error message that includes the original exception's message. If an `IOException` occurs during the closing of the `FileOutputStream`, a new `IOException` is thrown with a custom error message that includes the original exception's message. This way, the calling method can handle the exception appropriately.
+------------------------------------------------------

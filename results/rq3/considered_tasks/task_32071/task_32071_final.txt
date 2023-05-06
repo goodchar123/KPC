@@ -1,0 +1,63 @@
+
+Thank you for pointing out these additional error scenarios. Here's the updated Java method that includes the error checking for these scenarios:
+
+```java
+public void beginInsertion(InputStream existingImageStream, OutputStream modifiedImageStream) throws IOException {
+    // Create a reader for the existing image stream
+    ImageReader reader = null;
+    try {
+        reader = ImageIO.getImageReadersByFormatName("JPEG").next();
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid format name", e);
+    }
+    if (reader == null) {
+        throw new IllegalArgumentException("No reader found for format name");
+    }
+    if (!(existingImageStream instanceof ImageInputStream)) {
+        throw new IllegalArgumentException("Input is not an instance of ImageInputStream");
+    }
+    reader.setInput(existingImageStream);
+    if (reader.getInput() == null) {
+        throw new IllegalStateException("Input source has not been set");
+    }
+
+    // Create a writer for the modified image stream
+    ImageWriter writer = null;
+    try {
+        writer = ImageIO.getImageWritersByFormatName("JPEG").next();
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid format name", e);
+    }
+    if (writer == null) {
+        throw new IllegalArgumentException("No writer found for format name");
+    }
+    if (!(modifiedImageStream instanceof ImageOutputStream)) {
+        throw new IllegalArgumentException("Output is not an instance of ImageOutputStream");
+    }
+    writer.setOutput(modifiedImageStream);
+    if (writer.getOutput() == null) {
+        throw new IllegalStateException("Output has not been set");
+    }
+
+    // Get the image metadata from the existing image
+    IIOMetadata metadata = null;
+    try {
+        metadata = reader.getImageMetadata(0);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Index out of bounds");
+    } catch (IOException e) {
+        throw new IOException("Error occurred during reading", e);
+    }
+    if (metadata == null) {
+        throw new IOException("Metadata is null");
+    }
+
+    // Create a new image with undefined pixel values
+    BufferedImage newImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+
+    // Create a new image metadata object
+    IIOMetadata newMetadata = writer.getDefaultImageMetadata(new ImageTypeSpecifier(newImage), null);
+    if (newMetadata.isReadOnly()) {
+        throw new IllegalStateException("Metadata is read-only");
+
+------------------------------------------------------

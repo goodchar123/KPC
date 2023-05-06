@@ -1,0 +1,81 @@
+
+Here's an updated version of the Java method that includes all the security and exception checks you requested:
+
+```java
+public void restrictUnloading(String regex) throws SecurityException, PatternSyntaxException {
+    // Check if a security manager is present
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        // Check if the caller's class loader is not null and is not an ancestor of this class loader
+        ClassLoader callerClassLoader = getClass().getClassLoader().getParent();
+        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+        if (currentClassLoader != null && !isAncestor(callerClassLoader, currentClassLoader)) {
+            // Check if the caller has the RuntimePermission("getClassLoader")
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+
+        // Check if the caller's class loader is not null and is not the same as or an ancestor of the context class loader
+        ClassLoader callerContextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (callerContextClassLoader != null && !isAncestor(callerClassLoader, callerContextClassLoader)) {
+            // Check if the caller has the RuntimePermission("getClassLoader")
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+
+        // Check if the current thread can set the context class loader
+        security.checkPermission(new RuntimePermission("setContextClassLoader"));
+    }
+
+    // Check if the regular expression's syntax is valid
+    try {
+        Pattern.compile(regex);
+    } catch (PatternSyntaxException e) {
+        throw e;
+    }
+
+    // Create a new class loader with a custom class unloading policy
+    ClassLoader restrictedClassLoader = new ClassLoader(getClass().getClassLoader().getParent()) {
+        @Override
+        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            // Check if the class name matches the restricted regular expression
+            if (name.matches(regex)) {
+                // If it matches, throw a ClassNotFoundException to prevent unloading
+                throw new ClassNotFoundException("Class unloading is restricted for " + name);
+            }
+
+            // Otherwise, delegate to the parent class loader to load the class
+            return super.loadClass(name, resolve);
+        }
+
+        @Override
+        public void clearAssertionStatus() {
+            // Override this method to prevent the class loader from being garbage collected
+        }
+    };
+
+    // Set the new class loader as the context class loader for the current thread
+    Thread.currentThread().setContextClassLoader(restrictedClassLoader);
+}
+
+private boolean isAncestor(ClassLoader ancestor, ClassLoader child) {
+    // Check if the child class loader is an ancestor of the ancestor class loader
+    while (child != null) {
+        if (child == ancestor) {
+            return true;
+        }
+        child = child.getParent();
+    }
+    return false;
+}
+```
+
+This updated method includes the following security checks:
+
+1. Check if a security manager is present
+2. Check if the caller's class loader is not null and is not an ancestor of the current class loader
+3. Check if the caller has the `RuntimePermission("getClassLoader")` for `ClassLoader.getParent()`
+4. Check if the caller's class loader is not null and is not the same as or an ancestor of the context class loader
+5. Check if the caller has the `RuntimePermission("getClassLoader")` for `Thread.getContextClassLoader()`
+6. Check if the current thread can set the context class loader
+
+If any of these checks fail, a `SecurityException` is thrown. The method also includes a check to ensure that the regular expression's syntax is valid, and if it's not, a `PatternSyntaxException` is thrown.
+------------------------------------------------------

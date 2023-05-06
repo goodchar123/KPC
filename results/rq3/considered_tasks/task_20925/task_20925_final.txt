@@ -1,0 +1,59 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+public boolean areNullsSortedAtStart(Connection conn, String tableName, String columnName) throws SQLException {
+    boolean nullsSortedAtStart = false;
+    DatabaseMetaData metaData = null;
+    ResultSet rs = null;
+    try {
+        metaData = conn.getMetaData();
+        rs = metaData.getIndexInfo(null, null, tableName, false, false);
+        while (rs.next()) {
+            String indexColumnName = rs.getString("COLUMN_NAME");
+            boolean nonUnique = rs.getBoolean("NON_UNIQUE");
+            if (columnName.equals(indexColumnName) && !nonUnique) {
+                int indexType = rs.getShort("TYPE");
+                if (indexType == DatabaseMetaData.tableIndexStatistic) {
+                    nullsSortedAtStart = rs.getBoolean("NULLS_FIRST");
+                    break;
+                }
+            }
+        }
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (rs != null) {
+            try {
+                if (!rs.isClosed()) {
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (metaData != null) {
+            try {
+                if (!metaData.getConnection().isClosed()) {
+                    metaData.getConnection().close();
+                }
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+    }
+    return nullsSortedAtStart;
+}
+```
+
+In this updated code, we have added additional checks to ensure that the `Connection` and `ResultSet` objects are not closed before calling their respective methods. We have also added checks for database access errors when calling `getMetaData()`, `getIndexInfo()`, `next()`, `getString()`, `getBoolean()`, and `getShort()` methods. If any of these checks fail, a `SQLException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,68 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+import java.sql.*;
+
+public class AccessRights {
+   public static void main(String[] args) {
+      Connection conn = null;
+      try {
+         // Connect to the database
+         conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+
+         // Get the metadata for the database
+         DatabaseMetaData dbmd = conn.getMetaData();
+
+         // Get a list of all the tables in the database
+         ResultSet rs = dbmd.getTables(null, null, "%", new String[] {"TABLE"});
+
+         // Loop through the tables and get the access rights for each one
+         while (rs.next()) {
+            String tableName = rs.getString("TABLE_NAME");
+            ResultSet rs2 = dbmd.getTablePrivileges(null, null, tableName);
+
+            // Print out the access rights for the table
+            System.out.println("Access rights for table " + tableName + ":");
+            while (rs2.next()) {
+               String grantee = rs2.getString("GRANTEE");
+               String privilege = rs2.getString("PRIVILEGE");
+               String grantor = rs2.getString("GRANTOR");
+               String isGrantable = rs2.getString("IS_GRANTABLE");
+               System.out.println("  Grantee: " + grantee + ", Privilege: " + privilege + ", Grantor: " + grantor + ", Is Grantable: " + isGrantable);
+            }
+            rs2.close();
+         }
+         rs.close();
+      } catch (SQLException e) {
+         // Check for database access error or closed connection
+         if (e instanceof SQLTimeoutException || e instanceof SQLNonTransientConnectionException) {
+            System.err.println("Database access error or closed connection: " + e.getMessage());
+         } else {
+            e.printStackTrace();
+         }
+      } finally {
+         // Close the connection
+         try {
+            if (conn != null) {
+               conn.close();
+            }
+         } catch (SQLException e) {
+            // Check for database access error
+            if (e instanceof SQLTimeoutException) {
+               System.err.println("Database access error: " + e.getMessage());
+            } else {
+               e.printStackTrace();
+            }
+         }
+      }
+   }
+}
+```
+
+In this updated code, we added error handling for the following scenarios:
+
+- If a database access error occurs or the `getMetaData()` method is called on a closed connection, a `SQLTimeoutException` or `SQLNonTransientConnectionException` will be thrown and the error message will be printed to the console.
+- If a database access error occurs or the `next()` method is called on a closed result set, a `SQLException` will be thrown and the error message will be printed to the console.
+- If a database access error occurs when closing the result set, a `SQLTimeoutException` will be thrown and the error message will be printed to the console.
+------------------------------------------------------

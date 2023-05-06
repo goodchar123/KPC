@@ -1,0 +1,56 @@
+
+Sure, here's the updated code that checks for `NOT_SUPPORTED_ERR` and throws a `DOMException` if the compared nodes are from different DOM implementations:
+
+```java
+public int compareBoundaryPoints(Range range1, Range range2) throws DOMException {
+    // Get the start and end boundary-points of the two ranges
+    Node start1 = range1.getStartContainer();
+    int offset1 = range1.getStartOffset();
+    Node end1 = range1.getEndContainer();
+    int endOffset1 = range1.getEndOffset();
+    
+    Node start2 = range2.getStartContainer();
+    int offset2 = range2.getStartOffset();
+    Node end2 = range2.getEndContainer();
+    int endOffset2 = range2.getEndOffset();
+    
+    // Compare the start boundary-points
+    short compareStart = 0;
+    try {
+        compareStart = start1.compareDocumentPosition(start2);
+    } catch (DOMException e) {
+        if (e.code == DOMException.NOT_SUPPORTED_ERR) {
+            throw e;
+        }
+    }
+    if (start1.isEqualNode(start2) && offset1 == offset2) {
+        return 0; // The start boundary-points are equal
+    } else if (compareStart == Node.DOCUMENT_POSITION_FOLLOWING ||
+               (start1.isEqualNode(start2) && offset1 > offset2)) {
+        return 1; // range1 starts after range2
+    } else {
+        return -1; // range1 starts before range2
+    }
+    
+    // If the start boundary-points are equal, compare the end boundary-points
+    short compareEnd = 0;
+    try {
+        compareEnd = end1.compareDocumentPosition(end2);
+    } catch (DOMException e) {
+        if (e.code == DOMException.NOT_SUPPORTED_ERR) {
+            throw e;
+        }
+    }
+    if (end1.isEqualNode(end2) && endOffset1 == endOffset2) {
+        return 0; // The end boundary-points are equal
+    } else if (compareEnd == Node.DOCUMENT_POSITION_FOLLOWING ||
+               (end1.isEqualNode(end2) && endOffset1 > endOffset2)) {
+        return -1; // range1 ends before range2
+    } else {
+        return 1; // range1 ends after range2
+    }
+}
+```
+
+This updated code catches the `DOMException` that may be thrown when comparing the start and end boundary-points, and checks if the exception code is `NOT_SUPPORTED_ERR`. If it is, the exception is re-thrown.
+------------------------------------------------------

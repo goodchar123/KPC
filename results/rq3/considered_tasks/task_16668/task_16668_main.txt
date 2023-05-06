@@ -1,0 +1,36 @@
+Please write a java method that Returns the server's certificate chain which was established as part of defining the session.
+Here's a Java method that returns the server's certificate chain:
+
+```java
+import javax.net.ssl.SSLSession;
+import java.security.cert.Certificate;
+
+public class SSLUtils {
+    public static Certificate[] getServerCertificateChain(SSLSession session) {
+        return session.getPeerCertificates();
+    }
+}
+```
+
+This method takes an `SSLSession` object as input and returns an array of `Certificate` objects representing the server's certificate chain. The `getPeerCertificates()` method of the `SSLSession` class returns an array of `Certificate` objects representing the certificates that were presented by the peer during the SSL handshake. In the case of a server, this will be the server's certificate chain.
+------------------------------------------------------
+Please check if the peer's identity has not          been verified for javax.net.ssl.SSLSession.getPeerCertificates() in the code snippet you provided, otherwise throw SSLPeerUnverifiedException.
+Sure, here's the updated Java method that checks if the peer's identity has been verified and throws an `SSLPeerUnverifiedException` if it hasn't:
+
+```java
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+import java.security.cert.Certificate;
+
+public class SSLUtils {
+    public static Certificate[] getServerCertificateChain(SSLSession session) throws SSLPeerUnverifiedException {
+        if (!session.isValid() || !session.getPeerCertificates()[0].getPublicKey().equals(session.getPeerCertificateChain()[0].getPublicKey())) {
+            throw new SSLPeerUnverifiedException("Peer's identity has not been verified");
+        }
+        return session.getPeerCertificateChain();
+    }
+}
+```
+
+This method first checks if the `SSLSession` object is valid and if the public key of the first certificate in the peer's certificate chain matches the public key of the peer's end-entity certificate. If either of these conditions is not met, it throws an `SSLPeerUnverifiedException` with an appropriate message. Otherwise, it returns the peer's certificate chain using the `getPeerCertificateChain()` method of the `SSLSession` class.
+------------------------------------------------------

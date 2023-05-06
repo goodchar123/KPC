@@ -1,0 +1,130 @@
+
+Here is an updated version of the Java method that checks for the conditions you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private boolean isCancelled = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        isCancelled = true;
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return isCancelled;
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        if (isCancelled) {
+            throw new CancellationException("computation was cancelled");
+        }
+        if (result instanceof Exception) {
+            throw new ExecutionException((Exception) result);
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        if (timeoutMillis < 0) {
+            throw new IllegalArgumentException("timeoutMillis is negative");
+        }
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        if (isCancelled) {
+            throw new CancellationException("computation was cancelled");
+        }
+        if (result instanceof Exception) {
+            throw new ExecutionException((Exception) result);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+
+    @Override
+    public synchronized boolean holdsLock(Object obj) {
+        if (obj == null) {
+            throw new NullPointerException("obj is null");
+        }
+        return Thread.holdsLock(obj);
+    }
+
+    @Override
+    public synchronized boolean add(T t) {
+        throw new UnsupportedOperationException("add operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void wait(long timeoutMillis) throws InterruptedException {
+        if (timeoutMillis < 0) {
+            throw new IllegalArgumentException("timeoutMillis is negative");
+        }
+        if (Thread.holdsLock(this)) {
+            super.wait(timeoutMillis);
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+}
+```
+
+In this updated version, the `get()` and `get(long, TimeUnit)` methods of the `Future` interface are updated to check if the computation was cancelled or threw an exception before returning the result. The `wait(long)` method of the `Object` class is updated to check if the `timeoutMillis` parameter is negative before calling the `wait(long)` method.
+------------------------------------------------------

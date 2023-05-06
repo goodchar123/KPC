@@ -1,0 +1,24 @@
+
+Sure, here's the updated code snippet that checks if the security manager denies access to `ModuleFinder.ofSystem()` and throws a `SecurityException` in that case:
+
+```java
+import java.lang.module.ModuleFinder;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class SystemModuleFinder {
+    public static ModuleFinder getSystemModuleFinder() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                sm.checkPermission(new RuntimePermission("accessSystemModules"));
+                return null;
+            });
+        }
+        return ModuleFinder.ofSystem();
+    }
+}
+```
+
+This code first checks if a security manager is installed using `System.getSecurityManager()`. If a security manager is present, it uses `AccessController.doPrivileged()` to execute a privileged action that checks if the security manager allows access to system modules using `sm.checkPermission(new RuntimePermission("accessSystemModules"))`. If the permission is granted, the method returns `ModuleFinder.ofSystem()`. Otherwise, it throws a `SecurityException`.
+------------------------------------------------------

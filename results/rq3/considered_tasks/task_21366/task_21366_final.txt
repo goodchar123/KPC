@@ -1,0 +1,34 @@
+
+Sure, here's the updated code snippet that checks for all the mentioned conditions:
+
+```java
+public boolean isAutoIncrement(Connection conn, String tableName, String columnName) throws SQLException {
+    boolean isAutoIncrement = false;
+    if (conn == null || conn.isClosed()) {
+        throw new SQLException("Connection is null or closed");
+    }
+    DatabaseMetaData metaData = conn.getMetaData();
+    ResultSet rs = metaData.getColumns(null, null, tableName, columnName);
+    if (rs == null || rs.isClosed()) {
+        throw new SQLException("ResultSet is null or closed");
+    }
+    if (!rs.next()) {
+        throw new SQLException("Invalid column label: " + columnName);
+    }
+    try {
+        isAutoIncrement = rs.getBoolean("IS_AUTOINCREMENT");
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred", e);
+    }
+    return isAutoIncrement;
+}
+```
+
+This updated method first checks if the `Connection` object is null or closed before calling `getMetaData()` on it. If either of these conditions is true, a `SQLException` is thrown with an appropriate error message.
+
+It then retrieves the `ResultSet` object using the `getColumns()` method of the `DatabaseMetaData` object. If the `ResultSet` object is null or closed, a `SQLException` is thrown with an appropriate error message.
+
+Next, the method checks if the `ResultSet` object has any rows using the `next()` method. If there are no rows, it means that the column label is invalid, so a `SQLException` is thrown with an appropriate error message.
+
+Finally, the method retrieves the value of the `IS_AUTOINCREMENT` column using the `getBoolean()` method of the `ResultSet` object. If a database access error occurs, a `SQLException` is thrown with an appropriate error message.
+------------------------------------------------------

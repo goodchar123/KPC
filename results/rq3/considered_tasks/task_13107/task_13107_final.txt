@@ -1,0 +1,34 @@
+
+Here is an updated version of the Java method that checks for the restrictions and throws the appropriate exceptions:
+
+```java
+public static Object createProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler handler) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check for security restrictions
+        if (loader == null && ClassUtils.getClassLoader(getClass()) != null) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        for (Class<?> intf : interfaces) {
+            ClassLoader intfLoader = intf.getClassLoader();
+            if (intfLoader != null && !ClassUtils.isAncestor(ClassUtils.getClassLoader(getClass()), intfLoader)) {
+                sm.checkPackageAccess(intf.getName());
+            }
+            if (!Modifier.isPublic(intf.getModifiers()) && !ClassUtils.inSameRuntimePackage(intf, getClass())) {
+                sm.checkPermission(new ReflectPermission("newProxyInPackage." + intf.getPackage().getName()));
+            }
+        }
+    }
+    // Check for null arguments
+    Objects.requireNonNull(interfaces, "Interfaces array must not be null");
+    for (Class<?> intf : interfaces) {
+        Objects.requireNonNull(intf, "Interface must not be null");
+    }
+    Objects.requireNonNull(handler, "Invocation handler must not be null");
+    // Create the proxy instance
+    return Proxy.newProxyInstance(loader, interfaces, handler);
+}
+```
+
+This updated method first checks for any security restrictions using the `SecurityManager` and throws a `SecurityException` if any restrictions are violated. It then checks for null arguments using `Objects.requireNonNull()` and throws a `NullPointerException` if any arguments are null. Finally, it creates and returns the proxy instance using `Proxy.newProxyInstance()`.
+------------------------------------------------------

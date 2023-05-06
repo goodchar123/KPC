@@ -1,0 +1,46 @@
+
+Sure, here's an updated version of the code snippet that checks if the channel used to acquire the lock is still open before releasing the lock. If the channel is closed, a `ClosedChannelException` is thrown:
+
+```java
+import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+
+public class FileLockExample {
+    public static void main(String[] args) throws IOException {
+        // Open a file channel
+        FileChannel channel = FileChannel.open(path);
+
+        // Attempt to acquire a lock on the channel's file
+        FileLock lock = channel.tryLock(start, size, shared);
+
+        if (lock != null) {
+            // Lock acquired successfully
+            try {
+                // Do something with the locked region of the file
+            } finally {
+                // Release the lock when finished, checking if the channel is still open
+                try {
+                    if (channel.isOpen()) {
+                        lock.release();
+                    } else {
+                        throw new ClosedChannelException();
+                    }
+                } catch (IOException e) {
+                    // Handle any exceptions thrown by lock.release()
+                }
+            }
+        } else {
+            // Lock acquisition failed
+            System.out.println("Failed to acquire lock on file");
+        }
+
+        // Close the file channel
+        channel.close();
+    }
+}
+```
+
+In this updated version, the `finally` block that releases the lock now includes a nested `try-catch` block that checks if the channel is still open before calling `lock.release()`. If the channel is closed, a `ClosedChannelException` is thrown. This ensures that the lock is only released if the channel is still open, avoiding any potential errors that could occur if the lock is released after the channel has been closed.
+------------------------------------------------------

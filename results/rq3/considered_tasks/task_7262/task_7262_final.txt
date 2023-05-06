@@ -1,0 +1,62 @@
+
+Here's the updated Java method that checks for the conditions you mentioned:
+
+```java
+public static Class<?> loadClass(String binaryName) throws ClassNotFoundException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkPermission(new RuntimePermission("getClassLoader"));
+    }
+    
+    ClassLoader callerClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+    if (callerClassLoader != null && !callerClassLoader.equals(systemClassLoader) && !isAncestor(systemClassLoader, callerClassLoader)) {
+        throw new SecurityException("Caller's class loader is not allowed to load system classes");
+    }
+    
+    if (isRecursiveLoad()) {
+        throw new IllegalStateException("Recursive load during construction of system class loader");
+    }
+    
+    try {
+        return ClassLoader.getSystemClassLoader().loadClass(binaryName);
+    } catch (ClassNotFoundException e) {
+        throw new Error("Failed to load class: " + binaryName, e);
+    }
+}
+
+private static boolean isAncestor(ClassLoader ancestor, ClassLoader child) {
+    ClassLoader parent = child.getParent();
+    if (parent == null) {
+        return false;
+    } else if (parent.equals(ancestor)) {
+        return true;
+    } else {
+        return isAncestor(ancestor, parent);
+    }
+}
+
+private static boolean isRecursiveLoad() {
+    String systemClassLoader = System.getProperty("java.system.class.loader");
+    if (systemClassLoader == null) {
+        return false;
+    }
+    try {
+        ClassLoader loader = ClassLoader.getSystemClassLoader();
+        while (loader != null) {
+            if (loader.getClass().getName().equals(systemClassLoader)) {
+                return true;
+            }
+            loader = loader.getParent();
+        }
+        return false;
+    } catch (ClassNotFoundException e) {
+        throw new Error("Failed to load system class loader: " + systemClassLoader, e);
+    }
+}
+```
+
+This method first checks if a security manager is present and if the caller's class loader is allowed to load system classes. It then checks if the method is being invoked recursively during the construction of the system class loader. Finally, it attempts to load the class using the system class loader and throws an error if it fails.
+
+The `isAncestor()` method checks if the specified class loader is an ancestor of the caller's class loader. The `isRecursiveLoad()` method checks if the method is being invoked recursively during the construction of the system class loader by checking the `java.system.class.loader` system property. If the property is defined, it attempts to load the system class loader and checks if it matches any of the parent class loaders. If it does, it indicates a recursive load and throws an `IllegalStateException`. If it fails to load the system class loader or encounters an exception during construction, it throws an `Error`.
+------------------------------------------------------

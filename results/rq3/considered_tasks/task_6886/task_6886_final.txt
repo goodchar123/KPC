@@ -1,0 +1,49 @@
+
+I apologize for the confusion in my previous responses. Here's an updated version of the `adjustDate` method that correctly checks if the result of adding days, months, or years exceeds the supported date range:
+
+```java
+import java.time.DateTimeException;
+import java.time.LocalDate;
+
+public class DateAdjuster {
+    public static LocalDate adjustDate(LocalDate date, int daysToAdd, int monthsToAdd, int yearsToAdd) throws DateTimeException {
+        LocalDate adjustedDate = date.plusDays(daysToAdd).plusMonths(monthsToAdd).plusYears(yearsToAdd);
+        
+        // Check if any field is out of range or if the day of month is invalid for the given month and year
+        if (!adjustedDate.isSupported(java.time.temporal.ChronoField.DAY_OF_MONTH)) {
+            throw new DateTimeException("Invalid day of month for the given month and year");
+        }
+        
+        // Check if the result exceeds the supported date range for plusDays
+        LocalDate maxDate = LocalDate.MAX.minusDays(Math.abs(daysToAdd));
+        LocalDate minDate = LocalDate.MIN.plusDays(Math.abs(daysToAdd));
+        if (adjustedDate.isBefore(minDate) || adjustedDate.isAfter(maxDate)) {
+            throw new DateTimeException("Result exceeds the supported date range for plusDays");
+        }
+        
+        // Check if the result exceeds the supported date range for plusMonths
+        maxDate = LocalDate.MAX.minusMonths(Math.abs(monthsToAdd));
+        minDate = LocalDate.MIN.plusMonths(Math.abs(monthsToAdd));
+        if (adjustedDate.isBefore(minDate) || adjustedDate.isAfter(maxDate)) {
+            throw new DateTimeException("Result exceeds the supported date range for plusMonths");
+        }
+        
+        // Check if the result exceeds the supported date range for plusYears
+        maxDate = LocalDate.MAX.minusYears(Math.abs(yearsToAdd));
+        minDate = LocalDate.MIN.plusYears(Math.abs(yearsToAdd));
+        if (adjustedDate.isBefore(minDate) || adjustedDate.isAfter(maxDate)) {
+            throw new DateTimeException("Result exceeds the supported date range for plusYears");
+        }
+        
+        return adjustedDate;
+    }
+}
+```
+
+This updated method now correctly throws a `DateTimeException` if any of the following conditions are met:
+
+- Any field is out of range or the day of month is invalid for the given month and year.
+- The result of adding days, months, or years exceeds the supported date range for `LocalDate`.
+
+By including this exception handling, we can ensure that our code is robust and can handle unexpected input or edge cases.
+------------------------------------------------------

@@ -1,0 +1,37 @@
+
+Sure, here's an updated version of the `getFileStore` method that checks for `IOException` and `SecurityException`:
+
+```java
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
+public class FileStoreHelper {
+    public static FileStore getFileStore(Path path) throws IOException, SecurityException {
+        try {
+            return AccessController.doPrivileged((PrivilegedExceptionAction<FileStore>) () -> {
+                FileStore fileStore = Files.getFileStore(path);
+                return fileStore;
+            });
+        } catch (PrivilegedActionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
+            } else if (cause instanceof SecurityException) {
+                throw (SecurityException) cause;
+            } else {
+                throw new RuntimeException("Unexpected exception", cause);
+            }
+        }
+    }
+}
+```
+
+This version of the method uses `AccessController.doPrivileged` to execute the `Files.getFileStore` method with the necessary privileges. It catches any `PrivilegedActionException` that may be thrown and checks the cause of the exception to determine whether it was an `IOException` or a `SecurityException`. If it was neither, it throws a `RuntimeException`.
+
+Note that this method may still throw a `SecurityException` if the security manager is installed and the caller does not have the necessary permissions.
+------------------------------------------------------

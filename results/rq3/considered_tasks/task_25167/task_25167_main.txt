@@ -1,0 +1,70 @@
+Please write a java method that Overrides FilterInputStream.reset to reset the progress monitor as well as the stream.
+Here's an example Java method that overrides FilterInputStream.reset to reset the progress monitor as well as the stream:
+
+```java
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.swing.ProgressMonitorInputStream;
+
+public class ProgressMonitorResetInputStream extends FilterInputStream {
+
+    private ProgressMonitorInputStream progressMonitorInputStream;
+
+    public ProgressMonitorResetInputStream(InputStream in, ProgressMonitorInputStream progressMonitorInputStream) {
+        super(in);
+        this.progressMonitorInputStream = progressMonitorInputStream;
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        super.reset();
+        progressMonitorInputStream.getProgressMonitor().setProgress(0);
+    }
+}
+```
+
+In this example, we create a new class called `ProgressMonitorResetInputStream` that extends `FilterInputStream`. We also pass in a `ProgressMonitorInputStream` object to the constructor.
+
+The `reset()` method is then overridden to call the `reset()` method of the superclass (i.e. `FilterInputStream`) and reset the progress monitor to 0 using the `setProgress()` method of the `ProgressMonitor` object.
+
+Note that this example assumes that the `ProgressMonitorInputStream` object has already been created and initialized elsewhere in the code.
+------------------------------------------------------
+Please check if the stream has not been marked or if the               mark has been invalidated. for java.io.FilterInputStream.reset() in the code snippet you provided, otherwise throw IOException.
+You're right, it's important to check if the stream has been marked or if the mark has been invalidated before calling `reset()` on the superclass. Here's the updated code snippet that includes this check:
+
+```java
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.swing.ProgressMonitorInputStream;
+
+public class ProgressMonitorResetInputStream extends FilterInputStream {
+
+    private ProgressMonitorInputStream progressMonitorInputStream;
+
+    public ProgressMonitorResetInputStream(InputStream in, ProgressMonitorInputStream progressMonitorInputStream) {
+        super(in);
+        this.progressMonitorInputStream = progressMonitorInputStream;
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        if (!super.markSupported()) {
+            throw new IOException("Mark not supported");
+        }
+        if (super.markpos < 0) {
+            throw new IOException("Mark invalidated");
+        }
+        super.reset();
+        progressMonitorInputStream.getProgressMonitor().setProgress(0);
+    }
+}
+```
+
+In this updated code, we first check if the mark is supported by calling `markSupported()` on the superclass. If it's not supported, we throw an `IOException` with a message indicating that the mark is not supported.
+
+If the mark is supported, we then check if the mark position is negative, which indicates that the mark has been invalidated. If it's invalidated, we throw an `IOException` with a message indicating that the mark has been invalidated.
+
+If the mark is valid, we call `reset()` on the superclass and reset the progress monitor as before.
+------------------------------------------------------

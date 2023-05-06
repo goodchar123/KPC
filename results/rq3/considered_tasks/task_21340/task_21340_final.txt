@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the `updateColumnWithStream` method that checks for a query timeout and attempts to cancel the statement if the timeout has been exceeded:
+
+```java
+public void updateColumnWithStream(int column, InputStream inputStream, int numBytes, int timeoutSeconds) throws SQLException {
+    // Assume that 'conn' is a valid Connection object and 'stmt' is a valid Statement object
+    String updateQuery = "UPDATE my_table SET my_column = ? WHERE id = ?";
+    PreparedStatement pstmt = conn.prepareStatement(updateQuery);
+    pstmt.setBinaryStream(1, inputStream, numBytes);
+    pstmt.setInt(2, column);
+    pstmt.setQueryTimeout(timeoutSeconds);
+    try {
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 && "08S01".equals(e.getSQLState())) {
+            // Timeout occurred, attempt to cancel the statement
+            pstmt.cancel();
+            throw new SQLTimeoutException("Query timeout exceeded", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method takes an additional parameter `timeoutSeconds`, which specifies the maximum number of seconds that the query is allowed to run before timing out. The `setQueryTimeout()` method is used to set this timeout on the prepared statement.
+
+The method then attempts to execute the update query using `executeUpdate()`. If a `SQLException` is thrown with an error code of 0 and an SQL state of "08S01", this indicates that a query timeout has occurred. In this case, the method attempts to cancel the statement using `cancel()` and throws a `SQLTimeoutException` with a message indicating that the timeout was exceeded. If any other type of `SQLException` is thrown, it is re-thrown to the calling code.
+------------------------------------------------------

@@ -1,0 +1,69 @@
+
+Here's the updated Java method that checks for system property access, security manager, and input parameters, and throws the appropriate exceptions if any of the checks fail:
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.HashSet;
+import java.util.Set;
+
+public class FilePermissionHelper {
+    public static void setOwnerWritePermission(File file) throws Exception {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            String path = file.getAbsolutePath();
+            sm.checkRead(path);
+            sm.checkWrite(path);
+        }
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
+        if (!file.exists()) {
+            throw new IllegalArgumentException("File does not exist");
+        }
+        if (!file.canWrite()) {
+            throw new IllegalArgumentException("File cannot be written to");
+        }
+        String tempDir = AccessController.doPrivileged(
+            (PrivilegedAction<String>) () -> {
+                String key = "java.io.tmpdir";
+                if (key == null) {
+                    throw new NullPointerException("System property key cannot be null");
+                }
+                if (key.isEmpty()) {
+                    throw new IllegalArgumentException("System property key cannot be empty");
+                }
+                SecurityManager sm2 = System.getSecurityManager();
+                if (sm2 != null) {
+                    sm2.checkPropertyAccess(key);
+                }
+                String value = System.getProperty(key);
+                if (value == null) {
+                    throw new SecurityException("Cannot access system property '" + key + "'");
+                }
+                return value;
+            });
+        Set<PosixFilePermission> perms = new HashSet<>();
+        if (!perms.add(PosixFilePermission.OWNER_WRITE)) {
+            throw new UnsupportedOperationException("Cannot add permission to set");
+        }
+        Files.setPosixFilePermissions(file.toPath(), perms);
+    }
+}
+```
+
+This method first checks if a security manager exists using `System.getSecurityManager()`. If a security manager exists, it calls the `checkRead()` and `checkWrite()` methods on the file's absolute path to check for read and write access respectively. If either of these methods denies access, a `SecurityException` is thrown.
+
+The method then checks if the file parameter is null, does not exist, or cannot be written to, and throws an `IllegalArgumentException` if any of these conditions are true.
+
+The method then uses `AccessController.doPrivileged()` to access the system property `java.io.tmpdir`. Within the privileged action, it checks if the input key is null or empty, and throws a `NullPointerException` or `IllegalArgumentException` respectively if either of these conditions are true. It then checks if a security manager exists and its `checkPropertyAccess()` method allows access to the specified system property. If access is denied, a `SecurityException` is thrown. Finally, the method checks if the system property value is null, and throws a `SecurityException` if it is.
+
+The rest of the method is the same as before, creating a `HashSet` to hold the file permissions, and attempting to add the `OWNER_WRITE` permission to the set using `Set.add()`. If the add operation is not supported by the set, an `UnsupportedOperationException` is thrown.
+
+Finally, the method sets the owner's write permission using `Files.setPosixFilePermissions()`.
+
+Note that the `checkRead()` and `checkWrite()` methods require special permissions to be granted to the code running the method, so this may not work in all environments. Similarly, accessing system properties may also require special permissions.
+------------------------------------------------------

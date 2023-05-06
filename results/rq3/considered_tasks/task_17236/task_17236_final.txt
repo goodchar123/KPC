@@ -1,0 +1,35 @@
+
+Sure, here's an updated version of the method that checks for a database access error when calling `getParameterCount()` on the `ParameterMetaData` object:
+
+```java
+public void setReaderParameter(PreparedStatement statement, int parameterIndex, Reader reader) throws SQLException {
+    if (statement.isClosed()) {
+        throw new SQLException("PreparedStatement is closed");
+    }
+    ParameterMetaData parameterMetaData = statement.getParameterMetaData();
+    int parameterCount;
+    try {
+        parameterCount = parameterMetaData.getParameterCount();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting parameter count from ParameterMetaData", e);
+    }
+    if (parameterIndex < 1 || parameterIndex > parameterCount) {
+        throw new SQLException("Invalid parameter index");
+    }
+    if (statement.isWrapperFor(OraclePreparedStatement.class)) {
+        // Oracle JDBC driver does not support setCharacterStream method for PreparedStatement
+        throw new SQLFeatureNotSupportedException("setCharacterStream method not supported by Oracle JDBC driver");
+    } else {
+        statement.setCharacterStream(parameterIndex, reader);
+    }
+}
+```
+
+This updated method first gets the `ParameterMetaData` object from the `PreparedStatement` object, and then tries to get the parameter count by calling `getParameterCount()` on the `ParameterMetaData` object. If a database access error occurs during this call, it throws a `SQLException` with an appropriate error message.
+
+If there is no database access error, the method checks if the `parameterIndex` is valid. If it is not, it throws a `SQLException` with an appropriate error message.
+
+Then, it checks if the `PreparedStatement` object is a wrapper for the `OraclePreparedStatement` class. If it is, it means that the Oracle JDBC driver does not support the `setCharacterStream` method for `PreparedStatement` objects, so it throws a `SQLFeatureNotSupportedException` with an appropriate error message.
+
+If the `PreparedStatement` object is not a wrapper for the `OraclePreparedStatement` class, it means that the driver supports the `setCharacterStream` method, so the method calls this method on the `PreparedStatement` object with the specified `parameterIndex` and `reader` objects as arguments. If a database access error occurs during this call, it throws a `SQLException` with an appropriate error message.
+------------------------------------------------------

@@ -1,0 +1,40 @@
+
+Sure, here's an updated version of the Java method that includes all the checks you requested:
+
+```java
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
+import java.nio.file.Path;
+import java.nio.file.AccessDeniedException;
+import java.security.AccessControlException;
+
+public class DirectoryHelper {
+    public static DirectoryStream<Path> openDirectory(Path directory) throws IOException {
+        try {
+            if (!Files.isDirectory(directory)) {
+                throw new NotDirectoryException(directory.toString());
+            }
+        } catch (IOException e) {
+            throw new IOException("An I/O error occurred while checking if the file is a directory", e);
+        }
+        try {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkRead(directory.toString());
+            }
+        } catch (AccessControlException e) {
+            throw new AccessDeniedException(directory.toString());
+        }
+        return Files.newDirectoryStream(directory);
+    }
+}
+```
+
+This updated method first checks if the specified `Path` object represents a directory using the `Files.isDirectory()` method. If it does not, a `NotDirectoryException` is thrown. If an I/O error occurs while checking if the file is a directory, an `IOException` is thrown.
+
+Next, if a security manager is installed, the `checkRead()` method is invoked to check read access to the directory. If the security manager denies access, an `AccessDeniedException` is thrown.
+
+Finally, if all checks pass, the method returns a `DirectoryStream<Path>` object that can be used to iterate over all entries in the directory.
+------------------------------------------------------

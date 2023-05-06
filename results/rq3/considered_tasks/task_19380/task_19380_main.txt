@@ -1,0 +1,92 @@
+Please write a java method that Returns an array of the names bound in this registry.
+Here's the Java method that returns an array of the names bound in a registry:
+
+```java
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+
+public class RegistryHelper {
+    public static String[] getRegistryNames(String host, int port) throws Exception {
+        Registry registry = LocateRegistry.getRegistry(host, port);
+        return registry.list();
+    }
+}
+```
+
+This method takes two parameters: the `host` and `port` of the registry you want to query. It returns an array of strings, which are the names of the objects bound in the registry.
+
+To use this method, simply call it with the appropriate host and port values:
+
+```java
+String[] names = RegistryHelper.getRegistryNames("localhost", 1099);
+for (String name : names) {
+    System.out.println(name);
+}
+```
+
+This will print out the names of all the objects bound in the registry running on `localhost` at port `1099`.
+------------------------------------------------------
+Please check if remote communication with the registry failed; if exception is a ServerException containing an AccessException, then the registry denies the caller access to perform this operation for java.rmi.registry.Registry.list() in the code snippet you provided, otherwise throw RemoteException.
+Please check if this registry is local and it denies the caller access to perform this operation for java.rmi.registry.Registry.list() in the code snippet you provided, otherwise throw AccessException.
+Here's the updated Java method that checks for exceptions and throws the appropriate ones:
+
+```java
+import java.rmi.AccessException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.ServerException;
+
+public class RegistryHelper {
+    public static String[] getRegistryNames(String host, int port) throws RemoteException, AccessException {
+        try {
+            Registry registry = LocateRegistry.getRegistry(host, port);
+            return registry.list();
+        } catch (ServerException e) {
+            if (e.getCause() instanceof AccessException) {
+                throw (AccessException) e.getCause();
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This method now checks for exceptions and throws the appropriate ones. If the remote communication with the registry failed, it throws a `RemoteException`. If the registry denies the caller access to perform the `list()` operation, it throws an `AccessException`.
+
+To check if the registry is local and it denies the caller access to perform the `list()` operation, we need to catch the `AccessException` thrown by the `getRegistry()` method. However, this exception can also be thrown if the registry is remote and the caller does not have the necessary permissions. Therefore, we cannot determine if the registry is local or remote based on this exception alone.
+
+If you need to determine if the registry is local or remote, you can use the `Registry.REGISTRY_PORT` constant to check if the specified port is the default port for a local registry. Here's an updated version of the method that checks if the registry is local and throws an `AccessException` if the caller is denied access:
+
+```java
+import java.rmi.AccessException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.ServerException;
+
+public class RegistryHelper {
+    public static String[] getRegistryNames(String host, int port) throws RemoteException, AccessException {
+        try {
+            Registry registry = LocateRegistry.getRegistry(host, port);
+            return registry.list();
+        } catch (AccessException e) {
+            if (port == Registry.REGISTRY_PORT) {
+                throw e;
+            } else {
+                throw new RemoteException("Remote registry access denied", e);
+            }
+        } catch (ServerException e) {
+            if (e.getCause() instanceof AccessException) {
+                throw (AccessException) e.getCause();
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+This method now checks if the specified port is the default port for a local registry, and throws an `AccessException` if the caller is denied access to a local registry. If the registry is remote, it throws a `RemoteException` with a message indicating that remote registry access is denied.
+------------------------------------------------------

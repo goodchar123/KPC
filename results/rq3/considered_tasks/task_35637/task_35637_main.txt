@@ -1,0 +1,60 @@
+Please write a java method that Returns the focused Window, even if the calling thread is in a different context than the focused Window.
+Here's a Java method that returns the focused window, even if the calling thread is in a different context than the focused window:
+
+```java
+import java.awt.AWTException;
+import java.awt.EventQueue;
+import java.awt.Robot;
+import java.awt.Window;
+
+public class FocusedWindowHelper {
+    public static Window getFocusedWindow() {
+        Window focusedWindow = null;
+        try {
+            Robot robot = new Robot();
+            EventQueue.invokeLater(() -> {
+                focusedWindow = Window.getFocusedWindow();
+            });
+            robot.waitForIdle();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        return focusedWindow;
+    }
+}
+```
+
+This method uses the `Robot` class to temporarily switch to the event dispatch thread and retrieve the focused window using the `Window.getFocusedWindow()` method. The `Robot.waitForIdle()` method is used to wait for the event dispatch thread to finish processing events before returning the focused window.
+------------------------------------------------------
+Please check if called on the AWT event dispatching thread for java.awt.Robot.waitForIdle() in the code snippet you provided, otherwise throw IllegalThreadStateException.
+Sure, here's the updated code snippet that checks if the method is called on the AWT event dispatching thread before calling `Robot.waitForIdle()`. If it's not called on the AWT event dispatching thread, it throws an `IllegalThreadStateException`:
+
+```java
+import java.awt.AWTException;
+import java.awt.EventQueue;
+import java.awt.Robot;
+import java.awt.Window;
+
+public class FocusedWindowHelper {
+    public static Window getFocusedWindow() {
+        Window focusedWindow = null;
+        try {
+            Robot robot = new Robot();
+            EventQueue.invokeLater(() -> {
+                focusedWindow = Window.getFocusedWindow();
+            });
+            if (EventQueue.isDispatchThread()) {
+                robot.waitForIdle();
+            } else {
+                throw new IllegalThreadStateException("Method called on non-EDT thread");
+            }
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        return focusedWindow;
+    }
+}
+```
+
+Now, if the method is called on a non-EDT thread, it will throw an `IllegalThreadStateException`.
+------------------------------------------------------

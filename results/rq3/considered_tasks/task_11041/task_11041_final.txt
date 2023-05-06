@@ -1,0 +1,112 @@
+
+Sure, here's the updated code snippet with the requested error handling:
+
+```java
+public void selectKeys() throws IOException {
+    Selector selector;
+    try {
+        selector = Selector.open();
+    } catch (IOException e) {
+        throw new IOException("Error opening selector", e);
+    }
+    // Register channels with selector
+    channel1.register(selector, SelectionKey.OP_READ);
+    channel2.register(selector, SelectionKey.OP_WRITE);
+    channel3.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+    
+    while (true) {
+        // Select keys whose channels are ready for I/O operations
+        try {
+            selector.select();
+        } catch (ClosedSelectorException e) {
+            throw new ClosedSelectorException();
+        } catch (IOException e) {
+            throw new IOException("Error selecting keys", e);
+        }
+        Set<SelectionKey> selectedKeys = selector.selectedKeys();
+        
+        // Iterate over selected keys and perform I/O operations
+        for (SelectionKey key : selectedKeys) {
+            if (key.isReadable()) {
+                if (key.isValid()) {
+                    // Perform read operation on channel
+                    SocketChannel channel = (SocketChannel) key.channel();
+                    if (channel.isOpen()) {
+                        if (!channel.isConnected()) {
+                            throw new NotYetConnectedException();
+                        }
+                        ByteBuffer buffer;
+                        try {
+                            buffer = ByteBuffer.allocate(1024);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Invalid buffer capacity", e);
+                        }
+                        try {
+                            channel.read(buffer);
+                        } catch (ClosedChannelException e) {
+                            throw new ClosedChannelException();
+                        } catch (AsynchronousCloseException e) {
+                            throw new AsynchronousCloseException();
+                        } catch (ClosedByInterruptException e) {
+                            throw new ClosedByInterruptException();
+                        } catch (IOException e) {
+                            throw new IOException("Error reading from channel", e);
+                        }
+                        // Process data read from channel
+                    } else {
+                        throw new ClosedChannelException();
+                    }
+                } else {
+                    throw new CancelledKeyException();
+                }
+            }
+            if (key.isWritable()) {
+                if (key.isValid()) {
+                    // Perform write operation on channel
+                    SocketChannel channel = (SocketChannel) key.channel();
+                    if (channel.isOpen()) {
+                        if (!channel.isConnected()) {
+                            throw new NotYetConnectedException();
+                        }
+                        ByteBuffer buffer;
+                        try {
+                            buffer = ByteBuffer.allocate(1024);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Invalid buffer capacity", e);
+                        }
+                        // Populate buffer with data to write to channel
+                        try {
+                            channel.write(buffer);
+                        } catch (ClosedChannelException e) {
+                            throw new ClosedChannelException();
+                        } catch (AsynchronousCloseException e) {
+                            throw new AsynchronousCloseException();
+                        } catch (ClosedByInterruptException e) {
+                            throw new ClosedByInterruptException();
+                        } catch (IOException e) {
+                            throw new IOException("Error writing to channel", e);
+                        }
+                    } else {
+                        throw new ClosedChannelException();
+                    }
+                } else {
+                    throw new CancelledKeyException();
+                }
+            }
+            // Remove key from selected set
+            try {
+                selectedKeys.remove(key);
+            } catch (ClassCastException e) {
+                throw new ClassCastException("Incompatible element type for set removal", e);
+            } catch (NullPointerException e) {
+                throw new NullPointerException("Attempt to remove null element from set that does not permit nulls", e);
+            } catch (UnsupportedOperationException e) {
+                throw new UnsupportedOperationException("Set does not support removal operation", e);
+            }
+        }
+    }
+}
+```
+
+Again, note that this is just an example and may need to be modified to fit your specific use case.
+------------------------------------------------------

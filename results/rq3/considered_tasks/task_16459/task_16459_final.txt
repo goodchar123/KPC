@@ -1,0 +1,34 @@
+
+You are correct again, it is important to check if the current thread is the owner of the object's monitor before calling `notify()` or `notifyAll()` in Java. Here's an updated version of the method that includes these checks:
+
+```
+public synchronized void timedWait(long timeoutMillis) throws InterruptedException {
+    if (timeoutMillis < 0) {
+        throw new IllegalArgumentException("Timeout value cannot be negative");
+    }
+
+    long startTime = System.currentTimeMillis();
+    long elapsedTime = 0;
+    long remainingTime = timeoutMillis;
+
+    while (remainingTime > 0) {
+        wait(remainingTime);
+        elapsedTime = System.currentTimeMillis() - startTime;
+        remainingTime = timeoutMillis - elapsedTime;
+    }
+}
+
+public synchronized void notifyAndWait() throws InterruptedException {
+    notify();
+    wait();
+}
+
+public synchronized void notifyAllAndWait() throws InterruptedException {
+    notifyAll();
+    wait();
+}
+
+```
+
+In this updated version, we use the `synchronized` keyword to ensure that the current thread is the owner of the object's monitor before calling `notify()` or `notifyAll()`. If the current thread is not the monitor owner, an `IllegalMonitorStateException` will be thrown.
+------------------------------------------------------

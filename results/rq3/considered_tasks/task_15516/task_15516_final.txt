@@ -1,0 +1,29 @@
+
+Thank you for bringing this to my attention. Here is the updated code snippet that checks for the mentioned conditions:
+
+```java
+import java.security.cert.CRLSelector;
+import java.security.cert.CRL;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509CRL;
+import java.util.Collection;
+
+public Collection<CRL> getCRLs(CRLSelector selector, byte[] crlBytes) throws CertificateException {
+    if (crlBytes == null) {
+        throw new NullPointerException("CRL byte array cannot be null");
+    }
+    CertificateFactory cf = null;
+    try {
+        cf = CertificateFactory.getInstance("X.509");
+    } catch (CertificateException e) {
+        throw new CertificateException("No Provider supports a CertificateFactorySpi implementation for the specified type", e);
+    }
+    X509CRL crl = (X509CRL) cf.generateCRL(new ByteArrayInputStream(crlBytes));
+    Collection<? extends CRL> crls = crl.getRevokedCertificates();
+    return crls.stream().filter(selector::match).collect(Collectors.toList());
+}
+```
+
+This updated code snippet checks if the `crlBytes` parameter is null and throws a `NullPointerException` if it is. It also checks if there is a provider that supports a `CertificateFactorySpi` implementation for the specified type and throws a `CertificateException` if there isn't.
+------------------------------------------------------

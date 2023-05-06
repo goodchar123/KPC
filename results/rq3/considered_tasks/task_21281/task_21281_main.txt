@@ -1,0 +1,45 @@
+Please write a java method that Cancels the updates made to the current row in this ResultSet object.
+Here's a Java method that cancels the updates made to the current row in a ResultSet object:
+
+```java
+public void cancelRowUpdates(ResultSet rs) throws SQLException {
+    rs.cancelRowUpdates();
+}
+```
+
+This method takes a ResultSet object as a parameter and calls the `cancelRowUpdates()` method on it to cancel any updates made to the current row. It throws a SQLException if there is an error while canceling the updates.
+------------------------------------------------------
+Please check if a database access error         occurs; this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY or if this method is called when the cursor is            on the insert row for java.sql.ResultSet.cancelRowUpdates() in the code snippet you provided, otherwise throw SQLException.
+Please check if the JDBC driver does not support this method for java.sql.ResultSet.cancelRowUpdates() in the code snippet you provided, otherwise throw SQLFeatureNotSupportedException.
+Here's the updated Java method that checks for database access errors, closed result set, result set concurrency, and cursor position before canceling the updates made to the current row in a ResultSet object:
+
+```java
+public void cancelRowUpdates(ResultSet rs) throws SQLException {
+    if (rs.isClosed()) {
+        throw new SQLException("Result set is closed");
+    }
+    if (rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY) {
+        throw new SQLException("Result set concurrency is CONCUR_READ_ONLY");
+    }
+    if (rs.isBeforeFirst() || rs.isAfterLast()) {
+        throw new SQLException("Cursor is not on a valid row");
+    }
+    if (rs.getRow() == 0) {
+        throw new SQLException("Cursor is on the insert row");
+    }
+    try {
+        rs.cancelRowUpdates();
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support cancelRowUpdates()");
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This method first checks if the ResultSet object is closed, has CONCUR_READ_ONLY concurrency, or if the cursor is not on a valid row or on the insert row. If any of these conditions are true, it throws a SQLException with an appropriate error message.
+
+If the ResultSet object is valid, it then tries to cancel the updates made to the current row by calling the `cancelRowUpdates()` method on it. If the JDBC driver does not support this method, it throws a SQLFeatureNotSupportedException. If any other SQLException occurs, it is thrown as is.
+------------------------------------------------------

@@ -1,0 +1,75 @@
+Please write a java method that Performs a MethodHandles.Lookup.findVirtual(Class, String, MethodType) on the underlying lookup.
+Sure, here's an example Java method that performs a `MethodHandles.Lookup.findVirtual` on the underlying lookup:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ExampleClass {
+    public static void main(String[] args) throws Throwable {
+        ExampleClass example = new ExampleClass();
+        MethodHandle handle = example.findVirtual(ExampleClass.class, "exampleMethod", MethodType.methodType(void.class));
+        handle.invoke(example);
+    }
+
+    public void exampleMethod() {
+        System.out.println("This is an example method.");
+    }
+
+    private MethodHandle findVirtual(Class<?> clazz, String methodName, MethodType methodType) throws NoSuchMethodException, IllegalAccessException {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        return lookup.findVirtual(clazz, methodName, methodType);
+    }
+}
+```
+
+In this example, we define a `findVirtual` method that takes a `Class`, a `String` method name, and a `MethodType` as arguments. The method then uses the `MethodHandles.lookup()` method to get the underlying lookup object, and calls the `lookup.findVirtual` method on that object to find the virtual method with the given name and type on the given class. The resulting `MethodHandle` is then returned by the method.
+
+In the `main` method, we use the `findVirtual` method to get a `MethodHandle` for the `exampleMethod` method on the `ExampleClass` object, and then invoke that method handle to call the method. The output of the program should be:
+
+```
+This is an example method.
+```
+------------------------------------------------------
+Please check if the target's type cannot be adjusted to the caller's symbolic type descriptor for java.lang.invoke.MethodHandle.invoke(java.lang.Object...) in the code snippet you provided, otherwise throw WrongMethodTypeException.
+Please check if the target's type can be adjusted to the caller, but a reference cast fails for java.lang.invoke.MethodHandle.invoke(java.lang.Object...) in the code snippet you provided, otherwise throw ClassCastException.
+Please check anything thrown by the underlying method propagates unchanged through the method handle call for java.lang.invoke.MethodHandle.invoke(java.lang.Object...) in the code snippet you provided, otherwise throw Throwable.
+Sure, here's an updated version of the `findVirtual` method that includes the requested checks:
+
+```java
+private MethodHandle findVirtual(Class<?> clazz, String methodName, MethodType methodType) throws NoSuchMethodException, IllegalAccessException {
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    MethodHandle handle = lookup.findVirtual(clazz, methodName, methodType);
+
+    // Check if the target's type can be adjusted to the caller's symbolic type descriptor
+    if (!handle.type().equals(methodType)) {
+        MethodType adjustedType = handle.type().changeReturnType(methodType.returnType());
+        if (!adjustedType.equals(methodType)) {
+            throw new WrongMethodTypeException("Cannot adjust target type to caller's symbolic type descriptor");
+        }
+        handle = handle.asType(methodType);
+    }
+
+    // Check if a reference cast fails
+    if (handle.isVarargsCollector() && !methodType.isVarargsCollector()) {
+        MethodType varargsType = handle.type().asVarargsCollector(methodType.parameterType(methodType.parameterCount() - 1));
+        try {
+            handle = handle.asType(varargsType);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Reference cast failed");
+        }
+    }
+
+    return handle;
+}
+```
+
+In this updated version, we first call `lookup.findVirtual` to get the `MethodHandle`, and then perform the requested checks.
+
+The first check is to see if the target's type can be adjusted to the caller's symbolic type descriptor. We do this by comparing the `MethodType` of the `MethodHandle` to the `MethodType` passed in as an argument. If they are not equal, we try to create a new `MethodType` with the same parameter types as the original `MethodType`, but with the return type of the `MethodHandle`. If this new `MethodType` is still not equal to the original `MethodType`, we throw a `WrongMethodTypeException`. Otherwise, we adjust the `MethodHandle` to the new `MethodType` using the `asType` method.
+
+The second check is to see if a reference cast fails. We do this by checking if the `MethodHandle` is a varargs collector (i.e. it takes a variable number of arguments), but the `MethodType` passed in as an argument is not. If this is the case, we create a new `MethodType` with the same parameter types as the original `MethodType`, but with the last parameter type as a varargs array type. We then try to adjust the `MethodHandle` to the new `MethodType` using the `asType` method. If this throws a `ClassCastException`, we throw a new `ClassCastException`.
+
+Finally, we return the adjusted `MethodHandle`. If anything is thrown by the underlying method during the method handle call, it will propagate unchanged through the `invoke` method.
+------------------------------------------------------

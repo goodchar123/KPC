@@ -1,0 +1,32 @@
+
+Sure, here's the updated Java method that checks for a database access error or a closed connection when calling `getMetaData()` and throws a `SQLException` if necessary:
+
+```java
+public boolean supportsFullNestedOuterJoins(Connection conn) throws SQLException {
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        try {
+            if (!metaData.supportsFullOuterJoins()) {
+                throw new SQLException("Full outer joins not supported by the database");
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error checking for full outer join support", e);
+        }
+        return metaData.supportsNestedOuterJoins();
+    } catch (SQLException e) {
+        throw new SQLException("Error getting database metadata", e);
+    }
+}
+```
+
+This method first checks whether the connection is closed using `isClosed()`. If the connection is closed, the method throws a `SQLException` with an appropriate error message.
+
+If the connection is open, the method gets the database metadata using `getMetaData()`. If this method throws a `SQLException`, the method catches it and re-throws it with a more informative error message.
+
+If the metadata is successfully retrieved, the method checks whether the database supports full outer joins using `supportsFullOuterJoins()`. If this method throws a `SQLException`, the method catches it and re-throws it with a more informative error message. If full outer joins are not supported, the method throws a `SQLException` with an appropriate error message.
+
+If full outer joins are supported, the method checks whether nested outer joins are supported using `supportsNestedOuterJoins()` and returns the result. If nested outer joins are not supported, the method will not throw an exception, but the calling code may need to handle this case appropriately.
+------------------------------------------------------

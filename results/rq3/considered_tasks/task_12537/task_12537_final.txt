@@ -1,0 +1,46 @@
+
+Here's the updated Java method that checks for accessibility and security exceptions when calling `Method.setAccessible(boolean)`:
+
+```java
+public static Method findOrCreateMethod(Class<?> clazz, String methodName, Class<?> returnType, Class<?>... parameterTypes) throws NoSuchMethodException, InaccessibleObjectException, SecurityException {
+    Method method = null;
+    try {
+        method = clazz.getDeclaredMethod(methodName, parameterTypes);
+    } catch (NoSuchMethodException e) {
+        // Method not found, create a new one
+        method = clazz.getDeclaredMethod(methodName, parameterTypes);
+        try {
+            method.setAccessible(true);
+        } catch (InaccessibleObjectException ex) {
+            throw ex;
+        } catch (SecurityException ex) {
+            throw ex;
+        }
+    }
+    // Check if the return type is the same as the requested type
+    if (!method.getReturnType().equals(returnType)) {
+        // Return type is different, create a new method with the requested return type
+        MethodType methodType = MethodType.methodType(returnType, parameterTypes);
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle methodHandle = lookup.unreflect(method);
+        MethodHandle newMethodHandle = methodHandle.asType(methodType);
+        try {
+            method = newMethodHandle.reflectAs(Method.class, lookup);
+        } catch (InaccessibleObjectException ex) {
+            throw ex;
+        } catch (SecurityException ex) {
+            throw ex;
+        }
+    }
+    return method;
+}
+```
+
+This updated method now includes try-catch blocks to handle `InaccessibleObjectException` and `SecurityException` when calling `Method.setAccessible(boolean)` and `MethodHandle.reflectAs(Method.class, lookup)`.
+
+If `Method.setAccessible(true)` throws an `InaccessibleObjectException`, the exception is re-thrown as an `InaccessibleObjectException`. Similarly, if it throws a `SecurityException`, the exception is re-thrown as a `SecurityException`.
+
+If `MethodHandle.reflectAs(Method.class, lookup)` throws an `InaccessibleObjectException`, the exception is re-thrown as an `InaccessibleObjectException`. Similarly, if it throws a `SecurityException`, the exception is re-thrown as a `SecurityException`.
+
+This ensures that any accessibility or security issues are properly handled and the appropriate exceptions are thrown.
+------------------------------------------------------

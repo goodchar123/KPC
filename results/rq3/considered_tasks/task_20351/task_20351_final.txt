@@ -1,0 +1,31 @@
+
+Sure, here's the updated Java method that checks for database access errors and timeouts:
+
+```java
+public void setColumnDecimalDigits(int column, int decimalDigits) throws SQLException {
+    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+    PreparedStatement pstmt = conn.prepareStatement("ALTER TABLE mytable MODIFY COLUMN mycolumn DECIMAL(10," + decimalDigits + ")");
+    try {
+        pstmt.setQueryTimeout(10); // set timeout to 10 seconds
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            throw (SQLTimeoutException) e;
+        } else if (e.getMessage().contains("PreparedStatement is closed")) {
+            throw new SQLException("PreparedStatement is closed");
+        } else if (e.getMessage().contains("ResultSet object")) {
+            throw new SQLException("SQL statement returns a ResultSet object");
+        } else {
+            throw e;
+        }
+    } finally {
+        pstmt.close();
+        conn.close();
+    }
+}
+```
+
+This method now uses a try-catch block to catch any `SQLException` that may occur during the execution of the SQL statement. It checks if the exception is an instance of `SQLTimeoutException`, and if so, it throws that exception. It also checks if the exception message contains the strings "PreparedStatement is closed" or "ResultSet object", and if so, it throws a `SQLException` with an appropriate message.
+
+Finally, the method closes the `PreparedStatement` and `Connection` objects in a `finally` block to ensure that they are properly closed even if an exception is thrown.
+------------------------------------------------------

@@ -1,0 +1,41 @@
+Please write a java method that Causes the current thread to wait until it is signalled or interrupted.
+Here's an example Java method that causes the current thread to wait until it is signalled or interrupted:
+
+```java
+public void waitForSignal() throws InterruptedException {
+    synchronized(this) {
+        wait();
+    }
+}
+```
+
+This method uses the `wait()` method to cause the current thread to wait until it is signalled or interrupted. The `synchronized` block is used to ensure that the `wait()` method is called on the correct object. 
+
+To signal the waiting thread, another thread can call the `notify()` or `notifyAll()` method on the same object. This will wake up the waiting thread and allow it to continue executing.
+------------------------------------------------------
+Please check if the current thread is not         the owner of the object's monitor for java.lang.Object.wait() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+Please check if the current thread is not               the owner of this object's monitor. for java.lang.Object.notify() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+You are correct, it is important to check if the current thread is the owner of the object's monitor before calling `wait()` or `notify()` methods. Here's an updated version of the code snippet that includes these checks and throws `IllegalMonitorStateException` if the current thread is not the owner of the monitor:
+
+```java
+public void waitForSignal() throws InterruptedException {
+    synchronized(this) {
+        if (!Thread.holdsLock(this)) {
+            throw new IllegalMonitorStateException("Current thread is not the owner of the monitor");
+        }
+        wait();
+    }
+}
+
+public void signal() {
+    synchronized(this) {
+        if (!Thread.holdsLock(this)) {
+            throw new IllegalMonitorStateException("Current thread is not the owner of the monitor");
+        }
+        notify();
+    }
+}
+```
+
+The `Thread.holdsLock()` method is used to check if the current thread is the owner of the monitor. If it is not, an `IllegalMonitorStateException` is thrown. This ensures that the `wait()` and `notify()` methods are only called by the thread that owns the monitor.
+------------------------------------------------------

@@ -1,0 +1,72 @@
+
+Sure, here's the updated code that includes all the requested error checks:
+
+```java
+import java.io.*;
+import java.nio.file.*;
+import java.security.*;
+import java.security.cert.*;
+import java.security.interfaces.RSAPublicKey;
+
+public class CRLVerifier {
+
+    public static boolean verifyCRLSignature(X509CRL crl, PublicKey publicKey) throws Exception {
+        Signature signature = Signature.getInstance(crl.getSigAlgName());
+        signature.initVerify(publicKey);
+        try {
+            signature.update(crl.getTBSCertList());
+        } catch (CertificateEncodingException e) {
+            throw new CRLException("Error encoding CRL", e);
+        }
+        return signature.verify(crl.getSignature());
+    }
+
+    public static void main(String[] args) throws Exception {
+        try {
+            // Load the CRL and public key
+            X509CRL crl = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(new FileInputStream("crl.crl"));
+            PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Files.readAllBytes(Paths.get("public_key.der"))));
+
+            // Verify the CRL signature
+            boolean verified = verifyCRLSignature(crl, publicKey);
+            System.out.println("CRL signature verified: " + verified);
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("Error: No Provider supports a Signature implementation for the specified algorithm");
+            throw e;
+        } catch (NullPointerException e) {
+            System.err.println("Error: Algorithm is null");
+            throw e;
+        } catch (InvalidKeyException e) {
+            System.err.println("Error: The key is invalid");
+            throw e;
+        } catch (SignatureException e) {
+            System.err.println("Error: This signature object is not initialized properly");
+            throw e;
+        } catch (CertificateEncodingException e) {
+            System.err.println("Error: An encoding error occurred while getting the TBSCertList");
+            throw new CRLException("Error encoding CRL", e);
+        } catch (CertificateException e) {
+            System.err.println("Error: No Provider supports a CertificateFactorySpi implementation for the specified type");
+            throw e;
+        } catch (IOException e) {
+            System.err.println("Error: An I/O error occurred while reading the public key file");
+            throw e;
+        } catch (InvalidKeySpecException e) {
+            System.err.println("Error: The given key specification is inappropriate for this key factory to produce a public key");
+            throw e;
+        } catch (InvalidPathException e) {
+            System.err.println("Error: The path string cannot be converted to a Path");
+            throw e;
+        } catch (SecurityException e) {
+            System.err.println("Error: A security manager is installed and the checkRead method failed");
+            throw e;
+        } catch (OutOfMemoryError e) {
+            System.err.println("Error: An array of the required size cannot be allocated");
+            throw e;
+        }
+    }
+}
+```
+
+In this updated code, we catch each possible exception and print an error message to the console before re-throwing the exception. This helps to identify the specific error that occurred.
+------------------------------------------------------

@@ -1,0 +1,53 @@
+
+Sure, here's the updated version of the method that includes both security checks:
+
+```java
+public ClassLoader getModuleClassLoader() {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check if caller has permission to get class loader
+        sm.checkPermission(new RuntimePermission("getClassLoader"));
+        
+        // Check if caller's class loader can access requested class loader
+        ClassLoader callerClassLoader = getClass().getClassLoader();
+        ClassLoader requestedClassLoader = getClass().getModule().getClassLoader();
+        if (callerClassLoader != null && !callerClassLoader.equals(requestedClassLoader)) {
+            ClassLoader parent = requestedClassLoader.getParent();
+            while (parent != null) {
+                if (callerClassLoader.equals(parent)) {
+                    break;
+                }
+                parent = parent.getParent();
+            }
+            if (parent == null) {
+                throw new SecurityException("Caller's class loader cannot access requested class loader");
+            }
+        }
+        
+        // Check if caller's class loader can access parent class loader
+        ClassLoader parentClassLoader = requestedClassLoader.getParent();
+        if (callerClassLoader != null && !callerClassLoader.equals(parentClassLoader)) {
+            ClassLoader parent = parentClassLoader.getParent();
+            while (parent != null) {
+                if (callerClassLoader.equals(parent)) {
+                    break;
+                }
+                parent = parent.getParent();
+            }
+            if (parent == null) {
+                throw new SecurityException("Caller's class loader cannot access parent class loader");
+            }
+        }
+    }
+    return requestedClassLoader;
+}
+```
+
+This version first checks if a security manager is installed using `System.getSecurityManager()`. If one is installed, it first checks if the caller has permission to get the class loader using `sm.checkPermission(new RuntimePermission("getClassLoader"))`. 
+
+Next, it checks if the caller's class loader can access the requested class loader. If the caller's class loader is null or the same as the requested class loader, it skips this check. Otherwise, it checks if the caller's class loader is an ancestor of the requested class loader by iterating through the parent class loaders until it finds a match. If a match is not found, it throws a `SecurityException`.
+
+Then, it checks if the caller's class loader can access the parent class loader of the requested class loader. If the caller's class loader is null or the same as the parent class loader, it skips this check. Otherwise, it checks if the caller's class loader is an ancestor of the parent class loader by iterating through the parent class loaders until it finds a match. If a match is not found, it throws a `SecurityException`.
+
+Finally, if no security manager is installed, the method simply returns the requested class loader.
+------------------------------------------------------

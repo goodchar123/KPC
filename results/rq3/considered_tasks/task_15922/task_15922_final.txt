@@ -1,0 +1,41 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the method that includes the error checking you mentioned:
+
+```java
+import java.io.*;
+
+public class FileCopy {
+    public static void copyFileToOutputStream(File file, OutputStream outputStream) throws IOException {
+        InputStream inputStream = new FileInputStream(file);
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        try {
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                try {
+                    outputStream.write(buffer, 0, bytesRead);
+                } catch (IOException e) {
+                    throw new IOException("Error writing to output stream: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            throw new IOException("Error reading from input stream: " + e.getMessage());
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Byte array is null: " + e.getMessage());
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                throw new IOException("Error closing streams: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This updated version includes a try-catch block to catch any `IOException` that may occur when writing to the output stream. It also includes a finally block to ensure that both streams are closed, even if an exception is thrown.
+------------------------------------------------------

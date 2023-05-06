@@ -1,0 +1,44 @@
+
+Thank you for pointing that out. Here's the updated code snippet that includes the necessary check:
+
+```java
+public void resetTransformer(Transformer transformer) throws TransformerConfigurationException, UnsupportedOperationException, IllegalArgumentException {
+    // Get the TransformerFactory used to create the Transformer
+    TransformerFactory factory = transformer.getFactory();
+
+    // Create a new Transformer with the same configuration as the original
+    Transformer newTransformer;
+    try {
+        newTransformer = factory.newTransformer();
+    } catch (TransformerConfigurationException e) {
+        throw e;
+    }
+
+    // Replace the original Transformer with the new one
+    try {
+        transformer.reset();
+    } catch (UnsupportedOperationException e) {
+        throw e;
+    }
+    Properties outputProperties = newTransformer.getOutputProperties();
+    if (outputProperties != null) {
+        transformer.setOutputProperties(outputProperties);
+    } else {
+        throw new IllegalArgumentException("Output properties cannot be null");
+    }
+    URIResolver uriResolver = newTransformer.getURIResolver();
+    if (uriResolver != null) {
+        transformer.setURIResolver(uriResolver);
+    }
+    ErrorListener errorListener = newTransformer.getErrorListener();
+    if (errorListener != null) {
+        transformer.setErrorListener(errorListener);
+    } else {
+        throw new IllegalArgumentException("Error listener cannot be null");
+    }
+    transformer.setParameters(newTransformer.getParameters());
+}
+```
+
+This updated method includes a try-catch block around the call to `factory.newTransformer()`. If it is not possible to create a Transformer instance, a `TransformerConfigurationException` is thrown.
+------------------------------------------------------

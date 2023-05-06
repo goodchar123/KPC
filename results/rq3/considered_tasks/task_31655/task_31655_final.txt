@@ -1,0 +1,26 @@
+
+The updated Java method that checks for invalid `Mixer.Info` objects is as follows:
+
+```java
+import javax.sound.sampled.*;
+
+public Mixer getMixer(String mixerName) throws SecurityException, IllegalArgumentException {
+    Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+    for (Mixer.Info mixerInfo : mixerInfos) {
+        if (mixerInfo.getName().equals(mixerName)) {
+            try {
+                Mixer mixer = AudioSystem.getMixer(mixerInfo);
+                return mixer;
+            } catch (SecurityException e) {
+                throw new SecurityException("Access to mixer is restricted by security settings.");
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Mixer with name " + mixerName + " is not installed on the system.");
+            }
+        }
+    }
+    throw new IllegalArgumentException("Mixer with name " + mixerName + " is not installed on the system.");
+}
+```
+
+This updated method now catches the `IllegalArgumentException` thrown by `AudioSystem.getMixer()` if the `Mixer.Info` object passed to it does not represent a valid mixer installed on the system. It then throws its own `IllegalArgumentException` with a more descriptive error message.
+------------------------------------------------------

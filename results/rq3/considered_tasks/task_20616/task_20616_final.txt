@@ -1,0 +1,31 @@
+
+Sure, here's the updated code snippet that includes the null check and SQLException handling:
+
+```java
+import java.sql.*;
+import java.util.*;
+
+public class Example {
+    public void setDateParameter(PreparedStatement statement, int parameterIndex, Date date) throws SQLException {
+        if (date == null) {
+            throw new NullPointerException("Date cannot be null");
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        try {
+            statement.setDate(parameterIndex, new java.sql.Date(calendar.getTimeInMillis()), calendar);
+        } catch (SQLException e) {
+            if (e.getMessage().contains("parameter index out of range")) {
+                throw new SQLException("Invalid parameter index: " + parameterIndex, e);
+            } else if (e.getMessage().contains("closed PreparedStatement")) {
+                throw new SQLException("PreparedStatement is closed", e);
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+
+In this updated code, we first check if the date parameter is null and throw a NullPointerException if it is. We then try to set the parameter using the PreparedStatement's setDate method, and catch any SQLException that may occur. If the SQLException message contains "parameter index out of range", we throw a new SQLException with a more descriptive error message. If the message contains "closed PreparedStatement", we throw a new SQLException indicating that the PreparedStatement is closed. Otherwise, we re-throw the original SQLException.
+------------------------------------------------------

@@ -1,0 +1,50 @@
+
+Sure, here's an updated version of the Java method that includes the requested error handling:
+
+```
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class MyClass {
+    public static void main(String[] args) throws Throwable {
+        Class<?> clazz = MyClass.class;
+        String methodName = "myMethod";
+        MethodType methodType = MethodType.methodType(void.class, String.class);
+        
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        
+        try {
+            // Check if method exists
+            lookup.findStatic(clazz, methodName, methodType);
+            
+            // Check access
+            if (!lookup.lookupClass().equals(clazz) || !lookup.lookupModes().contains(MethodHandles.Lookup.ClassOption.NESTMATE)) {
+                throw new IllegalAccessException();
+            }
+            
+            // Check varargs
+            if ((methodType.toMethodDescriptorString().charAt(0) & 0x80) != 0 && !methodType.hasParameterArray()) {
+                throw new IllegalAccessException();
+            }
+        } catch (NoSuchMethodException e) {
+            throw e;
+        } catch (IllegalAccessException e) {
+            throw e;
+        } catch (SecurityException e) {
+            throw e;
+        } catch (NullPointerException e) {
+            throw e;
+        }
+        
+        // Method exists and access is allowed, so we can proceed
+        lookup.findStatic(clazz, methodName, methodType);
+    }
+    
+    public static void myMethod(String arg) {
+        System.out.println("Hello, " + arg + "!");
+    }
+}
+```
+
+In this updated version, we first perform the `findStatic` call inside a try-catch block to catch any `NoSuchMethodException`, `IllegalAccessException`, `SecurityException`, or `NullPointerException` that may be thrown. If the method exists, we then check access by comparing the lookup class and modes to the target class and modes. We also check for varargs by examining the first character of the method descriptor string and checking if the method type has a parameter array. If any of these checks fail, we throw an `IllegalAccessException`. If all checks pass, we perform the `findStatic` call again to actually obtain the `MethodHandle`.
+------------------------------------------------------

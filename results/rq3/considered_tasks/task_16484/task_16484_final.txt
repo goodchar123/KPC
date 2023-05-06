@@ -1,0 +1,33 @@
+
+Sure, here's the updated Java method that checks if the stamp matches the current state of the lock and throws an `IllegalMonitorStateException` if it doesn't:
+
+```java
+public void releaseLock(StampedLock lock, long stamp, LockMode mode) {
+    if (lock.validate(stamp)) {
+        switch (mode) {
+            case READ:
+                if (lock.tryUnlockRead(stamp)) {
+                    break;
+                }
+                throw new IllegalMonitorStateException("Invalid stamp for unlockRead");
+            case WRITE:
+                if (lock.tryUnlockWrite(stamp)) {
+                    break;
+                }
+                throw new IllegalMonitorStateException("Invalid stamp for unlockWrite");
+            case OPTIMISTIC:
+                if (lock.tryUnlock(stamp)) {
+                    break;
+                }
+                throw new IllegalMonitorStateException("Invalid stamp for unlock");
+            default:
+                throw new IllegalArgumentException("Invalid lock mode");
+        }
+    }
+}
+```
+
+This method now uses the `tryUnlockRead()`, `tryUnlockWrite()`, and `tryUnlock()` methods of the `StampedLock` class instead of the `unlockRead()`, `unlockWrite()`, and `unlock()` methods. These methods return a `boolean` value indicating whether the stamp matches the current state of the lock. If the stamp is invalid, the method throws an `IllegalMonitorStateException` with an appropriate error message.
+
+Note that the `tryUnlockRead()`, `tryUnlockWrite()`, and `tryUnlock()` methods are only available in Java 8 and later. If you're using an earlier version of Java, you'll need to use the `unlockRead()`, `unlockWrite()`, and `unlock()` methods and manually check if the stamp matches the current state of the lock using the `validate()` method.
+------------------------------------------------------

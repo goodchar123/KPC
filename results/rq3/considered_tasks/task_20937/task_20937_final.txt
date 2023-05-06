@@ -1,0 +1,30 @@
+
+Here's the updated Java method that checks for database access errors and closed connections when calling `getMetaData()`, `storesLowerCaseIdentifiers()`, and `supportsMixedCaseIdentifiers()` methods:
+
+```java
+public boolean isMixedCaseIdentifiersIgnored(Connection conn) throws SQLException {
+    boolean result = false;
+    try {
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata");
+        }
+        if (metaData.storesLowerCaseIdentifiers() && metaData.supportsMixedCaseIdentifiers()) {
+            result = true;
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Error checking mixed case identifier behavior", e);
+    }
+    return result;
+}
+```
+
+This method now includes additional checks for a closed connection and a null `DatabaseMetaData` object. If the connection is closed or the metadata object is null, the method throws a new `SQLException` with a custom error message.
+
+The method also includes a try-catch block that catches any `SQLException` that may occur when calling the `storesLowerCaseIdentifiers()` and `supportsMixedCaseIdentifiers()` methods. If an exception is caught, the method throws a new `SQLException` with a custom error message and the original exception as the cause.
+
+By doing this, the method ensures that the connection is open and the metadata object is not null before calling the `storesLowerCaseIdentifiers()` and `supportsMixedCaseIdentifiers()` methods, which can prevent further errors from occurring. If any other `SQLException` occurs when checking for a closed connection, retrieving metadata, or calling the `storesLowerCaseIdentifiers()` and `supportsMixedCaseIdentifiers()` methods, the method throws a new `SQLException` with a custom error message and the original exception as the cause.
+------------------------------------------------------

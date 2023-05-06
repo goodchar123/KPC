@@ -1,0 +1,40 @@
+
+Sure, here's an updated version of the method that includes the error checking you requested:
+
+```java
+public boolean getBooleanParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    boolean result = false;
+    ResultSet resultSet = null;
+    try {
+        statement.execute();
+        resultSet = statement.getResultSet();
+        if (resultSet.next()) {
+            result = resultSet.getBoolean(parameterIndex);
+        }
+    } catch (SQLException e) {
+        if (e.getMessage().contains("closed PreparedStatement")) {
+            throw new SQLException("PreparedStatement is closed");
+        } else if (e.getMessage().contains("supplied to this method for java.sql.PreparedStatement.execute()")) {
+            throw new SQLException("Invalid argument supplied to execute() method");
+        } else if (e.getMessage().contains("timeout value that was specified by the setQueryTimeout method has been exceeded")) {
+            throw new SQLTimeoutException("Query timeout exceeded");
+        } else if (e.getMessage().contains("closed result set")) {
+            throw new SQLException("Result set is closed");
+        } else if (e.getMessage().contains("columnIndex is not valid")) {
+            throw new SQLException("Invalid column index");
+        } else {
+            throw e;
+        }
+    } finally {
+        if (resultSet != null) {
+            resultSet.close();
+        }
+    }
+    return result;
+}
+```
+
+This version of the method catches any `SQLException` that may occur and checks the error message to determine the cause of the error. If the error message indicates that the `PreparedStatement` is closed, an invalid argument was supplied to the `execute()` method, the query timeout was exceeded, the result set is closed, or the column index is invalid, a more specific exception is thrown. Otherwise, the original `SQLException` is re-thrown.
+
+Note that this version of the method also includes a `finally` block to ensure that the result set is closed even if an exception is thrown.
+------------------------------------------------------

@@ -1,0 +1,48 @@
+
+Here's the updated Java method that includes the requested checks:
+
+```java
+public void addModuleDependence(String moduleName) {
+    ModuleLayer parentLayer = ModuleLayer.boot();
+    ModuleFinder finder = parentLayer.finder();
+    Optional<ModuleReference> moduleRef = finder.find(moduleName);
+    ModuleReference ref = moduleRef.orElseThrow(() -> new NoSuchElementException("No value is present for java.util.Optional.orElseThrow()"));
+    ModuleDescriptor descriptor = ref.descriptor();
+    ModuleFinder emptyFinder = ModuleFinder.of(new HashSet<>());
+    ModuleLayer layer = parentLayer.defineModulesWithOneLoader(emptyFinder, ClassLoader.getSystemClassLoader());
+    ModuleReference newRef = layer.defineModulesWithOneLoader(emptyFinder, ClassLoader.getSystemClassLoader())
+            .find(moduleName).orElseThrow(() -> new RuntimeException("Module not found"));
+    ModuleFinder newFinder = ModuleFinder.of(newRef);
+    ModuleLayer.Controller controller = parentLayer.controller();
+    if (System.getSecurityManager() != null) {
+        SecurityManager sm = System.getSecurityManager();
+        ClassLoader callerClassLoader = getClass().getClassLoader();
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (callerClassLoader != null && !callerClassLoader.equals(systemClassLoader) && !callerClassLoader.getParent().equals(systemClassLoader)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        if (ClassLoader.getSystemClassLoader().equals(getClass().getClassLoader())) {
+            throw new IllegalStateException("Invoked recursively during the construction of the class loader specified by the \"java.system.class.loader\" property.");
+        }
+    }
+    try {
+        ClassLoader.getSystemClassLoader().loadClass(moduleName);
+    } catch (ClassNotFoundException e) {
+        throw new ClassNotFoundException("The class was not found.", e);
+    } catch (NoSuchMethodException e) {
+        throw new Error("The provider class does not define the required constructor.", e);
+    } catch (InvocationTargetException e) {
+        throw new Error("An exception is thrown by that constructor when it is invoked.", e.getCause());
+    } catch (IllegalAccessException e) {
+        throw new Error("The provider class does not define the required constructor.", e);
+    }
+    controller.addReads(layer, newFinder.findAll().stream().map(ModuleReference::descriptor).collect(Collectors.toSet()));
+}
+```
+
+This updated method includes the following checks:
+
+- If a security manager is present and the caller's class loader is not null and is not the same as or an ancestor of the system class loader, and the caller does not have the `RuntimePermission("getClassLoader")` for `ClassLoader.getSystemClassLoader()`, it throws a `SecurityException`.
+- If invoked recursively during the construction of the class loader specified by the "java.system.class.loader" property, it throws an `IllegalStateException`.
+- If the system property "java.system.class.loader" is defined but the named class could not be loaded, the provider class does not define the required constructor, or an exception is thrown by that constructor when it is invoked, it throws an `Error`.
+------------------------------------------------------

@@ -1,0 +1,52 @@
+
+Sure, here's an updated version of the Java method that includes error handling for the scenarios you mentioned:
+
+```java
+import javax.sql.rowset.WebRowSet;
+import javax.sql.rowset.WebRowSetImpl;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import java.io.Reader;
+
+public static WebRowSet readWebRowSetFromXML(Reader reader) throws Exception {
+    // Create a new WebRowSet object
+    WebRowSet webRowSet = new WebRowSetImpl();
+
+    try {
+        // Create a SAX parser factory and parser
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser parser = factory.newSAXParser();
+
+        // Use the WebRowSetXmlReader to parse the XML and populate the WebRowSet object
+        WebRowSetXmlReader xmlReader = new WebRowSetXmlReader();
+        xmlReader.setWebRowSet(webRowSet);
+        parser.parse(new InputSource(reader), xmlReader);
+    } catch (FactoryConfigurationError e) {
+        throw new Exception("Error creating SAX parser factory: " + e.getMessage());
+    }
+
+    try {
+        // Create a SAX transformer factory and transformer handler
+        SAXTransformerFactory transformerFactory = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+        TransformerHandler transformerHandler = transformerFactory.newTransformerHandler();
+
+        // Set the result of the transformer handler to the WebRowSetXmlWriter
+        WebRowSetXmlWriter xmlWriter = new WebRowSetXmlWriter();
+        xmlWriter.setWebRowSet(webRowSet);
+        transformerHandler.setResult(xmlWriter);
+    } catch (IllegalArgumentException e) {
+        throw new Exception("Invalid result for TransformerHandler: " + e.getMessage());
+    } catch (TransformerConfigurationException e) {
+        throw new Exception("Error creating TransformerHandler: " + e.getMessage());
+    }
+
+    return webRowSet;
+}
+```
+
+In this updated version, we've added try-catch blocks to handle the potential errors you mentioned. If an error occurs, we throw a new `Exception` with a descriptive error message.
+------------------------------------------------------

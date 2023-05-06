@@ -1,0 +1,29 @@
+
+Here's the updated Java method that includes the null and type checking you requested:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class TryFinallyWrapper {
+    public static MethodHandle wrapWithTryFinally(MethodHandle target, MethodHandle cleanup) {
+        if (target == null || cleanup == null) {
+            throw new NullPointerException("MethodHandle arguments cannot be null");
+        }
+        MethodType targetType = target.type();
+        MethodType cleanupType = cleanup.type();
+        if (!cleanupType.equals(MethodType.methodType(void.class, targetType.parameterList()))) {
+            throw new IllegalArgumentException("Cleanup method handle does not accept the required leading arguments");
+        }
+        if (!cleanupType.returnType().equals(void.class) || !cleanupType.parameterList().equals(targetType.parameterList())) {
+            throw new IllegalArgumentException("Method handle types do not match in their return types and their corresponding trailing parameters");
+        }
+        MethodHandle tryFinallyHandler = MethodHandles.tryFinally(target, cleanup);
+        return tryFinallyHandler;
+    }
+}
+```
+
+This method now checks if the `target` and `cleanup` method handles are null, and throws a `NullPointerException` if either of them are null. It also checks if the `cleanup` method handle accepts the required leading arguments and if the method handle types match in their return types and corresponding trailing parameters. If either of these checks fail, an `IllegalArgumentException` is thrown.
+------------------------------------------------------

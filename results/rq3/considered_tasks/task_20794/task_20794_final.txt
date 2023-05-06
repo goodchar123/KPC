@@ -1,0 +1,57 @@
+
+Sure, here's an updated version of the `executeSQL()` method that checks for additional exceptions:
+
+```java
+import java.sql.*;
+
+public class SQLExecutor {
+    public void executeSQL(Connection conn, String sql, boolean retrieveKeys) throws SQLException {
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Connection is null or closed");
+        }
+        try (Statement stmt = conn.createStatement()) {
+            if (retrieveKeys) {
+                int affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+                if (affectedRows == 0) {
+                    throw new SQLException("Executing SQL statement failed, no rows affected.");
+                }
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        System.out.println("Generated key: " + generatedKeys.getLong(1));
+                    }
+                } catch (SQLException e) {
+                    throw new SQLException("Error retrieving generated keys: " + e.getMessage());
+                } catch (SQLFeatureNotSupportedException e) {
+                    throw new SQLFeatureNotSupportedException("JDBC driver does not support getGeneratedKeys()", e);
+                }
+            } else {
+                int affectedRows = stmt.executeUpdate(sql);
+                if (affectedRows == 0) {
+                    throw new SQLException("Executing SQL statement failed, no rows affected.");
+                }
+            }
+        } catch (SQLFeatureNotSupportedException e) {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support RETURN_GENERATED_KEYS", e);
+        } catch (SQLTimeoutException e) {
+            throw new SQLTimeoutException("Timeout exceeded while executing SQL statement", e);
+        } catch (SQLException e) {
+            throw new SQLException("Error executing SQL statement: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method first checks if the `Connection` object is `null` or closed using the `isClosed()` method. If the connection is `null` or closed, it throws a `SQLException` with an appropriate error message.
+
+If the connection is valid, it creates a `Statement` object from the connection and executes the SQL statement using `executeUpdate()`. If the `retrieveKeys` flag is `true`, it sets the second parameter of `executeUpdate()` to `Statement.RETURN_GENERATED_KEYS`, which signals the driver to make the auto-generated keys available for retrieval. Otherwise, it executes the SQL statement without retrieving any keys.
+
+If the `executeUpdate()` method returns 0, it means that no rows were affected by the SQL statement, so the method throws a `SQLException` with an appropriate error message.
+
+If the `getGeneratedKeys()` method is not supported by the JDBC driver, the method catches the `SQLFeatureNotSupportedException` and throws a new `SQLFeatureNotSupportedException` with an error message that includes the original exception's message.
+
+If there is an error retrieving the generated keys, the method catches the `SQLException` and throws a new `SQLException` with an error message that includes the original exception's message. This provides more information about the error to the caller.
+
+Additionally, the `try` block uses a try-with-resources statement to automatically close the `Statement` object and the `ResultSet` object when they are no longer needed. This ensures that they are properly closed even if an exception occurs during execution.
+
+Finally, the method checks for a database access error when closing the `Statement` object and throws a `SQLException` with an appropriate error message if an error occurs.
+------------------------------------------------------

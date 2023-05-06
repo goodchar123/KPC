@@ -1,0 +1,62 @@
+
+Sure, here's the updated code snippet that checks for `IOException` when closing the `RandomAccessFile` object:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+
+public class FileLockExample {
+    public static void main(String[] args) {
+        try {
+            RandomAccessFile file = new RandomAccessFile("example.txt", "rw");
+            FileChannel channel = file.getChannel();
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+            FileLock lock = null;
+            try {
+                lock = channel.tryLock();
+            } catch (OverlappingFileLockException e) {
+                // File is already locked in this thread or virtual machine
+            } catch (IOException e) {
+                // Some other I/O error occurred
+                e.printStackTrace();
+            }
+            if (lock != null) {
+                // Lock acquired
+                System.out.println("Lock acquired");
+                // Do some work with the file
+                try {
+                    lock.release();
+                } catch (ClosedChannelException e) {
+                    // Channel is no longer open
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // Some other I/O error occurred
+                    e.printStackTrace();
+                }
+                System.out.println("Lock released");
+            } else {
+                // Lock not acquired
+                System.out.println("Lock not acquired");
+            }
+            channel.close();
+            try {
+                file.close();
+            } catch (IOException e) {
+                // I/O error occurred when closing file
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This code now catches `IOException` when closing the `RandomAccessFile` object using `close()`, and throws it if it occurs.
+------------------------------------------------------

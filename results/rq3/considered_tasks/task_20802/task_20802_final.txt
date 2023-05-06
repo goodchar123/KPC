@@ -1,0 +1,24 @@
+
+Sure, here's an updated version of the `executePreparedStatement` method that checks for a query timeout and attempts to cancel the statement if it has exceeded the specified timeout:
+
+```java
+public void executePreparedStatement(PreparedStatement preparedStatement, int queryTimeout) throws SQLException {
+    preparedStatement.setQueryTimeout(queryTimeout);
+    try {
+        preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            preparedStatement.cancel();
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This version of the method takes an additional parameter `queryTimeout` which specifies the maximum number of seconds that the statement should be allowed to run before timing out. The method sets this timeout using the `setQueryTimeout` method of the PreparedStatement object.
+
+If the statement exceeds the specified timeout and the driver has attempted to cancel it, the method catches the resulting SQLTimeoutException and cancels the statement using the `cancel` method of the PreparedStatement object. If the exception is not a SQLTimeoutException, it is re-thrown to be handled by the calling code.
+
+Note that this method now throws a SQLException, which includes the SQLTimeoutException if it occurs. The calling code should handle this exception appropriately.
+------------------------------------------------------

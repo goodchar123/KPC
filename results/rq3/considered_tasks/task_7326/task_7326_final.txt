@@ -1,0 +1,25 @@
+
+Here's the updated Java method that checks for a security manager and null libname before loading the native library:
+
+```java
+public static void loadNativeLibrary(String libname) throws SecurityException, NullPointerException {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkLink(libname);
+    }
+    if (libname == null) {
+        throw new NullPointerException("libname is null");
+    }
+    try {
+        System.loadLibrary(libname);
+        System.out.println("Native library " + libname + " loaded successfully.");
+    } catch (UnsatisfiedLinkError e) {
+        throw new SecurityException("Failed to load native library " + libname + ": " + e.getMessage());
+    }
+}
+```
+
+This updated method first checks if a security manager exists and if it does, it calls the `checkLink()` method to ensure that loading the specified dynamic library is allowed. If the `libname` argument is null, it throws a `NullPointerException`.
+
+If the security check and null check pass, the method attempts to load the native library using `System.loadLibrary()`. If there is an error loading the library, it throws a `SecurityException` with an error message. If the library is loaded successfully, it prints a message to the console.
+------------------------------------------------------

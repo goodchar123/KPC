@@ -1,0 +1,31 @@
+
+Sure, here's an updated version of the Java method that includes the requested exception handling:
+
+```
+public static void forceAlphaPremultiplied(WritableRaster raster, boolean isAlphaPremultiplied) {
+    ColorModel colorModel = raster.getColorModel();
+    if (colorModel.isAlphaPremultiplied() != isAlphaPremultiplied) {
+        WritableRaster newRaster = colorModel.createCompatibleWritableRaster(raster.getWidth(), raster.getHeight());
+        if (newRaster == null) {
+            throw new UnsupportedOperationException("createCompatibleWritableRaster is not supported by this ColorModel");
+        }
+        ColorConvertOp op = new ColorConvertOp(colorModel.getColorSpace(), newRaster.getColorModel().getColorSpace(), null);
+        if (op.getRenderingHints() != null && op.getRenderingHints().containsKey(RenderingHints.KEY_DEST) && op.getRenderingHints().get(RenderingHints.KEY_DEST) == null) {
+            throw new IllegalArgumentException("dest is null and this op was constructed using the constructor which takes only a RenderingHints argument, since the operation is ill defined");
+        }
+        op.filter(raster, newRaster);
+        try {
+            raster.setDataElements(0, 0, newRaster);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new ArrayIndexOutOfBoundsException("coordinates are not in bounds, or if inData is too small to hold the input");
+        }
+    }
+}
+```
+
+This updated method includes exception handling for the following scenario:
+
+- If `dest` is null and the `ColorConvertOp` was constructed using the constructor which takes only a `RenderingHints` argument, an `IllegalArgumentException` is thrown with a message indicating that the operation is ill defined. 
+
+The updated code checks if the `RenderingHints` object contains the `KEY_DEST` key and if its value is null. If both conditions are true, it throws the `IllegalArgumentException`.
+------------------------------------------------------

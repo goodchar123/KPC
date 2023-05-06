@@ -1,0 +1,33 @@
+
+Sure, here's the updated Java method that checks for database access errors and throws `SQLException` if necessary:
+
+```java
+public boolean isMultipleResultSetSupported(CallableStatement stmt) throws SQLException {
+    Connection conn = stmt.getConnection();
+    if (conn.isClosed()) {
+        throw new SQLException("Connection is closed");
+    }
+    DatabaseMetaData metaData = null;
+    try {
+        metaData = conn.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error", e);
+    }
+    if (!metaData.supportsMultipleResultSets()) {
+        throw new SQLException("Multiple result sets not supported");
+    }
+    if (!metaData.supportsMultipleOpenResults()) {
+        throw new SQLException("Multiple open results not supported");
+    }
+    return true;
+}
+```
+
+This updated method first checks if the connection associated with the `CallableStatement` object is closed using the `isClosed()` method of the `Connection` object. If the connection is closed, it throws a `SQLException` with an appropriate error message.
+
+Next, it retrieves the `DatabaseMetaData` object for the connection using the `getMetaData()` method of the `Connection` object. If a database access error occurs while retrieving the metadata, it throws a `SQLException` with an appropriate error message and includes the original exception as the cause.
+
+If the database does not support multiple result sets or multiple open results, it throws a `SQLException` with an appropriate error message.
+
+If no errors occur, the method returns `true` indicating that multiple `ResultSet` objects can be returned simultaneously.
+------------------------------------------------------

@@ -1,0 +1,63 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets, and also checks for invalid column labels and closed result sets when retrieving the function name and type:
+
+```java
+public String getFunctionDescription(String catalogName) throws SQLException {
+    String functionDescription = "";
+    try {
+        // Get the database metadata
+        DatabaseMetaData metaData = connection.getMetaData();
+        
+        // Check for database access error or closed connection
+        if (metaData == null) {
+            throw new SQLException("Database access error occurred.");
+        } else if (connection.isClosed()) {
+            throw new SQLException("Connection is closed.");
+        }
+        
+        // Get the system functions
+        ResultSet systemFunctions = metaData.getFunctions(null, "SYS", "%");
+        while (systemFunctions.next()) {
+            // Check for database access error or closed result set
+            if (systemFunctions.isClosed()) {
+                throw new SQLException("Result set is closed.");
+            }
+            
+            String functionName = systemFunctions.getString("FUNCTION_NAME");
+            String functionType = systemFunctions.getString("FUNCTION_TYPE");
+            
+            // Check for invalid column label or closed result set
+            if (functionName == null || systemFunctions.wasNull()) {
+                throw new SQLException("Invalid column label or result set is closed.");
+            }
+            
+            functionDescription += "System Function: " + functionName + " (" + functionType + ")\n";
+        }
+        
+        // Get the user functions
+        ResultSet userFunctions = metaData.getFunctions(null, catalogName, "%");
+        while (userFunctions.next()) {
+            // Check for database access error or closed result set
+            if (userFunctions.isClosed()) {
+                throw new SQLException("Result set is closed.");
+            }
+            
+            String functionName = userFunctions.getString("FUNCTION_NAME");
+            String functionType = userFunctions.getString("FUNCTION_TYPE");
+            
+            // Check for invalid column label or closed result set
+            if (functionName == null || userFunctions.wasNull()) {
+                throw new SQLException("Invalid column label or result set is closed.");
+            }
+            
+            functionDescription += "User Function: " + functionName + " (" + functionType + ")\n";
+        }
+    } catch (SQLException e) {
+        throw e;
+    }
+    return functionDescription;
+}
+```
+
+This updated method now checks for database access errors and closed connections/result sets when retrieving the database metadata and iterating over the system and user functions. It also checks for invalid column labels and closed result sets when retrieving the function name and type, and when checking if the value was null using `wasNull()`. If any of these conditions occur, a `SQLException` is thrown to properly handle and report the issue to the caller of the method.
+------------------------------------------------------

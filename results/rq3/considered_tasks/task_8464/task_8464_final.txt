@@ -1,0 +1,60 @@
+
+Sure, here's the updated code snippet that includes the error checking and exception handling:
+
+```java
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class ThreadPoolExample {
+    
+    public static void main(String[] args) {
+        // Create a thread pool with 5 threads
+        ScheduledExecutorService executor = null;
+        try {
+            executor = Executors.newScheduledThreadPool(-1);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+        
+        // Schedule a command to run after a delay of 2 seconds
+        try {
+            executor.schedule(null, 2, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (NullPointerException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        
+        // Schedule a command to run periodically every 5 seconds
+        try {
+            executor.scheduleAtFixedRate(null, 0, 0, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (NullPointerException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        
+        // Shutdown the thread pool
+        try {
+            System.setSecurityManager(new SecurityManager());
+            executor.shutdown();
+        } catch (SecurityException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
+```
+
+In this updated example, we first try to create a `ScheduledExecutorService` with a negative `corePoolSize` using the `Executors.newScheduledThreadPool()` method. If an `IllegalArgumentException` is thrown, we catch it and print the error message.
+
+Next, we try to schedule a command using the `executor.schedule()` method with a `null` command and a delay of 2 seconds. If a `RejectedExecutionException` or `NullPointerException` is thrown, we catch it and print the error message.
+
+Similarly, we try to schedule a command using the `executor.scheduleAtFixedRate()` method with `null` command, a delay of 0 seconds, and a period of 0 seconds. If a `RejectedExecutionException`, `NullPointerException`, or `IllegalArgumentException` is thrown, we catch it and print the error message.
+
+Finally, we try to shutdown the thread pool using the `executor.shutdown()` method. We first set a security manager to check if the caller has permission to modify threads. If a `SecurityException` is thrown, we catch it and print the error message.
+------------------------------------------------------

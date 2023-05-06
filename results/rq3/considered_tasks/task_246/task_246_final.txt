@@ -1,0 +1,23 @@
+
+Sure, here's the updated Java method that checks for `NullPointerException` and `SecurityException` when calling `KeyTab.getKeys`:
+
+```
+public List<Key> getKeytabKeys(KeyTab keytab, String principalName) throws NullPointerException, SecurityException {
+    if (principalName == null) {
+        throw new NullPointerException("Principal argument is null");
+    }
+    try {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new FilePermission(keytab.getAbsolutePath(), "read"));
+        }
+        KerberosPrincipal principal = new KerberosPrincipal(principalName);
+        return Arrays.asList(keytab.getKeys(principal));
+    } catch (NullPointerException | SecurityException e) {
+        throw e;
+    }
+}
+```
+
+This method first checks if the `principalName` argument is null and throws a `NullPointerException` if it is. It then checks if a security manager exists and if the read access to the keytab file is not permitted using the `checkPermission` method. If a `SecurityException` is thrown, it is propagated up the call stack. Finally, it creates a `KerberosPrincipal` object from the `principalName` argument and calls `getKeys` on the `KeyTab` object to retrieve the keys associated with the principal. If a `NullPointerException` or `SecurityException` is thrown during this process, it is re-thrown.
+------------------------------------------------------

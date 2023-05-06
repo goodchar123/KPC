@@ -1,0 +1,44 @@
+
+Sure, here's an updated version of the Java method that checks if the AttributeList contains an element that is not an Attribute:
+
+```java
+public void setAttributes(ModelMBean mbean, AttributeList attributes) throws Exception {
+    // Check if the AttributeList contains an element that is not an Attribute
+    for (Object obj : attributes) {
+        if (!(obj instanceof Attribute)) {
+            throw new IllegalArgumentException("AttributeList contains an element that is not an Attribute");
+        }
+    }
+    
+    // Get the MBeanInfo for the ModelMBean
+    MBeanInfo info = mbean.getMBeanInfo();
+    
+    // Get the list of attributes from the AttributeList
+    List<Attribute> attributeList = attributes.asList();
+    
+    // Loop through the list of attributes and set their values
+    for (Attribute attribute : attributeList) {
+        String attributeName = attribute.getName();
+        Object attributeValue = attribute.getValue();
+        
+        // Find the MBeanAttributeInfo for the attribute
+        MBeanAttributeInfo attributeInfo = null;
+        for (MBeanAttributeInfo infoAttr : info.getAttributes()) {
+            if (infoAttr.getName().equals(attributeName)) {
+                attributeInfo = infoAttr;
+                break;
+            }
+        }
+        
+        // If the attribute is writable, set its value
+        if (attributeInfo != null && attributeInfo.isWritable()) {
+            mbean.setAttribute(new Attribute(attributeName, attributeValue));
+        }
+    }
+}
+```
+
+This updated method first checks if the AttributeList contains an element that is not an Attribute by looping through the list and using the `instanceof` operator to check if each element is an instance of the Attribute class. If an element is found that is not an Attribute, an IllegalArgumentException is thrown.
+
+If all elements in the AttributeList are Attributes, the method proceeds to set the values of the attributes in the ModelMBean as before.
+------------------------------------------------------

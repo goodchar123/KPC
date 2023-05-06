@@ -1,0 +1,607 @@
+Please write a java method that Description copied from interface: Future
+Here is an example of a Java method that implements the Future interface:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return !isDone && callbacks.isEmpty();
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+}
+```
+
+This implementation of the Future interface provides a way to set the result of the computation, cancel the computation, check if the computation has been cancelled or completed, and retrieve the result of the computation. It also allows for callbacks to be added that will be called when the computation is complete.
+------------------------------------------------------
+Please check if the clear operation         is not supported by this list for java.util.List.clear() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the current thread is not               the owner of this object's monitor. for java.lang.Object.notifyAll() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+Here is an updated version of the Java method that checks for the two conditions you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return !isDone && callbacks.isEmpty();
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+}
+```
+
+In this updated version, the `clear()` method of the `List` interface is overridden to throw an `UnsupportedOperationException` if called. The `notifyAll()` method of the `Object` class is also overridden to check if the current thread is the owner of the object's monitor before calling the `notifyAll()` method. If the current thread is not the owner, an `IllegalMonitorStateException` is thrown.
+------------------------------------------------------
+Please check if the clear operation         is not supported by this list for java.util.List.clear() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the current thread is not               the owner of this object's monitor. for java.lang.Object.notifyAll() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+Please check if obj is null for java.lang.Thread.holdsLock(java.lang.Object) in the code snippet you provided, otherwise throw NullPointerException.
+Here is an updated version of the Java method that checks for the three conditions you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return !isDone && callbacks.isEmpty();
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+
+    @Override
+    public synchronized boolean holdsLock(Object obj) {
+        if (obj == null) {
+            throw new NullPointerException("obj is null");
+        }
+        return Thread.holdsLock(obj);
+    }
+}
+```
+
+In this updated version, the `holdsLock()` method of the `Thread` class is overridden to check if the `obj` parameter is null before calling the `holdsLock()` method. If the `obj` parameter is null, a `NullPointerException` is thrown.
+------------------------------------------------------
+Please check if the add operation         is not supported by this list for java.util.List.add(E) in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Here is an updated version of the Java method that checks for the condition you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return !isDone && callbacks.isEmpty();
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+
+    @Override
+    public synchronized boolean holdsLock(Object obj) {
+        if (obj == null) {
+            throw new NullPointerException("obj is null");
+        }
+        return Thread.holdsLock(obj);
+    }
+
+    @Override
+    public synchronized boolean add(T t) {
+        throw new UnsupportedOperationException("add operation is not supported by this list");
+    }
+}
+```
+
+In this updated version, the `add()` method of the `List` interface is overridden to throw an `UnsupportedOperationException` if called.
+------------------------------------------------------
+Please check if the current thread is not         the owner of the object's monitor for java.lang.Object.wait() in the code snippet you provided, otherwise throw IllegalMonitorStateException.
+Here is an updated version of the Java method that checks for the condition you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return !isDone && callbacks.isEmpty();
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+
+    @Override
+    public synchronized boolean holdsLock(Object obj) {
+        if (obj == null) {
+            throw new NullPointerException("obj is null");
+        }
+        return Thread.holdsLock(obj);
+    }
+
+    @Override
+    public synchronized boolean add(T t) {
+        throw new UnsupportedOperationException("add operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void wait() throws InterruptedException {
+        if (Thread.holdsLock(this)) {
+            super.wait();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+}
+```
+
+In this updated version, the `wait()` method of the `Object` class is overridden to check if the current thread is the owner of the object's monitor before calling the `wait()` method. If the current thread is not the owner, an `IllegalMonitorStateException` is thrown.
+------------------------------------------------------
+Please check if the clear operation         is not supported by this list for java.util.List.clear() in the code snippet you provided, otherwise throw UnsupportedOperationException.
+Please check if the computation was cancelled for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw CancellationException.
+Please check if the computation threw an exception for java.util.concurrent.Future.get() in the code snippet you provided, otherwise throw ExecutionException.
+Please check if the computation was cancelled for java.util.concurrent.Future.get(long,java.util.concurrent.TimeUnit) in the code snippet you provided, otherwise throw CancellationException.
+Please check if the computation threw an exception for java.util.concurrent.Future.get(long,java.util.concurrent.TimeUnit) in the code snippet you provided, otherwise throw ExecutionException.
+Please check if timeoutMillis is negative for java.lang.Object.wait(long) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Here is an updated version of the Java method that checks for the conditions you mentioned:
+
+```
+public class MyFuture<T> implements Future<T> {
+    private T result;
+    private boolean isDone = false;
+    private boolean isCancelled = false;
+    private List<Consumer<T>> callbacks = new ArrayList<>();
+
+    public synchronized void setResult(T result) {
+        this.result = result;
+        this.isDone = true;
+        for (Consumer<T> callback : callbacks) {
+            callback.accept(result);
+        }
+        callbacks.clear();
+        notifyAll();
+    }
+
+    @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        if (isDone) {
+            return false;
+        }
+        isCancelled = true;
+        callbacks.clear();
+        notifyAll();
+        return true;
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return isCancelled;
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+        return isDone;
+    }
+
+    @Override
+    public synchronized T get() throws InterruptedException, ExecutionException {
+        while (!isDone) {
+            wait();
+        }
+        if (isCancelled) {
+            throw new CancellationException("computation was cancelled");
+        }
+        if (result instanceof Exception) {
+            throw new ExecutionException((Exception) result);
+        }
+        return result;
+    }
+
+    @Override
+    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        long timeoutMillis = unit.toMillis(timeout);
+        if (timeoutMillis < 0) {
+            throw new IllegalArgumentException("timeoutMillis is negative");
+        }
+        long startTime = System.currentTimeMillis();
+        while (!isDone) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = timeoutMillis - elapsedTime;
+            if (remainingTime <= 0) {
+                throw new TimeoutException();
+            }
+            wait(remainingTime);
+        }
+        if (isCancelled) {
+            throw new CancellationException("computation was cancelled");
+        }
+        if (result instanceof Exception) {
+            throw new ExecutionException((Exception) result);
+        }
+        return result;
+    }
+
+    public synchronized void addCallback(Consumer<T> callback) {
+        if (isDone) {
+            callback.accept(result);
+        } else {
+            callbacks.add(callback);
+        }
+    }
+
+    @Override
+    public synchronized void clear() {
+        throw new UnsupportedOperationException("clear operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void notifyAll() {
+        if (Thread.holdsLock(this)) {
+            super.notifyAll();
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+
+    @Override
+    public synchronized boolean holdsLock(Object obj) {
+        if (obj == null) {
+            throw new NullPointerException("obj is null");
+        }
+        return Thread.holdsLock(obj);
+    }
+
+    @Override
+    public synchronized boolean add(T t) {
+        throw new UnsupportedOperationException("add operation is not supported by this list");
+    }
+
+    @Override
+    public synchronized void wait(long timeoutMillis) throws InterruptedException {
+        if (timeoutMillis < 0) {
+            throw new IllegalArgumentException("timeoutMillis is negative");
+        }
+        if (Thread.holdsLock(this)) {
+            super.wait(timeoutMillis);
+        } else {
+            throw new IllegalMonitorStateException("current thread is not the owner of this object's monitor");
+        }
+    }
+}
+```
+
+In this updated version, the `get()` and `get(long, TimeUnit)` methods of the `Future` interface are updated to check if the computation was cancelled or threw an exception before returning the result. The `wait(long)` method of the `Object` class is updated to check if the `timeoutMillis` parameter is negative before calling the `wait(long)` method.
+------------------------------------------------------

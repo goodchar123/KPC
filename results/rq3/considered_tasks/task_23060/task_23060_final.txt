@@ -1,0 +1,43 @@
+
+Thank you for the feedback. Here's an updated implementation of the method that includes the error checking you suggested:
+
+```java
+public void updateLineBreakMeasurerAfterDelete(String text, AttributedCharacterIterator paragraph) {
+    int startPos = paragraph.getBeginIndex();
+    int endPos = paragraph.getEndIndex();
+    int currentPos = paragraph.getBeginIndex();
+    int charCount = endPos - startPos;
+    char[] chars = new char[charCount];
+    for (int i = startPos; i < endPos; i++) {
+        chars[i - startPos] = paragraph.setIndex(i);
+    }
+    int deleteIndex = text.length() - 1;
+    if (deleteIndex < 0 || deleteIndex >= text.length()) {
+        throw new StringIndexOutOfBoundsException("Invalid delete index");
+    }
+    String newText = new StringBuilder(text).deleteCharAt(deleteIndex).toString();
+    AttributedString attributedString = new AttributedString(newText);
+    Font font = (Font) paragraph.getAttributes().get(TextAttribute.FONT);
+    if (font == null) {
+        throw new NullPointerException("Font attribute cannot be null");
+    }
+    attributedString.addAttribute(TextAttribute.FONT, font);
+    if (attributedString.length() == 0) {
+        throw new IllegalArgumentException("AttributedString cannot have length 0");
+    }
+    AttributedCharacterIterator newParagraph = attributedString.getIterator();
+    newParagraph.setIndex(startPos);
+    LineBreakMeasurer newMeasurer = new LineBreakMeasurer(newParagraph, new FontRenderContext(null, false, false));
+    while (newMeasurer.getPosition() < currentPos) {
+        newMeasurer.nextLayout(Float.MAX_VALUE);
+    }
+    this.measurer = newMeasurer;
+}
+```
+
+This updated implementation includes the following error checking:
+
+- It checks if the `deleteIndex` parameter is within the bounds of the `text` parameter before deleting a character from it, and throws a `StringIndexOutOfBoundsException` if it is not.
+- It checks if the `Font` attribute of the original paragraph is null, and throws a `NullPointerException` if it is.
+- It checks if the `AttributedString` has length 0 after adding the `Font` attribute, and throws an `IllegalArgumentException` if it does.
+------------------------------------------------------

@@ -1,0 +1,35 @@
+
+Sure, here's the updated Java method that checks for null keys and formatting errors:
+
+```java
+public String getStringFromBundle(ResourceBundle bundle, String key, Object... args) {
+    if (key == null) {
+        throw new NullPointerException("Key cannot be null");
+    }
+    String value = null;
+    try {
+        Object obj = bundle.getObject(key);
+        if (obj instanceof String) {
+            value = (String) obj;
+            if (args != null && args.length > 0) {
+                value = String.format(value, args);
+            }
+        } else {
+            throw new ClassCastException("Value for key " + key + " is not a String");
+        }
+    } catch (MissingResourceException e) {
+        // Key not found in this bundle, try parent bundle
+        if (bundle.getParent() != null) {
+            value = getStringFromBundle(bundle.getParent(), key, args);
+        }
+    } catch (IllegalFormatException e) {
+        throw new IllegalFormatException("Formatting error for key " + key + ": " + e.getMessage());
+    }
+    return value;
+}
+```
+
+This updated method first checks if the key is null and throws a `NullPointerException` if it is. It then retrieves the object for the key using the `getObject()` method and checks if it is an instance of `String`. If it is, it casts the object to a `String` and formats it using the `String.format()` method if there are any arguments provided. If the formatting fails due to any errors, it throws an `IllegalFormatException`.
+
+Note that this method assumes that the resource bundle only contains string values for the given keys. If the resource bundle contains other types of values, you may need to modify the method accordingly.
+------------------------------------------------------

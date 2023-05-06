@@ -1,0 +1,50 @@
+
+Sure, here's the updated Java method that checks for the security manager and throws exceptions if necessary:
+
+```java
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.security.Permission;
+import java.util.Map;
+
+public class ThreadStackTrace {
+
+    public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            securityManager.checkPermission(new RuntimePermission("modifyThread"));
+            securityManager.checkPermission(new ManagementPermission("monitor"));
+        }
+
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        Map<Thread, StackTraceElement[]> stackTraceMap = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : stackTraceMap.entrySet()) {
+            long threadId = entry.getKey().getId();
+            if (threadId <= 0) {
+                throw new IllegalArgumentException("Invalid thread ID: " + threadId);
+            }
+            ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId);
+            if (threadInfo == null) {
+                throw new IllegalArgumentException("Thread not found: " + threadId);
+            }
+            if (securityManager != null) {
+                securityManager.checkPermission(new ManagementPermission("monitor"));
+            }
+            String threadName = threadInfo.getThreadName();
+            if (!entry.getKey().getName().equals(threadName)) {
+                if (securityManager != null) {
+                    securityManager.checkPermission(new RuntimePermission("modifyThread"));
+                }
+                entry.getKey().setName(threadName);
+            }
+        }
+        return stackTraceMap;
+    }
+}
+```
+
+This updated method first checks for the security manager and throws a `SecurityException` if the caller doesn't have the necessary permissions. It also checks for invalid thread IDs and throws an `IllegalArgumentException` if necessary.
+
+Additionally, it checks if the current thread can modify the thread name using `Thread.setName()` and throws a `SecurityException` if necessary.
+------------------------------------------------------

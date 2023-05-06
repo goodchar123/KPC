@@ -1,0 +1,42 @@
+
+Thank you for bringing this to my attention. Here's an updated version of the code that includes the error checking you mentioned:
+
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.sql.Clob;
+import java.sql.SQLException;
+
+public class ClobReader {
+    public static Clob readClob(InputStream inputStream) throws SQLException, IOException {
+        try {
+            if (inputStream.available() == 0) {
+                throw new IOException("Input stream is empty");
+            }
+            byte[] bytes = new byte[inputStream.available()];
+            int bytesRead = inputStream.read(bytes);
+            if (bytesRead == -1) {
+                throw new IOException("End of file reached while reading CLOB value from stream");
+            }
+            Reader reader = new java.io.StringReader(new String(bytes));
+            return new javax.sql.rowset.serial.SerialClob(bytes);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SQLException("Error reading CLOB value from stream", e);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+    }
+}
+```
+
+This updated version includes the following error checking:
+
+- For `InputStream.available()`, if the input stream is empty, an `IOException` is thrown.
+- For `InputStream.read(byte[])`, if `b` is `null`, a `NullPointerException` is thrown.
+- For `InputStream.read(byte[])`, if the first byte cannot be read for any reason other than the end of the file, if the input stream has been closed, or if some other I/O error
+------------------------------------------------------

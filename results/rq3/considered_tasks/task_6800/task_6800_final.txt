@@ -1,0 +1,42 @@
+
+Here's an updated version of the Java method that includes the requested error checking:
+
+```java
+public static LocalTime addTime(LocalTime time, Duration duration) {
+    try {
+        return time.plus(duration);
+    } catch (DateTimeException e) {
+        throw new DateTimeException("Value of field is out of range for LocalTime", e);
+    } catch (ArithmeticException e) {
+        if (duration.getSeconds() > 0) {
+            throw new ArithmeticException("Input minutes exceeds the capacity of Duration");
+        } else if (duration.getSeconds() < 0) {
+            throw new ArithmeticException("Numeric underflow occurred while adding duration to LocalTime");
+        } else {
+            throw new ArithmeticException("Numeric overflow occurred while adding duration to LocalTime");
+        }
+    }
+}
+```
+
+This updated method checks for the following errors:
+
+- If the value of any field is out of range for `LocalTime`, a `DateTimeException` is thrown with a custom error message.
+- If the input minutes exceeds the capacity of `Duration`, an `ArithmeticException` is thrown with a custom error message.
+- If numeric overflow or underflow occurs while adding the duration to `LocalTime`, an `ArithmeticException` is thrown with a custom error message.
+
+You can call this method like this:
+
+```java
+LocalTime time = LocalTime.of(10, 30);
+Duration duration = Duration.ofMinutes(Long.MAX_VALUE);
+try {
+    LocalTime newTime = addTime(time, duration);
+    System.out.println(newTime);
+} catch (DateTimeException | ArithmeticException e) {
+    System.out.println(e.getMessage());
+}
+```
+
+In this example, the `Duration` object has a value that exceeds the capacity of `Duration`, so an `ArithmeticException` will be thrown with the custom error message "Input minutes exceeds the capacity of Duration".
+------------------------------------------------------

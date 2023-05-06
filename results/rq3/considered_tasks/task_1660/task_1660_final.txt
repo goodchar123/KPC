@@ -1,0 +1,43 @@
+
+Sure, here's an updated version of the `registerListener` method that checks for the `InstanceNotFoundException` exception:
+
+```
+public void registerListener(NotificationListener listener) throws SecurityException, InstanceNotFoundException {
+    // Check for a security manager
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check for the required permission
+        try {
+            sm.checkPermission(new MBeanServerPermission("createMBeanServer"));
+        } catch (SecurityException e) {
+            // Throw a SecurityException if the permission is not granted
+            throw new SecurityException("Caller does not have the required permission to create an MBean server", e);
+        }
+    }
+
+    // Get the MBean server
+    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+    // Create the object name for the MBean
+    ObjectName name;
+    try {
+        name = new ObjectName("com.example:type=MyMBean");
+    } catch (MalformedObjectNameException e) {
+        // Handle the exception
+        return;
+    }
+
+    // Register the listener with the MBean server
+    try {
+        mbs.addNotificationListener(name, listener, null, null);
+    } catch (IOException e) {
+        // Handle the exception
+    } catch (InstanceNotFoundException e) {
+        // Throw an InstanceNotFoundException if the MBean name is not found
+        throw new InstanceNotFoundException("The MBean name provided does not match any of the registered MBeans", e);
+    }
+}
+```
+
+In this updated version, the method catches the `InstanceNotFoundException` exception that can be thrown by the `MBeanServer.addNotificationListener` method if the MBean name provided does not match any of the registered MBeans. If this exception is caught, the method throws a new `InstanceNotFoundException` with a more descriptive error message.
+------------------------------------------------------

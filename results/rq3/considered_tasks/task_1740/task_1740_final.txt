@@ -1,0 +1,30 @@
+
+Sure, here's the updated code snippet that checks for an I/O error when opening the `Selector` and throws an `IOException` if one occurs:
+
+```java
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+
+public class ChannelCreator {
+    public static SelectableChannel createChannel(FileDescriptor fd) throws IOException {
+        SocketChannel channel = SocketChannel.open(fd);
+        channel.configureBlocking(false);
+        Selector selector = null;
+        try {
+            selector = Selector.open();
+        } catch (IOException e) {
+            channel.close();
+            throw e;
+        }
+        channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+        return channel;
+    }
+}
+```
+
+This updated code uses a try-catch block to catch any `IOException` that may occur when opening the `Selector`. If an `IOException` is caught, the `SocketChannel` is closed and the exception is re-thrown as an `IOException`.
+------------------------------------------------------

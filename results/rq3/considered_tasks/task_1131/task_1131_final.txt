@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that includes the requested checks and exceptions:
+
+```java
+import javax.management.*;
+
+public class MBeanUnregister {
+
+    public static void unregisterMBean(MBeanServer mbs, ObjectName mbeanName) throws InstanceNotFoundException, MBeanRegistrationException, RuntimeMBeanException, RuntimeErrorException {
+        if (mbeanName == null) {
+            throw new IllegalArgumentException("The object name in parameter is null.");
+        }
+        if (mbeanName.equals(mbs.getMBeanServerDelegate().getMBeanName())) {
+            throw new IllegalArgumentException("Cannot unregister the MBeanServerDelegate MBean.");
+        }
+        if (!mbs.isRegistered(mbeanName)) {
+            throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+        }
+        try {
+            mbs.unregisterMBean(mbeanName);
+        } catch (MBeanRegistrationException | RuntimeMBeanException | RuntimeErrorException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MBeanRegistrationException(e, "Error occurred during MBean unregistration.");
+        }
+    }
+}
+```
+
+This updated method now checks for the following conditions:
+
+- If the object name parameter is null, it throws an IllegalArgumentException with an appropriate message.
+- If the MBean being unregistered is the MBeanServerDelegate MBean, it throws an IllegalArgumentException with an appropriate message.
+- If the MBean is not registered in the MBean server, it throws an InstanceNotFoundException with an appropriate message.
+- If the postDeregister method of the MBean throws a RuntimeException or Error, it throws a RuntimeMBeanException or RuntimeErrorException, respectively.
+- If the preDeregister method of the MBean throws an exception, it throws an MBeanRegistrationException with an appropriate message.
+
+If none of these conditions are met, the method attempts to unregister the MBean using the unregisterMBean method. If any exceptions are thrown during this process, they are caught and re-thrown with appropriate messages.
+------------------------------------------------------

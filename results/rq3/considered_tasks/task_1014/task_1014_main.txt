@@ -1,0 +1,105 @@
+Please write a java method that Returns the number of MBeans currently referenced in the given role.
+Here's a Java method that returns the number of MBeans currently referenced in the given role:
+
+```java
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+
+public int getMBeanCount(MBeanServerConnection mbsc, String roleName) throws Exception {
+    ObjectName roleObjName = new ObjectName("JMImplementation:type=MBeanServerDelegate");
+    String[] params = {roleName};
+    String[] signature = {String.class.getName()};
+    TabularData td = (TabularData) mbsc.invoke(roleObjName, "getRole", params, signature);
+    int count = 0;
+    for (Object value : td.values()) {
+        CompositeData cd = (CompositeData) value;
+        ObjectName mbeanObjName = (ObjectName) cd.get("ObjectName");
+        if (mbsc.isRegistered(mbeanObjName)) {
+            count++;
+        }
+    }
+    return count;
+}
+```
+
+This method takes two parameters: `mbsc`, which is an instance of `MBeanServerConnection` that represents the MBean server connection, and `roleName`, which is a `String` that represents the name of the role to count MBeans for.
+
+The method first creates an `ObjectName` instance that represents the `MBeanServerDelegate` object, which is used to retrieve the role information. It then invokes the `getRole` method on the `MBeanServerDelegate` object, passing in the `roleName` parameter as an argument.
+
+The `getRole` method returns a `TabularData` object that contains information about the MBeans in the given role. The method then iterates over the values in the `TabularData` object, checking if each MBean is registered with the MBean server. If an MBean is registered, the count is incremented.
+
+Finally, the method returns the count of registered MBeans in the given role.
+------------------------------------------------------
+Please check The MBean specified is not registered in the MBean server. for javax.management.MBeanServerConnection.invoke(javax.management.ObjectName,java.lang.String,java.lang.Object[],java.lang.String[]) in the code snippet you provided, otherwise throw InstanceNotFoundException.
+Please check Wraps an exception thrown by the MBean's invoked method. for javax.management.MBeanServerConnection.invoke(javax.management.ObjectName,java.lang.String,java.lang.Object[],java.lang.String[]) in the code snippet you provided, otherwise throw MBeanException.
+Please check Wraps a java.lang.Exception thrown while trying to invoke the method. for javax.management.MBeanServerConnection.invoke(javax.management.ObjectName,java.lang.String,java.lang.Object[],java.lang.String[]) in the code snippet you provided, otherwise throw ReflectionException.
+Please check A communication problem occurred when talking to the MBean server. for javax.management.MBeanServerConnection.invoke(javax.management.ObjectName,java.lang.String,java.lang.Object[],java.lang.String[]) in the code snippet you provided, otherwise throw IOException.
+Please check if key is a null or empty String. for javax.management.openmbean.CompositeData.get(java.lang.String) in the code snippet you provided, otherwise throw IllegalArgumentException.
+Please check if key is not an         existing item name for this CompositeData instance. for javax.management.openmbean.CompositeData.get(java.lang.String) in the code snippet you provided, otherwise throw InvalidKeyException.
+Please check Wraps a java.lang.IllegalArgumentException: The object name in parameter is null. for javax.management.MBeanServerConnection.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw RuntimeOperationsException.
+Please check A communication problem occurred when talking to the MBean server. for javax.management.MBeanServerConnection.isRegistered(javax.management.ObjectName) in the code snippet you provided, otherwise throw IOException.
+Thank you for the feedback. Here's the updated Java method that includes the requested exception handling:
+
+```java
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import java.io.IOException;
+
+public int getMBeanCount(MBeanServerConnection mbsc, String roleName) throws InstanceNotFoundException, MBeanException, ReflectionException, IOException, IllegalArgumentException, InvalidKeyException, RuntimeOperationsException {
+    ObjectName roleObjName = new ObjectName("JMImplementation:type=MBeanServerDelegate");
+    String[] params = {roleName};
+    String[] signature = {String.class.getName()};
+    TabularData td;
+    try {
+        td = (TabularData) mbsc.invoke(roleObjName, "getRole", params, signature);
+    } catch (InstanceNotFoundException | MBeanException | ReflectionException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new ReflectionException(e);
+    }
+    int count = 0;
+    for (Object value : td.values()) {
+        CompositeData cd = (CompositeData) value;
+        String key = "ObjectName";
+        if (cd.containsKey(key)) {
+            ObjectName mbeanObjName = (ObjectName) cd.get(key);
+            if (mbeanObjName != null) {
+                try {
+                    if (mbsc.isRegistered(mbeanObjName)) {
+                        count++;
+                    }
+                } catch (IllegalArgumentException | RuntimeOperationsException e) {
+                    throw e;
+                } catch (IOException e) {
+                    throw new RuntimeOperationsException(e);
+                }
+            }
+        } else {
+            throw new InvalidKeyException("Key " + key + " not found in CompositeData");
+        }
+    }
+    return count;
+}
+```
+
+The method now includes try-catch blocks to handle the following exceptions that can be thrown by the `invoke` method:
+
+- `InstanceNotFoundException`: if the MBean specified is not registered in the MBean server
+- `MBeanException`: if a problem occurs while invoking the MBean's method
+- `ReflectionException`: if a problem occurs while trying to invoke the method
+
+If any of these exceptions are caught, they are re-thrown to the calling method.
+
+The method also includes try-catch blocks to handle the following exceptions that can be thrown by the `isRegistered` method:
+
+- `IllegalArgumentException`: if the object name parameter is null or an empty string
+- `RuntimeOperationsException`: if a communication problem occurs when talking to the MBean server
+- `IOException`: if a communication problem occurs when talking to the MBean server
+
+If any of these exceptions are caught, they are re-thrown to the calling method.
+
+Additionally, the method now checks if the key "ObjectName" exists in the `CompositeData` object before attempting to retrieve its value. If the key is not found, an `InvalidKeyException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,80 @@
+
+Sure, here's an updated version of the `updateTable` method that checks for a query timeout and attempts to cancel the statement if the timeout is exceeded:
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+
+public class TableUpdater {
+    
+    // Update method to delete, insert or update contents of a table
+    public void updateTable(String query, int timeoutSeconds) throws SQLTimeoutException {
+        // JDBC connection variables
+        String url = "jdbc:mysql://localhost:3306/mydatabase";
+        String username = "root";
+        String password = "mypassword";
+        
+        // JDBC objects
+        Connection connection = null;
+        PreparedStatement statement = null;
+        
+        try {
+            // Establish JDBC connection
+            connection = DriverManager.getConnection(url, username, password);
+            
+            // Prepare SQL statement
+            statement = connection.prepareStatement(query);
+            
+            // Set query timeout
+            statement.setQueryTimeout(timeoutSeconds);
+            
+            // Execute SQL statement
+            statement.executeUpdate();
+            
+            System.out.println("Table updated successfully.");
+            
+        } catch (SQLTimeoutException e) {
+            // Attempt to cancel statement if timeout is exceeded
+            try {
+                statement.cancel();
+            } catch (SQLException ex) {
+                System.out.println("Error cancelling statement: " + ex.getMessage());
+            }
+            throw new SQLTimeoutException("Query timeout exceeded: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Error updating table: " + e.getMessage());
+        } finally {
+            // Close JDBC objects
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("Error closing JDBC objects: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+This updated method takes an additional parameter `timeoutSeconds` which specifies the maximum number of seconds to wait for the query to complete. If the timeout is exceeded, a `SQLTimeoutException` is thrown after attempting to cancel the statement.
+
+To use this updated method, simply call it with your SQL query and timeout value as parameters. For example:
+
+```java
+TableUpdater updater = new TableUpdater();
+try {
+    updater.updateTable("DELETE FROM mytable WHERE id = 1", 10);
+} catch (SQLTimeoutException e) {
+    System.out.println("Query timed out: " + e.getMessage());
+}
+```
+
+This would attempt to delete the row with an `id` of 1 from the `mytable` table, with a maximum timeout of 10 seconds. If the query takes longer than 10 seconds to complete, a `SQLTimeoutException` is thrown.
+------------------------------------------------------

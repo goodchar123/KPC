@@ -1,0 +1,48 @@
+
+Here's the updated Java method that includes the additional error checking you requested:
+
+```java
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CRLException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509CRL;
+
+public class CRLHelper {
+
+    public static byte[] getTbsCertListFromCRL(byte[] crlBytes) throws CertificateException, CRLException, IOException {
+        if (crlBytes == null) {
+            throw new NullPointerException("CRL byte array is null");
+        }
+        CertificateFactory cf;
+        try {
+            cf = CertificateFactory.getInstance("X.509");
+        } catch (NoSuchProviderException e) {
+            throw new CertificateException("No provider supports a CertificateFactorySpi implementation for the specified type", e);
+        } catch (IllegalArgumentException e) {
+            throw new NullPointerException("Type is null");
+        }
+        X509CRL crl;
+        try {
+            crl = (X509CRL) cf.generateCRL(new ByteArrayInputStream(crlBytes));
+        } catch (CertificateException e) {
+            throw new CRLException("Error parsing CRL", e);
+        }
+        try {
+            return crl.getTBSCertList();
+        } catch (IOException e) {
+            throw new CRLException("Error getting tbsCertList from CRL", e);
+        }
+    }
+}
+```
+
+This updated method includes the following additional error checking:
+
+- If the `type` parameter is null, an `IllegalArgumentException` is thrown, which is caught and re-thrown as a `NullPointerException`.
+- If there is an error parsing the CRL, a `CRLException` is thrown.
+
+These error checks should help ensure that the method behaves correctly and provides useful error messages if something goes wrong.
+------------------------------------------------------

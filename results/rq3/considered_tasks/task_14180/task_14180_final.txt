@@ -1,0 +1,67 @@
+
+Here's the updated Java method that includes the additional error checking you requested:
+
+```java
+public void setFieldValues(Map<String, Object> fieldValuePairs) throws NoSuchFieldException, IllegalAccessException {
+    for (Map.Entry<String, Object> entry : fieldValuePairs.entrySet()) {
+        String fieldName = entry.getKey();
+        Object fieldValue = entry.getValue();
+        if (fieldName == null) {
+            throw new NullPointerException("Field name cannot be null");
+        }
+        try {
+            Field field = getClass().getDeclaredField(fieldName);
+            if (field == null) {
+                throw new NoSuchFieldException("Field " + fieldName + " not found in class " + getClass().getName());
+            }
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                Class<?> callerClass = getClass().getEnclosingClass();
+                Class<?> fieldClass = field.getDeclaringClass();
+                if (!callerClass.getClassLoader().equals(fieldClass.getClassLoader())) {
+                    sm.checkPermission(new RuntimePermission("accessDeclaredMembers"));
+                }
+                sm.checkPackageAccess(fieldClass.getPackage().getName());
+                ClassLoader callerClassLoader = callerClass.getClassLoader();
+                ClassLoader requestedClassLoader = fieldClass.getClassLoader();
+                if (callerClassLoader != null && !callerClassLoader.equals(requestedClassLoader) && !callerClassLoader.isAncestor(requestedClassLoader)) {
+                    sm.checkPermission(new RuntimePermission("getClassLoader"));
+                }
+                Class<?> enclosingClass = getClass().getEnclosingClass();
+                if (enclosingClass != null && !callerClassLoader.equals(enclosingClass.getClassLoader())) {
+                    sm.checkPackageAccess(enclosingClass.getPackage().getName());
+                }
+            }
+            field.setAccessible(true);
+            try {
+                field.set(this, fieldValue);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid argument for field " + fieldName + ": " + fieldValue, e);
+            } catch (NullPointerException e) {
+                if (field.getDeclaringClass().isPrimitive()) {
+                    throw new NullPointerException("Cannot set primitive field " + fieldName + " to null");
+                } else {
+                    throw new NullPointerException("Cannot set field " + fieldName + " to null");
+                }
+            } catch (InaccessibleObjectException e) {
+                throw new InaccessibleObjectException("Cannot access field " + fieldName, e);
+            } catch (ExceptionInInitializerError e) {
+                throw new ExceptionInInitializerError("Initialization failed for field " + fieldName + ": " + e.getMessage());
+            } catch (SecurityException e) {
+                throw new SecurityException("Access denied for field " + fieldName, e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalAccessException("Cannot set field " + fieldName + ": " + e.getMessage());
+            }
+        } catch (NoSuchFieldException e) {
+            throw new NoSuchFieldException("Field " + fieldName + " not found in class " + getClass().getName());
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied for field " + fieldName, e);
+        }
+    }
+}
+```
+
+This updated method includes error checking for the caller's class loader and security manager access for `getClassLoader()`. It also checks for the presence of a security manager and verifies that the caller has permission to access the package of the enclosing class for `getEnclosingClass()`. 
+
+Note that this method may still throw other exceptions not explicitly checked for, depending on the specific implementation and context in which it is used.
+------------------------------------------------------

@@ -1,0 +1,36 @@
+
+Sure, here's an updated version of the Java method that checks for the conditions you mentioned:
+
+```java
+public void bindChannelSocketToAddress(SocketChannel channel, InetSocketAddress address) throws IOException {
+    if (!(channel.socket() instanceof java.net.InetSocketAddress)) {
+        throw new UnsupportedOperationException("Socket is not an Internet protocol socket");
+    }
+    try {
+        channel.socket().bind(address);
+    } catch (SocketException e) {
+        if (e.getMessage().contains("already bound")) {
+            // Socket is already bound
+            return;
+        } else if (e.getMessage().contains("not supported")) {
+            // Bindpoint is not supported by this socket
+            throw new IllegalArgumentException(e);
+        } else {
+            // Other SocketException occurred
+            throw new IOException(e);
+        }
+    } catch (SecurityException e) {
+        // Security manager doesn't allow the bind to the local port
+        throw e;
+    }
+}
+```
+
+This updated method first checks if the channel's socket is an instance of `java.net.InetSocketAddress`. If it is not, then the method throws an `UnsupportedOperationException`.
+
+If the socket is an instance of `java.net.InetSocketAddress`, the method proceeds with the bind operation. If a `SocketException` occurs, the method checks the exception message to see if it contains the string "already bound". If it does, then the socket is already bound to the specified address, so the method simply returns without throwing an exception. If the exception message contains the string "not supported", then the bindpoint is not supported by this socket, so the method throws an `IllegalArgumentException`. Otherwise, the method throws an `IOException` with the original `SocketException` as the cause.
+
+If a `SecurityException` occurs, the method simply re-throws the exception.
+
+Note that this updated method assumes that the `SocketAddress` object is not null. You may want to add a check for this condition as well.
+------------------------------------------------------

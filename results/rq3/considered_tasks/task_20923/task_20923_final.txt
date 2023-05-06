@@ -1,0 +1,36 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets:
+
+```java
+public boolean areNullsSortedHigh(Connection conn, String tableName, String columnName) throws SQLException {
+    boolean nullsSortedHigh = false;
+    DatabaseMetaData metaData = null;
+    ResultSet rs = null;
+    try {
+        metaData = conn.getMetaData();
+        rs = metaData.getIndexInfo(null, null, tableName, false, false);
+        while (rs.next()) {
+            String indexColumnName = rs.getString("COLUMN_NAME");
+            boolean nonUnique = rs.getBoolean("NON_UNIQUE");
+            if (columnName.equals(indexColumnName) && !nonUnique) {
+                nullsSortedHigh = rs.getBoolean("NULLS_HIGH");
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error or closed connection/result set", e);
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+    return nullsSortedHigh;
+}
+```
+
+This updated method uses a try-catch-finally block to handle potential SQLExceptions that may occur when calling `getMetaData()` or `next()` methods. If an exception is caught, it is re-thrown with a more descriptive error message. Additionally, the `finally` block ensures that the `ResultSet` is closed properly, even if an exception occurs.
+------------------------------------------------------

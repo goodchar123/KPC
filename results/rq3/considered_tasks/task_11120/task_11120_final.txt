@@ -1,0 +1,48 @@
+
+Here's the updated Java method that includes the additional check you requested:
+
+```java
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
+import java.nio.channels.OverlappingFileLockException;
+
+public class FileLockExample {
+    public static void acquireLock(String filePath) throws ClosedChannelException, AsynchronousCloseException, FileLockInterruptionException, NonWritableChannelException, IOException {
+        try {
+            RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+            FileChannel channel = file.getChannel();
+            if (!channel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+            FileLock lock = null;
+            try {
+                lock = channel.lock();
+            } catch (OverlappingFileLockException e) {
+                System.out.println("File is already locked");
+            }
+            if (lock != null) {
+                System.out.println("Lock acquired");
+            }
+        } catch (AsynchronousCloseException e) {
+            throw e;
+        } catch (ClosedChannelException e) {
+            throw e;
+        } catch (NonWritableChannelException e) {
+            throw e;
+        } catch (FileLockInterruptionException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+}
+```
+
+This updated method includes an additional catch block that checks for any other exception that may occur while attempting to acquire a lock. If any other exception occurs, it throws an `IOException` with the original exception as the cause. This ensures that any unexpected exceptions are properly handled and propagated to the caller.
+------------------------------------------------------

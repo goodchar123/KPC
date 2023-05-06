@@ -1,0 +1,47 @@
+
+Here's the updated Java method that includes error checking and exception handling for `Arrays.asList()` and `addAWTEventListener()` methods:
+
+```java
+public void addAWTEventListener(AWTEventListener listener, long eventMask) throws AWTError, SecurityException, UnsupportedOperationException, ClassCastException, NullPointerException, IllegalArgumentException {
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    if (toolkit == null) {
+        throw new AWTError("Error loading assistive technologies");
+    }
+    List<AWTEventListener> listeners = null;
+    try {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            securityManager.checkPermission(new AWTPermission("listenToAllAWTEvents"));
+        }
+        listeners = Arrays.asList(toolkit.getAWTEventListeners());
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager doesn't allow the operation");
+    }
+    try {
+        listeners.add(listener);
+    } catch (UnsupportedOperationException e) {
+        throw new UnsupportedOperationException("Add operation is not supported by this list");
+    } catch (ClassCastException e) {
+        throw new ClassCastException("The class of the specified element prevents it from being added to this list");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("The specified element is null and this list does not permit null elements");
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Some property of this element prevents it from being added to this list");
+    }
+    try {
+        if (securityManager != null) {
+            securityManager.checkPermission(new AWTPermission("listenToAllAWTEvents"));
+        }
+        toolkit.addAWTEventListener(listener, eventMask);
+    } catch (SecurityException e) {
+        throw new SecurityException("Security manager doesn't allow the operation");
+    }
+}
+```
+
+This method first checks if the specified array is null when converting the array to a `List` using the `Arrays.asList()` method. If the array is null, it throws a `NullPointerException`.
+
+It then checks if a security manager exists and its `checkPermission` method allows the operation when registering the listener with the default toolkit using the `addAWTEventListener()` method. If there is a security exception, it throws a `SecurityException`.
+
+After getting the listeners and adding the specified listener to the list, it attempts to register the listener with the default toolkit using the `addAWTEventListener()` method. If there is a security exception, it throws a `SecurityException`.
+------------------------------------------------------

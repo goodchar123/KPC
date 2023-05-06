@@ -1,0 +1,43 @@
+
+Sure, here's the updated code snippet that includes the necessary exception handling:
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.UserPrincipal;
+import java.nio.file.attribute.UserPrincipalLookupService;
+
+public class FileOwnerUpdater {
+    public static void updateFileOwner(Path filePath, String newOwner) throws IOException {
+        UserPrincipalLookupService lookupService;
+        try {
+            lookupService = filePath.getFileSystem().getUserPrincipalLookupService();
+        } catch (UnsupportedOperationException e) {
+            throw new UnsupportedOperationException("FileSystem does not have a lookup service", e);
+        }
+        
+        UserPrincipal owner;
+        try {
+            owner = lookupService.lookupPrincipalByName(newOwner);
+        } catch (UserPrincipalNotFoundException e) {
+            throw new UserPrincipalNotFoundException("Principal does not exist", e);
+        } catch (IOException e) {
+            throw new IOException("An I/O error occurred", e);
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied by security manager", e);
+        }
+        
+        FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(filePath, FileOwnerAttributeView.class);
+        try {
+            ownerAttributeView.setOwner(owner);
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied by security manager", e);
+        }
+    }
+}
+```
+
+This updated code includes try-catch blocks to handle the various exceptions that may be thrown by the methods used in the original code. If any of these exceptions are thrown, the method will throw a new exception with a more descriptive message.
+------------------------------------------------------

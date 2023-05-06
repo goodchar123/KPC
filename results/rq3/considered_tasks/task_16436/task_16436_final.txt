@@ -1,0 +1,27 @@
+
+You are correct, thank you for pointing that out. Here's an updated version of the Java method that includes the checks you mentioned:
+
+```
+public void acquireSharedLock() throws InterruptedException {
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    lock.readLock().lockInterruptibly();
+    try {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        // Code to execute while holding the shared lock
+    } finally {
+        if (!lock.readLock().isHeldByCurrentThread()) {
+            throw new IllegalMonitorStateException("Current thread does not hold this lock");
+        }
+        lock.readLock().unlock();
+    }
+}
+```
+
+In this updated version, we first check if the current thread has been interrupted using `Thread.interrupted()`. If it has, we throw an `InterruptedException`.
+
+We also check if the current thread holds the lock before unlocking it using `lock.readLock().isHeldByCurrentThread()`. If it doesn't, we throw an `IllegalMonitorStateException`.
+
+These checks ensure that the method behaves correctly and throws the appropriate exceptions if necessary.
+------------------------------------------------------

@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that includes the checks you requested:
+
+```java
+public long[] getLongArray(ByteBuffer buffer) {
+    if (buffer.isReadOnly() && buffer.hasArray()) {
+        throw new ReadOnlyBufferException();
+    }
+    if (!buffer.hasArray()) {
+        throw new UnsupportedOperationException("ByteBuffer does not have a long array backing");
+    }
+    if (!buffer.isAccessible()) {
+        throw new UnsupportedOperationException("ByteBuffer array is not accessible");
+    }
+    int offset = buffer.arrayOffset();
+    if (offset != 0) {
+        throw new ReadOnlyBufferException();
+    }
+    if (buffer.order() != ByteOrder.nativeOrder()) {
+        throw new UnsupportedOperationException("ByteBuffer has non-native byte order");
+    }
+    return buffer.asLongBuffer().array();
+}
+```
+
+This updated method first checks if the buffer is read-only and has an array backing. If so, it throws a ReadOnlyBufferException. Next, it checks if the buffer has an array backing at all. If not, it throws an UnsupportedOperationException.
+
+If the buffer has an array backing, it checks if the array is accessible by calling `buffer.isAccessible()`. If it is not, it throws an UnsupportedOperationException.
+
+It then checks the array offset to ensure it is 0. If it is not, it throws a ReadOnlyBufferException. Finally, it checks the byte order of the buffer to ensure it is native order. If it is not, it throws an UnsupportedOperationException.
+
+Assuming all checks pass, the method returns the long array by calling `buffer.asLongBuffer().array()`. If the buffer is read-only, this array will also be read-only.
+------------------------------------------------------

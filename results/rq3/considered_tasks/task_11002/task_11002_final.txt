@@ -1,0 +1,34 @@
+
+Here is an updated version of the Java method that includes the requested check:
+
+```java
+public void finishConnection(SocketChannel socketChannel) throws IOException {
+    if (!socketChannel.isConnectionPending()) {
+        throw new NoConnectionPendingException();
+    }
+    while (!socketChannel.finishConnect()) {
+        if (socketChannel.isClosed()) {
+            throw new ClosedChannelException();
+        }
+        if (Thread.interrupted()) {
+            socketChannel.close();
+            throw new ClosedByInterruptException();
+        }
+        if (socketChannel.keyFor(socketChannel.provider().selector()) == null) {
+            throw new AsynchronousCloseException();
+        }
+    }
+    if (Thread.interrupted()) {
+        socketChannel.close();
+        throw new ClosedByInterruptException();
+    }
+    if (socketChannel.isConnectionPending()) {
+        throw new IllegalStateException("Connection is still pending");
+    }
+}
+```
+
+This updated method includes a new check within the loop to see if another thread has closed the channel while the connect operation is in progress. It does this by checking if the channel's key is null, which indicates that the channel has been deregistered from the selector. If this is the case, it throws an `AsynchronousCloseException`.
+
+If none of the checks fail, the connection is established.
+------------------------------------------------------

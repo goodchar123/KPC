@@ -1,0 +1,81 @@
+
+Sure, here's the updated code snippet that checks for all the mentioned exceptions and throws the appropriate exceptions with custom error messages:
+
+```java
+public boolean supportsConvert(int fromType, int toType) throws SQLException {
+    DatabaseMetaData metaData = null;
+    ResultSet resultSet = null;
+    try {
+        metaData = connection.getMetaData();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while getting metadata", e);
+    }
+    try {
+        resultSet = metaData.getFunctions(null, null, "CONVERT");
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while getting CONVERT function information", e);
+    }
+    try {
+        while (resultSet.next()) {
+            String functionName = null;
+            try {
+                functionName = resultSet.getString("FUNCTION_NAME");
+            } catch (SQLException e) {
+                throw new SQLException("Database access error occurred while getting function name", e);
+            }
+            if (functionName.equalsIgnoreCase("CONVERT")) {
+                int functionType = 0;
+                try {
+                    functionType = resultSet.getInt("FUNCTION_TYPE");
+                } catch (SQLException e) {
+                    throw new SQLException("Database access error occurred while getting function type", e);
+                }
+                if (functionType == DatabaseMetaData.functionConvert) {
+                    int[] supportedTypes = null;
+                    try {
+                        supportedTypes = getSupportedTypes(resultSet.getString("REMARKS"));
+                    } catch (SQLException e) {
+                        throw new SQLException("Database access error occurred while getting supported types", e);
+                    }
+                    if (Arrays.binarySearch(supportedTypes, fromType) >= 0 && Arrays.binarySearch(supportedTypes, toType) >= 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while iterating over result set", e);
+    } finally {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error occurred while closing result set", e);
+            }
+        }
+    }
+    return false;
+}
+
+private int[] getSupportedTypes(String remarks) throws SQLException {
+    try {
+        String[] tokens = remarks.split(",");
+        int[] types = new int[tokens.length];
+        for (int i = 0; i < tokens.length; i++) {
+            try {
+                types[i] = Integer.parseInt(tokens[i].trim());
+            } catch (NumberFormatException e) {
+                throw new SQLException("Invalid integer value found in remarks", e);
+            }
+        }
+        return types;
+    } catch (PatternSyntaxException e) {
+        throw new SQLException("Invalid regular expression syntax in remarks", e);
+    }
+}
+```
+
+In this updated code, we have added `try-catch` blocks around all the database access methods and result set methods to catch the appropriate exceptions and throw new `SQLException` with custom error messages.
+
+We have also added a `try-catch` block around the `parseInt()` method call in the `getSupportedTypes()` method to catch the `NumberFormatException` that may occur if the string does not contain a parsable integer. We have also added a `catch` block for `PatternSyntaxException` that may occur if the regular expression syntax is invalid.
+------------------------------------------------------

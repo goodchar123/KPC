@@ -1,0 +1,34 @@
+
+Here's the updated Java method that checks if the target's type is not identical with the caller's symbolic type descriptor and propagates any exceptions thrown by the underlying method unchanged:
+
+```java
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ExampleClass {
+    public static void invokeExact(MethodHandle handle, Object... args) throws Throwable {
+        MethodType type = handle.type();
+        Class<?>[] paramTypes = type.parameterArray();
+        if (args.length != paramTypes.length) {
+            throw new IllegalArgumentException("Wrong number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            if (!paramTypes[i].isInstance(args[i])) {
+                throw new IllegalArgumentException("Argument " + i + " has wrong type");
+            }
+        }
+        if (!type.equals(MethodType.methodType(handle.type().returnType(), handle.type().parameterArray()))) {
+            throw new WrongMethodTypeException("Target's type is not identical with the caller's symbolic type descriptor");
+        }
+        try {
+            handle.invokeExact(args);
+        } catch (Throwable t) {
+            throw t;
+        }
+    }
+}
+```
+
+This method now checks if the target's type is not identical with the caller's symbolic type descriptor and throws a `WrongMethodTypeException` if they don't match. It also catches any exceptions thrown by the underlying method and propagates them unchanged.
+------------------------------------------------------

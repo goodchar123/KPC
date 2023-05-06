@@ -1,0 +1,25 @@
+
+Sure, here's the updated Java method that includes the necessary error checking:
+
+```java
+public void addBoundAddress(SocketChannel channel, InetAddress address) throws IOException {
+    ServerSocket socket = channel.socket();
+    if (!(socket instanceof InetSocketAddress)) {
+        throw new UnsupportedOperationException("Socket is not an Internet protocol socket");
+    }
+    try {
+        socket.bind(new InetSocketAddress(address, socket.getLocalPort()));
+    } catch (IOException e) {
+        throw new IOException("Bind operation failed or socket is already bound", e);
+    } catch (SecurityException e) {
+        throw new SecurityException("SecurityManager checkListen method doesn't allow the operation", e);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Endpoint is a SocketAddress subclass not supported by this socket", e);
+    }
+}
+```
+
+This updated method first checks if the channel's socket is an instance of `InetSocketAddress`. If it's not, it throws an `UnsupportedOperationException`.
+
+Next, it tries to bind the socket to the given address using the `bind()` method. If the binding fails or the socket is already bound, it throws an `IOException`. If a `SecurityManager` is present and its `checkListen()` method doesn't allow the operation, it throws a `SecurityException`. If the endpoint is a `SocketAddress` subclass not supported by this socket, it throws an `IllegalArgumentException`.
+------------------------------------------------------

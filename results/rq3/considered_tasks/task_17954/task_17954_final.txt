@@ -1,0 +1,45 @@
+
+Sure, here's the updated Java method that checks for naming exceptions and empty attributes:
+
+```java
+import javax.naming.*;
+import javax.naming.directory.*;
+import java.util.*;
+
+public static void getAttributes(String name) throws NamingException {
+    Hashtable<String, String> env = new Hashtable<>();
+    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+    env.put(Context.PROVIDER_URL, "ldap://localhost:389");
+    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+    env.put(Context.SECURITY_PRINCIPAL, "cn=admin,dc=example,dc=com");
+    env.put(Context.SECURITY_CREDENTIALS, "adminpassword");
+
+    DirContext ctx = new InitialDirContext(env);
+    Attributes attrs = ctx.getAttributes(name);
+
+    NamingEnumeration<? extends Attribute> attrEnum = attrs.getAll();
+    while (attrEnum.hasMore()) {
+        Attribute attr = attrEnum.next();
+        String id = attr.getID();
+        try {
+            Object value = attr.get();
+            if (value == null) {
+                throw new NoSuchElementException("Attribute " + id + " has no values");
+            }
+            System.out.println(id + ": " + value);
+        } catch (NamingException e) {
+            throw new NamingException("Error retrieving value for attribute " + id + ": " + e.getMessage());
+        }
+    }
+
+    ctx.close();
+}
+```
+
+This updated method now checks for two additional conditions:
+
+1. If a naming exception is encountered while retrieving the value of an attribute, the method throws a `NamingException` with a descriptive error message.
+2. If an attribute has no values, the method throws a `NoSuchElementException` with a descriptive error message.
+
+These checks help ensure that the method handles potential errors gracefully and provides useful feedback to the caller.
+------------------------------------------------------

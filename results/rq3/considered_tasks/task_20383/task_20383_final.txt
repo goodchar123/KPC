@@ -1,0 +1,44 @@
+
+Here's an updated version of the Java method that checks for `SQLTimeoutException` and `SecurityException`:
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+
+public class ConnectionManager {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/mydatabase";
+    private static final String DB_USER = "myuser";
+    private static final String DB_PASSWORD = "mypassword";
+
+    public static Connection getConnection() throws SQLException {
+        Connection connection = null;
+        try {
+            DriverManager.setLoginTimeout(10); // set timeout to 10 seconds
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        } catch (SQLException e) {
+            if (e instanceof SQLTimeoutException) {
+                throw e;
+            } else {
+                throw new SQLException("Failed to get database connection", e);
+            }
+        } catch (SecurityException e) {
+            if (System.getSecurityManager() != null && Thread.currentThread().getContextClassLoader() != null
+                    && !Thread.currentThread().getContextClassLoader().equals(ConnectionManager.class.getClassLoader())) {
+                throw e;
+            } else {
+                throw new SecurityException("Access denied to get database connection", e);
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException("Unexpected error while getting database connection", t);
+        }
+        return connection;
+    }
+}
+```
+
+In this updated version, we use the `DriverManager.setLoginTimeout()` method to set a timeout of 10 seconds for the connection attempt. If the timeout is exceeded and the connection attempt has at least been tried to be cancelled, a `SQLTimeoutException` is thrown.
+
+We also check for `SecurityException` when loading the JDBC driver and getting the context class loader. If a security manager is present and the caller's class loader is not null and is not the same as or an ancestor of the context class loader, a `SecurityException` is thrown. We also check for the `RuntimePermission("getClassLoader")` permission to ensure that the caller has permission to get the class loader.
+------------------------------------------------------

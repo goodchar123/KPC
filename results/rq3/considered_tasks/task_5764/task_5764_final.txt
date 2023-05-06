@@ -1,0 +1,48 @@
+
+Here's an updated version of the `sendPacket` method that includes the requested checks:
+
+```java
+public void sendPacket(DatagramSocket socket, byte[] data, InetAddress address, int port) throws IOException {
+    // Check for security manager and permissions
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        if (address.isMulticastAddress()) {
+            sm.checkMulticast(address);
+        } else {
+            sm.checkConnect(address.getHostAddress(), port);
+        }
+    }
+    
+    // Create packet and send
+    DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+    try {
+        socket.send(packet);
+    } catch (PortUnreachableException e) {
+        throw e;
+    } catch (IOException e) {
+        // Check for non-blocking mode
+        if (socket.getChannel() != null && socket.getChannel().isBlocking()) {
+            throw new IllegalBlockingModeException();
+        }
+        throw e;
+    }
+    
+    // Check for valid packet and socket state
+    if (socket.isConnected()) {
+        if (!address.equals(socket.getInetAddress()) || port != socket.getPort()) {
+            throw new IllegalArgumentException();
+        }
+    } else {
+        if (address.isUnresolved() || port < 0 || port > 65535) {
+            throw new IllegalArgumentException();
+        }
+    }
+}
+```
+
+This updated method first checks for a security manager and calls the appropriate `checkMulticast` or `checkConnect` method if one exists. It then creates the packet and attempts to send it, catching any `PortUnreachableException` or `IOException` that may be thrown.
+
+After sending the packet, the method checks for a non-blocking channel and throws an `IllegalBlockingModeException` if one is found. It then checks the state of the socket and packet to ensure they are valid, throwing an `IllegalArgumentException` if they are not.
+
+Note that this method may still throw an `IOException` if there is an error sending the packet, so you should handle that exception appropriately in your code.
+------------------------------------------------------

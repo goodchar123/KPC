@@ -1,0 +1,51 @@
+
+Sure, here's the updated Java method that checks for the security manager and throws a SecurityException if any of the conditions are not met:
+
+```java
+public static Class<?>[] getPublicClasses(Class<?> clazz) throws SecurityException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check caller's class loader
+        ClassLoader callerClassLoader = clazz.getClassLoader();
+        if (callerClassLoader != null && !isAncestorClassLoader(callerClassLoader, ClassLoader.getSystemClassLoader())) {
+            // Check RuntimePermission("getClassLoader")
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        // Check context class loader
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader != null && !isAncestorClassLoader(callerClassLoader, contextClassLoader)) {
+            // Check RuntimePermission("getClassLoader")
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        // Check package access
+        if (callerClassLoader != contextClassLoader && !isAncestorClassLoader(callerClassLoader, contextClassLoader)) {
+            try {
+                sm.checkPackageAccess(clazz.getPackageName());
+            } catch (SecurityException se) {
+                throw new SecurityException("Access to package of class " + clazz.getName() + " is denied", se);
+            }
+        }
+    }
+    return clazz.getClasses();
+}
+
+private static boolean isAncestorClassLoader(ClassLoader ancestor, ClassLoader descendant) {
+    ClassLoader cl = descendant;
+    while (cl != null) {
+        if (cl == ancestor) {
+            return true;
+        }
+        cl = cl.getParent();
+    }
+    return false;
+}
+```
+
+This updated method checks for the security manager and throws a SecurityException if any of the following conditions are not met:
+
+1. The caller's class loader is not null and is not the same as or an ancestor of the class loader for the class whose class loader is requested, and the caller does not have the RuntimePermission("getClassLoader") for java.lang.Class.getClassLoader().
+2. The caller's class loader is not null and is not the same as or an ancestor of the context class loader, and the caller does not have the RuntimePermission("getClassLoader") for java.lang.Thread.getContextClassLoader().
+3. The caller's class loader is not the same as or an ancestor of the context class loader, and invocation of sm.checkPackageAccess() denies access to the package of this class.
+
+The `isAncestorClassLoader()` method is a helper method that checks if a class loader is an ancestor of another class loader. This is used to check if the caller's class loader is an ancestor of the requested class loader or the context class loader.
+------------------------------------------------------

@@ -1,0 +1,39 @@
+
+Sure, here's the updated code with error handling for invalid regular expressions:
+
+```java
+public static String modifyMethodDescriptor(String methodDescriptor, Class<?> oldParamType, Class<?> newParamType) {
+    String[] parts = methodDescriptor.split("\\(");
+    String params = parts[1].substring(0, parts[1].length() - 1);
+    String[] paramTypes = params.split(";");
+    boolean found = false;
+    for (int i = 0; i < paramTypes.length; i++) {
+        if (paramTypes[i].equals("L" + oldParamType.getName().replace(".", "/") + ";")) {
+            paramTypes[i] = "L" + newParamType.getName().replace(".", "/") + ";";
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        throw new IllegalArgumentException("Old parameter type not found in method descriptor");
+    }
+    String newParams = String.join(";", paramTypes);
+    if (newParams == null) {
+        throw new NullPointerException("Delimiter or elements is null");
+    }
+    try {
+        parts[1].substring(parts[1].length() - 1);
+    } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Invalid beginIndex or endIndex for String.substring");
+    }
+    try {
+        params.split(";");
+    } catch (PatternSyntaxException e) {
+        throw new PatternSyntaxException("Invalid regular expression syntax for String.split", e.getPattern(), e.getIndex());
+    }
+    return parts[0] + "(" + newParams + ")" + parts[1].substring(parts[1].length() - 1);
+}
+```
+
+In this updated code, we catch a `PatternSyntaxException` if the regular expression syntax is invalid for the `String.split` method. We pass the pattern and index from the original exception to the new exception that we throw.
+------------------------------------------------------

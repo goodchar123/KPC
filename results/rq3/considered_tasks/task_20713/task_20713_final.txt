@@ -1,0 +1,26 @@
+
+Sure, here's the updated code snippet that checks for database access errors and unsupported methods:
+
+```java
+public static Object[] getStructValues(Struct struct) throws SQLException {
+    try {
+        Object[] values = struct.getAttributes();
+        StructDescriptor descriptor = struct.getDescriptor();
+        int[] fieldPositions = descriptor.getStructFieldPositions();
+        Object[] orderedValues = new Object[fieldPositions.length];
+        for (int i = 0; i < fieldPositions.length; i++) {
+            orderedValues[i] = values[fieldPositions[i] - 1];
+        }
+        return orderedValues;
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0) {
+            throw new SQLFeatureNotSupportedException("Method not supported by JDBC driver", e);
+        } else {
+            throw e;
+        }
+    }
+}
+```
+
+This updated method uses a try-catch block to catch any SQLException that may occur when calling the `getAttributes()` method. If an SQLException is caught, it checks the error code to see if it's 0, which indicates that the JDBC driver does not support the method. In this case, it throws a new SQLFeatureNotSupportedException with the original exception as the cause. Otherwise, it re-throws the original SQLException.
+------------------------------------------------------

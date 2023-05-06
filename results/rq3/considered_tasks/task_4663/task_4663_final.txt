@@ -1,0 +1,48 @@
+
+Thank you for pointing out those additional error scenarios. Here's the updated code snippet that includes the additional error handling:
+
+```java
+public static void addInstrumentationJarToSystemClassLoader(String jarFilePath) throws IOException, IllegalArgumentException, MalformedURLException, SecurityException, IllegalStateException, Error, InaccessibleObjectException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NullPointerException, ExceptionInInitializerError, URISyntaxException {
+    File jarFile = new File(jarFilePath);
+    try {
+        if (!jarFile.isAbsolute()) {
+            throw new IllegalArgumentException("JAR file path must be absolute");
+        }
+    } catch (SecurityException e) {
+        throw new SecurityException("Could not access system property value");
+    }
+    URL jarUrl;
+    try {
+        jarUrl = jarFile.toURI().toURL();
+    } catch (MalformedURLException e) {
+        throw new MalformedURLException("Invalid URL for JAR file");
+    } catch (URISyntaxException e) {
+        throw new URISyntaxException("URL is not formatted strictly according to RFC2396", e.getInput(), e.getIndex());
+    }
+    try {
+        URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+        addUrlMethod.setAccessible(true);
+        addUrlMethod.invoke(systemClassLoader, jarUrl);
+    } catch (NoSuchMethodException e) {
+        throw new InaccessibleObjectException("Could not access addURL method on system class loader");
+    } catch (IllegalAccessException | InvocationTargetException e) {
+        throw new IllegalAccessException("Could not invoke addURL method on system class loader");
+    } catch (SecurityException e) {
+        throw new SecurityException("Could not access system class loader due to security restrictions");
+    } catch (ClassCastException e) {
+        throw new IllegalStateException("System class loader is not a URLClassLoader");
+    } catch (ExceptionInInitializerError e) {
+        throw new ExceptionInInitializerError("Initialization of system class loader failed");
+    } catch (NullPointerException e) {
+        throw new NullPointerException("System class loader is null");
+    } catch (Error e) {
+        throw new Error("Error occurred while adding JAR file to system class loader");
+    }
+}
+```
+
+This updated method includes error handling for the scenario where the URL is not formatted strictly according to RFC2396 and cannot be converted to a URI, and throws a `URISyntaxException` in that case. It also includes the input and index of the error in the `URISyntaxException` constructor.
+
+It also includes the same error handling as before for the other scenarios you mentioned, such as if the JAR file path is not absolute, if the protocol handler for the URL could
+------------------------------------------------------

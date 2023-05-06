@@ -1,0 +1,37 @@
+Please write a java method that Disables MBeanServerNotifications concerning given ObjectName.
+Here's a Java method that disables MBeanServerNotifications for a given ObjectName:
+
+```java
+import javax.management.*;
+
+public void disableNotifications(ObjectName objectName, MBeanServer mbeanServer) throws Exception {
+    NotificationFilterSupport filter = new NotificationFilterSupport();
+    filter.disableAllTypes();
+    mbeanServer.removeNotificationListener(objectName, listener, filter, null);
+}
+```
+
+This method takes in an ObjectName and an MBeanServer as parameters. It creates a NotificationFilterSupport object and disables all notification types using the `disableAllTypes()` method. It then removes the notification listener for the given ObjectName using the `removeNotificationListener()` method of the MBeanServer. The `listener` parameter in the `removeNotificationListener()` method is the object that was previously registered as a notification listener for the given ObjectName.
+------------------------------------------------------
+Please check The MBean name provided does not match any of the registered MBeans. for javax.management.MBeanServer.removeNotificationListener(javax.management.ObjectName,javax.management.NotificationListener,javax.management.NotificationFilter,java.lang.Object) in the code snippet you provided, otherwise throw InstanceNotFoundException.
+Please check The listener is not registered in the MBean, or it is not registered with the given filter and handback. for javax.management.MBeanServer.removeNotificationListener(javax.management.ObjectName,javax.management.NotificationListener,javax.management.NotificationFilter,java.lang.Object) in the code snippet you provided, otherwise throw ListenerNotFoundException.
+Sure, here's the updated Java method that checks for `InstanceNotFoundException` and `ListenerNotFoundException`:
+
+```java
+import javax.management.*;
+
+public void disableNotifications(ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback, MBeanServer mbeanServer) throws InstanceNotFoundException, ListenerNotFoundException {
+    boolean isListenerRegistered = mbeanServer.isRegistered(objectName) && mbeanServer.getNotificationListeners(objectName, filter).contains(listener);
+    if (!isListenerRegistered) {
+        throw new ListenerNotFoundException("The listener is not registered in the MBean, or it is not registered with the given filter and handback.");
+    }
+    mbeanServer.removeNotificationListener(objectName, listener, filter, handback);
+    boolean isMBeanRegistered = mbeanServer.isRegistered(objectName);
+    if (!isMBeanRegistered) {
+        throw new InstanceNotFoundException("The MBean name provided does not match any of the registered MBeans.");
+    }
+}
+```
+
+This method takes in an ObjectName, NotificationListener, NotificationFilter, Object, and MBeanServer as parameters. It first checks if the listener is registered with the given filter and handback for the given ObjectName using the `isRegistered()` and `getNotificationListeners()` methods of the MBeanServer. If the listener is not registered, it throws a `ListenerNotFoundException`. If the listener is registered, it removes the notification listener for the given ObjectName using the `removeNotificationListener()` method of the MBeanServer. It then checks if the MBean is still registered using the `isRegistered()` method of the MBeanServer. If the MBean is not registered, it throws an `InstanceNotFoundException`.
+------------------------------------------------------

@@ -1,0 +1,32 @@
+
+You're right, it's important to handle any `IOException` that may occur when reading from the input streams. Here's an updated version of the method that checks for `IOException` and throws it if one occurs:
+
+```java
+import java.io.*;
+
+public class FileComparator {
+    public static long findFirstMismatch(File file1, File file2) throws IOException {
+        try (InputStream is1 = new FileInputStream(file1);
+             InputStream is2 = new FileInputStream(file2)) {
+            long pos = 0;
+            int b1, b2;
+            while ((b1 = is1.read()) != -1 && (b2 = is2.read()) != -1) {
+                if (b1 != b2) {
+                    return pos;
+                }
+                pos++;
+            }
+            if (is1.read() == -1 && is2.read() == -1) {
+                return -1L;
+            } else {
+                throw new IOException("Files have different lengths");
+            }
+        } catch (IOException e) {
+            throw new IOException("Error reading files", e);
+        }
+    }
+}
+```
+
+In this updated version, we catch any `IOException` that may occur when reading from the input streams and re-throw it with a more descriptive message. We also added an additional check to ensure that both files have the same length. If they don't, we throw an `IOException` with an appropriate message.
+------------------------------------------------------

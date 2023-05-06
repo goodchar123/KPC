@@ -1,0 +1,68 @@
+
+Sure, here's the updated code snippet that includes the error handling you requested:
+
+```java
+import java.sql.*;
+import javax.sql.rowset.*;
+
+public class CachedRowSetExample {
+    
+    public static CachedRowSet createCachedRowSet(ResultSet rs, String url, String username, String password) throws SQLException {
+        
+        // Check if ResultSet is closed or null
+        if (rs == null || rs.isClosed()) {
+            throw new SQLException("ResultSet is closed or null");
+        }
+        
+        // Create a CachedRowSet object
+        CachedRowSet crs = null;
+        try {
+            crs = RowSetProvider.newFactory().createCachedRowSet();
+        } catch (Exception e) {
+            throw new SQLException("Error creating CachedRowSet", e);
+        }
+        
+        // Set the properties of the CachedRowSet object
+        crs.setUrl(url);
+        crs.setUsername(username);
+        crs.setPassword(password);
+        
+        // Populate the CachedRowSet object with data from the ResultSet
+        try {
+            crs.populate(rs);
+        } catch (SQLException e) {
+            throw new SQLException("Error populating CachedRowSet", e);
+        }
+        
+        // Get the Connection object from the original ResultSet or JDBC properties
+        Connection conn = null;
+        try {
+            Statement stmt = rs.getStatement();
+            if (stmt == null || stmt.isClosed()) {
+                throw new SQLException("Statement is closed or null");
+            }
+            conn = stmt.getConnection();
+        } catch (SQLException e) {
+            throw new SQLException("Error getting Connection from ResultSet", e);
+        }
+        
+        // Set the SyncProvider of the CachedRowSet object to contain the Connection object
+        try {
+            crs.getSyncProvider().setConnection(conn);
+        } catch (SQLException e) {
+            throw new SQLException("Error setting SyncProvider Connection", e);
+        }
+        
+        return crs;
+    }
+}
+```
+
+This updated method includes error handling for the following scenarios:
+
+- If the ResultSet is closed or null, a SQLException is thrown with an appropriate message.
+- If there is an error creating the CachedRowSet object, a SQLException is thrown with the original exception as the cause.
+- If there is an error populating the CachedRowSet object, a SQLException is thrown with the original exception as the cause.
+- If the Statement is closed or null when trying to get the Connection object, a SQLException is thrown with an appropriate message.
+- If there is an error setting the SyncProvider Connection, a SQLException is thrown with the original exception as the cause.
+------------------------------------------------------

@@ -1,0 +1,36 @@
+
+Sure, here's an updated version of the `createSegment()` method that includes the requested checks:
+
+```java
+import jdk.incubator.foreign.MemorySegment;
+import jdk.incubator.foreign.ResourceScope;
+
+public class NativeMemory {
+    private MemorySegment segment;
+    
+    public void createSegment(long size, ResourceScope scope) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be greater than zero");
+        }
+        if (scope.isClosed()) {
+            throw new IllegalStateException("Scope is already closed");
+        }
+        if (!scope.isOwnerThread()) {
+            throw new IllegalStateException("Access from a thread other than the owning thread");
+        }
+        if (segment != null) {
+            segment.close();
+        }
+        segment = MemorySegment.allocateNative(size, scope);
+    }
+    
+    public MemorySegment getSegment() {
+        return segment;
+    }
+}
+```
+
+This version of the method first checks if the `size` parameter is greater than zero, and throws an `IllegalArgumentException` if it is not. It then checks if the `scope` parameter has been closed or if the access occurs from a thread other than the owning thread, and throws an `IllegalStateException` if either of these conditions is true.
+
+These checks help ensure that the `MemorySegment` is created with valid parameters and that the resource scope is in a valid state.
+------------------------------------------------------

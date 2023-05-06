@@ -1,0 +1,41 @@
+
+Thank you for bringing this to my attention. Here's the updated code snippet that checks for all the mentioned exceptions:
+
+```java
+public static void getForeignKeys(Connection conn, String tableName) throws SQLException {
+    if (conn.isClosed()) {
+        throw new SQLException("Connection is closed.");
+    }
+    DatabaseMetaData metaData = conn.getMetaData();
+    ResultSet foreignKeys = null;
+    try {
+        foreignKeys = metaData.getImportedKeys(conn.getCatalog(), null, tableName);
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving foreign keys.", e);
+    }
+    while (foreignKeys.next()) {
+        String pkTableName = null;
+        String pkColumnName = null;
+        String fkTableName = null;
+        String fkColumnName = null;
+        try {
+            pkTableName = foreignKeys.getString("PKTABLE_NAME");
+            pkColumnName = foreignKeys.getString("PKCOLUMN_NAME");
+            fkTableName = foreignKeys.getString("FKTABLE_NAME");
+            fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
+        } catch (SQLException e) {
+            throw new SQLException("Database access error occurred while retrieving column data.", e);
+        }
+        if (pkTableName == null || pkColumnName == null || fkTableName == null || fkColumnName == null) {
+            throw new SQLException("Invalid column label.");
+        }
+        System.out.println("Foreign key: " + fkTableName + "." + fkColumnName + " references " + pkTableName + "." + pkColumnName);
+        if (foreignKeys.isClosed()) {
+            throw new SQLException("Result set is closed.");
+        }
+    }
+}
+```
+
+This updated method checks if the connection is closed and throws a `SQLException` if it is. It also checks for a database access error while retrieving foreign keys and throws a `SQLException` with the original exception as the cause. It checks for a database access error while retrieving column data and throws a `SQLException` with the original exception as the cause. It also checks if the column label is invalid and throws a `SQLException` if it is. Finally, it checks if the result set is closed inside the loop and throws a `SQLException` if it is. This ensures that all possible exceptions are properly handled.
+------------------------------------------------------

@@ -1,0 +1,46 @@
+
+Here's the updated Java method that includes the requested exception handling:
+
+```java
+import java.awt.GraphicsEnvironment;
+import java.awt.SplashScreen;
+import java.io.IOException;
+import java.net.URL;
+
+public class SplashScreenChanger {
+    public static void changeSplashScreenImage(String imagePath) throws HeadlessException, UnsupportedOperationException, NullPointerException, IOException, IllegalStateException {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+        SplashScreen splash = SplashScreen.getSplashScreen();
+        if (splash == null) {
+            throw new UnsupportedOperationException();
+        }
+        URL imageURL = SplashScreenChanger.class.getResource(imagePath);
+        if (imageURL == null) {
+            throw new NullPointerException("Image URL is null for path: " + imagePath);
+        }
+        try {
+            splash.setImageURL(imageURL);
+        } catch (IOException e) {
+            throw new IOException("Error loading image: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("Splash screen has already been closed");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("Image URL is null for path: " + imagePath);
+        }
+    }
+}
+```
+
+This method now includes exception handling for the following scenarios:
+
+- If the current toolkit does not support the splash screen feature, an `UnsupportedOperationException` is thrown.
+- If `GraphicsEnvironment.isHeadless()` returns true, indicating that the system is running in a headless environment, a `HeadlessException` is thrown.
+- If the `imageURL` parameter is null, a `NullPointerException` is thrown with a message indicating the path that was used to load the image.
+- If there is an error while loading the image, an `IOException` is thrown with a message indicating the error that occurred.
+- If the splash screen has already been closed, an `IllegalStateException` is thrown with a message indicating that the splash screen has already been closed.
+- If the `imageURL` parameter is null when calling `setImageURL()`, a `NullPointerException` is thrown with a message indicating the path that was used to load the image.
+
+Note that each exception is thrown with an appropriate message to help identify the issue.
+------------------------------------------------------

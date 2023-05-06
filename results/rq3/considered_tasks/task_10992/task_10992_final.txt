@@ -1,0 +1,72 @@
+
+Sure, here's an updated version of the Java method that includes the requested checks and exceptions:
+
+```java
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.channels.SocketChannel;
+
+public class SocketChannelExample {
+    public static void main(String[] args) {
+        try {
+            // Create a new socket channel
+            SocketChannel socketChannel = SocketChannel.open();
+
+            // Check if the channel is already connected
+            if (socketChannel.isConnected()) {
+                throw new AlreadyConnectedException();
+            }
+
+            // Check if a non-blocking connection operation is already in progress
+            if (socketChannel.isConnectionPending()) {
+                throw new ConnectionPendingException();
+            }
+
+            // Check if the channel is closed
+            if (!socketChannel.isOpen()) {
+                throw new ClosedChannelException();
+            }
+
+            // Connect the socket channel to a remote address
+            InetSocketAddress remoteAddress = new InetSocketAddress("example.com", 80);
+
+            // Check if the given remote address is not fully resolved
+            if (!remoteAddress.isUnresolved()) {
+                throw new UnresolvedAddressException();
+            }
+
+            // Check if the type of the given remote address is not supported
+            if (!(remoteAddress instanceof InetSocketAddress)) {
+                throw new UnsupportedAddressTypeException();
+            }
+
+            // Check if a security manager has been installed and it does not permit access to the given remote endpoint
+            SecurityManager securityManager = System.getSecurityManager();
+            if (securityManager != null) {
+                securityManager.checkConnect(remoteAddress.getHostName(), remoteAddress.getPort());
+            }
+
+            socketChannel.connect(remoteAddress);
+
+            // Check if another thread closes this channel while the connect operation is in progress
+            if (Thread.currentThread().isInterrupted()) {
+                socketChannel.close();
+                throw new ClosedByInterruptException();
+            }
+
+            // Do something with the socket channel...
+
+            // Close the socket channel
+            socketChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+In this updated example, we first check if the channel is already connected, if a non-blocking connection operation is already in progress, and if the channel is closed. We then check if the given remote address is fully resolved and if its type is supported. If a security manager is installed, we check if it permits access to the given remote endpoint.
+
+After connecting the socket channel to the remote address, we check if another thread closes the channel while the connect operation is in progress or interrupts the current thread, and throw the appropriate exceptions. Finally, we do something with the socket channel (which is left as an exercise for the reader) and close the socket channel using the `SocketChannel.close()` method.
+------------------------------------------------------

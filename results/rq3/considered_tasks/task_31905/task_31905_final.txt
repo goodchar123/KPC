@@ -1,0 +1,49 @@
+
+Sure, here's an updated version of the Java method that includes the requested error checking:
+
+```java
+import org.w3c.dom.Element;
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
+
+public void addBooleanAttribute(Element element, String attributeName, boolean attributeValue) throws DOMException {
+    if (!isValidXMLName(attributeName)) {
+        throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid attribute name");
+    }
+    Attr attribute = element.getOwnerDocument().createAttribute(attributeName);
+    try {
+        attribute.setValue(String.valueOf(attributeValue));
+    } catch (DOMException e) {
+        throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Cannot set attribute value");
+    }
+    if (attribute.getOwnerDocument() != element.getOwnerDocument()) {
+        throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, "Attribute created from different document");
+    }
+    if (element.hasAttribute(attributeName)) {
+        throw new DOMException(DOMException.INUSE_ATTRIBUTE_ERR, "Attribute already exists in element");
+    }
+    attribute.setNodeValue(String.valueOf(attributeValue));
+    attribute.setNodeType(Node.ATTRIBUTE_NODE);
+    attribute.setDataType(DATATYPE_BOOLEAN);
+    try {
+        element.setAttributeNode(attribute);
+    } catch (DOMException e) {
+        throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Cannot set attribute node");
+    }
+}
+
+private boolean isValidXMLName(String name) {
+    // Check if name is a valid XML name according to the XML version in use
+    // This implementation is simplified and may not cover all cases
+    return name.matches("[a-zA-Z_][a-zA-Z0-9_]*");
+}
+```
+
+This updated method includes error checking for the specified exceptions. The `isValidXMLName` method checks if the attribute name is a valid XML name according to the XML version in use. If the name is invalid, a `DOMException` with the `INVALID_CHARACTER_ERR` code is thrown.
+
+The `setValue` method is wrapped in a try-catch block to catch the `NO_MODIFICATION_ALLOWED_ERR` exception. If this exception is caught, a new `DOMException` with the same code is thrown.
+
+The `setAttributeNode` method is also wrapped in a try-catch block to catch the `NO_MODIFICATION_ALLOWED_ERR` exception. If this exception is caught, a new `DOMException` with the same code is thrown.
+
+Before adding the attribute to the element, the method checks if the attribute was created from the same document as the element. If not, a `DOMException` with the `WRONG_DOCUMENT_ERR` code is thrown. The method also checks if the element already has an attribute with the same name. If so, a `DOMException` with the `INUSE_ATTRIBUTE_ERR` code is thrown.
+------------------------------------------------------

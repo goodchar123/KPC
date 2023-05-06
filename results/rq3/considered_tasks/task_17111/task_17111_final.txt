@@ -1,0 +1,67 @@
+
+Sure, here's an updated version of the `createJdbcRowSet` method that checks for errors when creating a new `Connection` using `DriverManager.getConnection`:
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.sql.rowset.JdbcRowSet;
+import javax.sql.rowset.RowSetProvider;
+
+public class JdbcRowSetExample {
+    
+    public static JdbcRowSet createJdbcRowSet(Connection conn, String sql) throws SQLException {
+        // Create a JdbcRowSet using the default factory class
+        JdbcRowSet rowSet = null;
+        try {
+            rowSet = RowSetProvider.newFactory().createJdbcRowSet();
+        } catch (SQLException ex) {
+            throw new SQLException("Error creating JdbcRowSet: " + ex.getMessage(), ex);
+        }
+        
+        // Set the Connection object
+        rowSet.setConnection(conn);
+        
+        // Execute the SQL query
+        rowSet.setCommand(sql);
+        rowSet.execute();
+        
+        return rowSet;
+    }
+    
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/mydatabase";
+        String username = "root";
+        String password = "mypassword";
+        String sql = "SELECT * FROM mytable";
+        
+        try {
+            // Set the login timeout to 5 seconds
+            DriverManager.setLoginTimeout(5);
+            
+            // Create a Connection object
+            Connection conn = DriverManager.getConnection(url, username, password);
+            
+            // Create a JdbcRowSet and set its Connection object
+            JdbcRowSet rowSet = createJdbcRowSet(conn, sql);
+            
+            // Process the ResultSet
+            while (rowSet.next()) {
+                // Do something with the row data
+            }
+        } catch (SQLException ex) {
+            if (ex instanceof SQLTimeoutException) {
+                System.err.println("Connection timed out: " + ex.getMessage());
+            } else {
+                System.err.println("Database access error: " + ex.getMessage());
+            }
+        }
+    }
+}
+```
+
+In this updated version, the `main` method uses a try-catch block to catch any `SQLException` that may occur when creating a new `Connection` using `DriverManager.getConnection`. If an exception occurs, the method checks if it is an instance of `SQLTimeoutException`, which indicates that the timeout value specified by `setLoginTimeout` has been exceeded and the driver has at least tried to cancel the current database connection attempt. If it is not a `SQLTimeoutException`, the method assumes it is a database access error.
+
+If no exception occurs, the method proceeds to create a `JdbcRowSet` and process its rows as before. Note that the `Connection` object is not closed until the try-with-resources block is exited.
+------------------------------------------------------

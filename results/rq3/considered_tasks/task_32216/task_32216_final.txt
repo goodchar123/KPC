@@ -1,0 +1,84 @@
+
+Sure, here's the updated code snippet that includes the additional error checking:
+
+```java
+public int getTileWidth(ImageOutputStream output) throws IOException {
+    if (output == null) {
+        throw new IllegalArgumentException("Output stream cannot be null");
+    }
+    ImageWriter writer = null;
+    ImageOutputStream tempOutput = null;
+    try {
+        String formatName = "JPEG";
+        if (formatName == null) {
+            throw new IllegalArgumentException("Format name cannot be null");
+        }
+        writer = ImageIO.getImageWritersByFormatName(formatName).next();
+        if (writer == null) {
+            throw new IllegalArgumentException("No writer found for " + formatName + " format");
+        }
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        ImageTypeSpecifier typeSpecifier = writeParam.getDestinationType();
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        tempOutput = ImageIO.createImageOutputStream(byteStream);
+        if (tempOutput == null) {
+            throw new IOException("Failed to create temporary output stream");
+        }
+        writer.setOutput(tempOutput);
+        if (writer.canWriteRasters()) {
+            throw new UnsupportedOperationException("Cannot write rasters");
+        }
+        writer.write(typeSpecifier, new IIOImage(image, null, null), writeParam);
+        if (output.getStreamSegment() == null) {
+            throw new IllegalStateException("Output stream has not been set");
+        }
+        int tileWidth = output.getTileWidth();
+        return tileWidth;
+    } catch (IllegalArgumentException | IOException | IllegalStateException | UnsupportedOperationException e) {
+        throw e;
+    } finally {
+        if (writer != null) {
+            writer.dispose();
+        }
+        if (tempOutput != null) {
+            tempOutput.close();
+        }
+    }
+}
+
+public void writeMetadata(ImageOutputStream output, IIOMetadata metadata) throws IOException {
+    if (output == null) {
+        throw new IllegalArgumentException("Output stream cannot be null");
+    }
+    if (metadata == null) {
+        throw new IllegalArgumentException("Metadata cannot be null");
+    }
+    ImageWriter writer = null;
+    try {
+        String formatName = "JPEG";
+        if (formatName == null || !metadata.isStandardMetadataFormatSupported()) {
+            throw new IllegalArgumentException("Invalid format name");
+        }
+        writer = ImageIO.getImageWritersByFormatName(formatName).next();
+        if (writer == null) {
+            throw new IllegalArgumentException("No writer found for " + formatName + " format");
+        }
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        ImageTypeSpecifier typeSpecifier = writeParam.getDestinationType();
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        IIOImage iioImage = new IIOImage(image, null, metadata);
+        writer.setOutput(output);
+        writer.write(null, iioImage, writeParam);
+    } catch (IllegalArgumentException | IOException e) {
+        throw e;
+    } finally {
+        if (writer != null) {
+            writer.dispose();
+        }
+    }
+}
+```
+
+This updated code checks for additional error conditions and throws the appropriate exceptions. It checks if the output stream is null before attempting to create a temporary output stream, and it checks if the metadata is null before attempting to write it. It also checks if the format name is null or not supported by the metadata before attempting to retrieve the metadata tree.
+------------------------------------------------------

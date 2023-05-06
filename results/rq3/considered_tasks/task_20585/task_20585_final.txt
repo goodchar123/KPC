@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the method that checks for query timeout and attempts to cancel the statement if the timeout has been exceeded:
+
+```java
+public byte[] getBinaryParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    byte[] result = null;
+    ResultSet resultSet = null;
+    try {
+        statement.setFetchSize(1);
+        statement.setQueryTimeout(10); // set query timeout to 10 seconds
+        resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            result = resultSet.getBytes(parameterIndex);
+        }
+    } catch (SQLException e) {
+        if (e.getErrorCode() == 0 && e.getSQLState().equals("08003")) {
+            // query timeout occurred, attempt to cancel the statement
+            statement.cancel();
+            throw new SQLTimeoutException("Query timeout exceeded", e);
+        } else {
+            throw e;
+        }
+    } finally {
+        if (resultSet != null) {
+            resultSet.close();
+        }
+    }
+    return result;
+}
+```
+
+This updated method sets the query timeout to 10 seconds using the `PreparedStatement.setQueryTimeout()` method. If a `SQLException` is thrown with an error code of 0 and a SQL state of "08003", it means that the query timeout has been exceeded. In this case, the method attempts to cancel the statement using the `Statement.cancel()` method and throws a `SQLTimeoutException`. If any other `SQLException` is thrown, it is re-thrown to the caller. Finally, the method closes the `ResultSet` object and returns the byte array.
+------------------------------------------------------

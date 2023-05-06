@@ -1,0 +1,28 @@
+
+Thank you for bringing this potential issue to my attention. Here is the updated code snippet with the requested error handling:
+
+```java
+import javax.management.*;
+import javax.management.relation.*;
+
+public Set<ObjectInstance> getAssociatedMBeans(ObjectName mbeanName, String relationId, String roleName) throws Exception {
+    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+    try {
+        ObjectInstance mbeanInstance = mbs.getObjectInstance(mbeanName);
+    } catch (InstanceNotFoundException e) {
+        throw new InstanceNotFoundException("MBean " + mbeanName + " is not registered in the MBean server.");
+    }
+    ObjectName relationServiceName = new ObjectName(AdminService.RELATION_SERVICE_NAME);
+    RelationServiceMBean relationService = JMX.newMBeanProxy(mbs, relationServiceName, RelationServiceMBean.class);
+    ObjectName relationObjectName = relationService.findRelation(mbeanName.toString());
+    if (relationObjectName == null) {
+        throw new Exception("No relation found for MBean " + mbeanName);
+    }
+    RelationSupport relation;
+    try {
+        relation = (RelationSupport) mbs.getAttribute(relationObjectName, "Relation");
+    } catch (InstanceNotFoundException e) {
+        throw new InstanceNotFoundException("MBean " + relationObjectName + " is not registered in the MBean server.");
+    } catch (RuntimeOperationsException e) {
+       
+------------------------------------------------------

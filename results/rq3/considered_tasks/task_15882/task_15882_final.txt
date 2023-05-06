@@ -1,0 +1,47 @@
+
+Sure, here's the updated Java method that checks for the existence of a security manager and calls the appropriate `checkDelete()` and `checkWrite()` methods before deleting the file and creating the directory:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class CreateTempDirectory {
+    public static void main(String[] args) {
+        String prefix = "myTempDir";
+        try {
+            File tempDir = File.createTempFile(prefix, "");
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkDelete(tempDir.getAbsolutePath());
+            }
+            if (tempDir.delete()) {
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                    public Void run() {
+                        File newDir = new File(tempDir.getAbsolutePath());
+                        SecurityManager sm = System.getSecurityManager();
+                        if (sm != null) {
+                            sm.checkWrite(newDir.getAbsolutePath());
+                        }
+                        newDir.mkdir();
+                        return null;
+                    }
+                });
+                System.out.println("Created temporary directory: " + tempDir.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+This updated method first checks for the existence of a security manager using `System.getSecurityManager()`. If a security manager exists, it calls the `checkDelete()` method to check if the file can be deleted, and the `checkWrite()` method to check if the directory can be created.
+
+The `delete()` method is called inside an `if` statement to check if the file was successfully deleted. If it was, the `mkdir()` method is called inside a `doPrivileged()` block to create the new directory with the same name as the deleted file. The `doPrivileged()` block is necessary because the `mkdir()` method requires write access to the parent directory, which may not be granted to the current user.
+
+If any of the security checks fail, a `SecurityException` is thrown.
+------------------------------------------------------

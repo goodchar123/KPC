@@ -1,0 +1,40 @@
+
+Sure, here's the updated Java method that checks for database access errors when calling `supportsDataDefinitionAndDataManipulationTransactions()`:
+
+```java
+public boolean supportsTransactionsWithDDL() throws SQLException {
+    Connection conn = null;
+    boolean supportsDDLTransactions = false;
+    try {
+        conn = DriverManager.getConnection("jdbc:mydatabase");
+        if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+        }
+        DatabaseMetaData metaData = conn.getMetaData();
+        if (metaData == null) {
+            throw new SQLException("Failed to retrieve database metadata");
+        }
+        supportsDDLTransactions = metaData.supportsDataDefinitionAndDataManipulationTransactions();
+        if (supportsDDLTransactions == false) {
+            throw new SQLException("Database does not support DDL transactions");
+        }
+    } catch (SQLException e) {
+        // Handle exception
+        throw e;
+    } finally {
+        if (conn != null) {
+            conn.close();
+        }
+    }
+    return supportsDDLTransactions;
+}
+```
+
+In this updated method, we first check if the connection is closed using the `isClosed()` method. If the connection is closed, we throw a `SQLException` with an appropriate message.
+
+Next, we retrieve the database metadata using `conn.getMetaData()` and check if it is null. If it is null, we throw a `SQLException` with an appropriate message.
+
+We then call `metaData.supportsDataDefinitionAndDataManipulationTransactions()` to check if the database supports DDL transactions. If it does not, we throw a `SQLException` with an appropriate message.
+
+Finally, we catch any `SQLException` that may occur, re-throw it, and close the connection before returning the result.
+------------------------------------------------------

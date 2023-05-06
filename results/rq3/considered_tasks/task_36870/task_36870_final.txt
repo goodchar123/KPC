@@ -1,0 +1,103 @@
+
+Sure, here's the updated Java method that includes the error checking you requested:
+
+```java
+import java.security.*;
+import javax.xml.crypto.*;
+import javax.xml.crypto.dsig.*;
+import javax.xml.crypto.dsig.dom.*;
+import javax.xml.crypto.dsig.keyinfo.*;
+import org.w3c.dom.*;
+
+public static SignedInfo createSignedInfo(Document doc, String algorithm, String canonicalizationAlgorithm, String referenceURI, byte[] digestValue) throws Exception {
+    // Check if type is null for KeyStore.getInstance()
+    if (KeyStore.getDefaultType() == null) {
+        throw new NullPointerException("Type is null");
+    }
+
+    // Check if no Provider supports a KeyStoreSpi implementation for the specified type
+    if (KeyStore.getInstance(KeyStore.getDefaultType()) == null) {
+        throw new KeyStoreException("No Provider supports a KeyStoreSpi implementation for the specified type");
+    }
+
+    // Create a DOMSignContext with a private key and certificate
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    ks.load(new FileInputStream("keystore.jks"), "password".toCharArray());
+    KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry("alias", new KeyStore.PasswordProtection("password".toCharArray()));
+    PrivateKey privateKey = keyEntry.getPrivateKey();
+    X509Certificate cert = (X509Certificate) keyEntry.getCertificate();
+    DOMSignContext dsc = new DOMSignContext(privateKey, doc.getDocumentElement());
+
+    // Check if no Provider supports an XMLSignatureFactory implementation for the DOM mechanism
+    if (XMLSignatureFactory.getInstance("DOM") == null) {
+        throw new NoSuchMechanismException("No Provider supports an XMLSignatureFactory implementation for the DOM mechanism");
+    }
+
+    // Create a Reference object with the specified URI and digest value
+    DigestMethod digestMethod = SignatureMethod.getInstance(algorithm).getMessageDigestAlgorithm();
+    List<Transform> transforms = Collections.singletonList(XMLSignatureFactory.getInstance().newTransform(Transform.ENVELOPED, (TransformParameterSpec) null));
+    Reference ref = XMLSignatureFactory.getInstance().newReference(referenceURI, digestMethod, transforms, null, null);
+
+    // Check if any of the transforms are not of type Transform
+    for (Transform transform : transforms) {
+        if (!(transform instanceof Transform)) {
+            throw new ClassCastException("Transform is not of type Transform");
+        }
+    }
+
+    // Check if uri is not RFC 2396 compliant
+    try {
+        new URI(referenceURI);
+    } catch (URISyntaxException e) {
+        throw new IllegalArgumentException("URI is not RFC 2396 compliant");
+    }
+
+    // Check if dm is null
+    if (digestMethod == null) {
+        throw new NullPointerException("DigestMethod is null");
+    }
+
+    // Create a CanonicalizationMethod object with the specified algorithm
+    CanonicalizationMethod canonicalizationMethod = CanonicalizationMethod.getInstance(canonicalizationAlgorithm);
+
+    // Create a SignatureMethod object with the specified algorithm
+    SignatureMethod signatureMethod = SignatureMethod.getInstance(algorithm);
+
+    // Create a SignedInfo object with the Reference, CanonicalizationMethod, and SignatureMethod objects
+    List<Reference> references = Collections.singletonList(ref);
+    SignedInfo signedInfo = XMLSignatureFactory.getInstance().newSignedInfo(canonicalizationMethod, signatureMethod, references);
+
+    // Check if any of the references are not of type Reference
+    for (Reference reference : references) {
+        if (!(reference instanceof Reference)) {
+            throw new ClassCastException("Reference is not of type Reference");
+        }
+    }
+
+    // Check if references is empty
+    if (references.isEmpty()) {
+        throw new IllegalArgumentException("References is empty");
+    }
+
+    // Check if any of the parameters are null
+    if (canonicalizationMethod == null || signatureMethod == null || references == null) {
+        throw new NullPointerException("One or more parameters are null");
+    }
+
+    return signedInfo;
+}
+```
+
+This updated method includes error checking for the following scenarios:
+- `KeyStore.getDefaultType()` returns null
+- No Provider supports a `KeyStoreSpi` implementation for the specified type
+- No Provider supports an `XMLSignatureFactory` implementation for the DOM mechanism
+- Any of the transforms are not of type `Transform`
+- The URI is not RFC 2396 compliant
+- The `DigestMethod` is null
+- Any of the references are not of type `Reference`
+- `References` is empty
+- Any of the parameters are null
+
+If any of these scenarios occur, the method throws the appropriate exception.
+------------------------------------------------------

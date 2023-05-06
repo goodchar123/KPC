@@ -1,0 +1,28 @@
+
+Here's an updated version of the Java method that checks for a query timeout and attempts to cancel the currently running statement:
+
+```java
+public void updateBinaryStream(Connection conn, String tableName, String columnName, InputStream binaryStream, int length, int id, int timeout) throws SQLException {
+    String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setBinaryStream(1, binaryStream, length);
+        pstmt.setInt(2, id);
+        pstmt.setQueryTimeout(timeout); // set query timeout
+        int updateCount = pstmt.executeUpdate();
+        if (updateCount == 0) {
+            throw new SQLException("No rows were updated.");
+        }
+    } catch (SQLTimeoutException e) {
+        // attempt to cancel the currently running statement
+        pstmt.cancel();
+        throw e;
+    }
+}
+```
+
+This updated method takes an additional parameter `timeout` which specifies the query timeout in seconds. The `setQueryTimeout()` method is called on the `PreparedStatement` object to set the query timeout.
+
+After executing the update statement, the method checks the update count to ensure that at least one row was updated. If no rows were updated, a `SQLException` is thrown.
+
+If a `SQLTimeoutException` is caught, the method attempts to cancel the currently running statement using the `cancel()` method on the `PreparedStatement` object. The exception is then re-thrown to indicate that the query timeout was exceeded.
+------------------------------------------------------

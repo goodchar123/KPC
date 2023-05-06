@@ -1,0 +1,42 @@
+
+Sure, here's an updated version of the method that checks for errors when creating the `EntityReference` and setting its node value:
+
+```java
+public EntityReference createEntityReference(String name, String value) throws FactoryConfigurationError, DOMException {
+    DocumentBuilderFactory factory = null;
+    try {
+        factory = DocumentBuilderFactory.newInstance();
+    } catch (FactoryConfigurationError e) {
+        throw new FactoryConfigurationError("Error creating DocumentBuilderFactory: " + e.getMessage());
+    }
+    DocumentBuilder builder;
+    try {
+        builder = factory.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        if (!doc.getXmlVersion().equals("1.0")) {
+            throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "Invalid XML version: " + doc.getXmlVersion());
+        }
+        if (doc.getDoctype() != null && doc.getDoctype().getName().equals("html")) {
+            throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "HTML documents do not support entity references");
+        }
+        EntityReference entityRef = doc.createEntityReference(name);
+        if (entityRef.isReadOnly()) {
+            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "Entity reference is read-only");
+        }
+        entityRef.setNodeValue(value);
+        return entityRef;
+    } catch (ParserConfigurationException e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+```
+
+This version of the method checks for the following errors:
+
+- `INVALID_CHARACTER_ERR`: if the XML version of the document is not 1.0
+- `NOT_SUPPORTED_ERR`: if the document is an HTML document
+- `NO_MODIFICATION_ALLOWED_ERR`: if the entity reference is read-only
+
+If any of these errors occur, a new `DOMException` is thrown with a more informative error message.
+------------------------------------------------------

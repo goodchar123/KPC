@@ -1,0 +1,49 @@
+
+Sure, here's an updated version of the `writeBytesToZipEntry` method that checks for errors and throws exceptions accordingly:
+
+```java
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipException;
+
+public class ZipWriter {
+    public static void writeBytesToZipEntry(ZipOutputStream zipOutputStream, ZipEntry zipEntry, byte[] bytes) throws IOException, ZipException {
+        try {
+            zipOutputStream.putNextEntry(zipEntry);
+            zipOutputStream.write(bytes);
+        } catch (ZipException e) {
+            throw new ZipException("ZIP format error occurred while writing to ZIP entry: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IOException("I/O error occurred while writing to ZIP entry: " + e.getMessage());
+        }
+        
+        try {
+            zipOutputStream.closeEntry();
+        } catch (ZipException e) {
+            throw new ZipException("ZIP format error occurred while closing ZIP entry: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IOException("I/O error occurred while closing ZIP entry: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method uses try-catch blocks to catch any `ZipException` or `IOException` that may occur while calling the `putNextEntry` and `closeEntry` methods. If an error occurs, it throws a new `ZipException` or `IOException` with a descriptive error message.
+
+You can call this method in the same way as before, and it will now handle errors more gracefully:
+
+```java
+ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream("example.zip"));
+ZipEntry zipEntry = new ZipEntry("example.txt");
+byte[] bytes = "Hello, world!".getBytes();
+try {
+    ZipWriter.writeBytesToZipEntry(zipOutputStream, zipEntry, bytes);
+} catch (IOException e) {
+    // handle I/O error
+} catch (ZipException e) {
+    // handle ZIP format error
+}
+zipOutputStream.close();
+```
+------------------------------------------------------

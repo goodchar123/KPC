@@ -1,0 +1,31 @@
+
+Sure, here's the updated Java method that checks if the `parameterIndex` is valid and if the `CallableStatement` object is closed:
+
+```java
+public void registerOutputParameter(CallableStatement statement, int parameterIndex, int sqlType) throws SQLException {
+    if (parameterIndex < 1 || parameterIndex > statement.getParameterMetaData().getParameterCount()) {
+        throw new SQLException("Invalid parameter index");
+    }
+    if (statement.isClosed()) {
+        throw new SQLException("CallableStatement is closed");
+    }
+    if (sqlType == Types.ARRAY || sqlType == Types.BLOB || sqlType == Types.CLOB || sqlType == Types.DATALINK || sqlType == Types.JAVA_OBJECT || sqlType == Types.NCHAR || sqlType == Types.NCLOB || sqlType == Types.NVARCHAR || sqlType == Types.LONGNVARCHAR || sqlType == Types.REF || sqlType == Types.ROWID || sqlType == Types.SQLXML || sqlType == Types.STRUCT) {
+        if (statement.isWrapperFor(OracleCallableStatement.class)) {
+            ((OracleCallableStatement) statement.unwrap(OracleCallableStatement.class)).registerOutParameter(parameterIndex, sqlType);
+        } else {
+            throw new SQLFeatureNotSupportedException("JDBC driver does not support this data type for java.sql.CallableStatement.registerOutParameter(int,int)");
+        }
+    } else {
+        statement.registerOutParameter(parameterIndex, sqlType);
+    }
+}
+```
+
+This updated method first checks if the `parameterIndex` is within the valid range of parameter indexes for the `CallableStatement` object. If it is not, it throws a `SQLException` with the message "Invalid parameter index".
+
+It then checks if the `CallableStatement` object is closed. If it is, it throws a `SQLException` with the message "CallableStatement is closed".
+
+If the `parameterIndex` is valid and the `CallableStatement` object is not closed, it proceeds to check if the `sqlType` parameter is one of the unsupported data types for `registerOutParameter` method. If it is, it follows the same logic as before to either call the `registerOutParameter` method of the `OracleCallableStatement` object or throw a `SQLFeatureNotSupportedException`.
+
+If the `sqlType` parameter is not one of the unsupported data types, it simply calls the `registerOutParameter` method of the `CallableStatement` object with the `parameterIndex` and `sqlType` parameters.
+------------------------------------------------------

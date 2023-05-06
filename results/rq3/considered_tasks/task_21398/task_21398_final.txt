@@ -1,0 +1,50 @@
+
+Here's the updated Java method that includes the requested error checking:
+
+```java
+public static String getXMLString(SQLXML sqlxml) throws SQLException {
+    String xmlString = null;
+    try {
+        if (sqlxml == null) {
+            throw new SQLException("SQLXML instance is null");
+        }
+        if (!sqlxml.isReadable()) {
+            throw new SQLException("SQLXML state is not readable");
+        }
+        InputStream inputStream = sqlxml.getBinaryStream();
+        if (inputStream == null) {
+            throw new SQLException("SQLXML input stream is null");
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int bytesRead = -1;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+        xmlString = outputStream.toString("UTF-8");
+    } catch (IOException e) {
+        throw new SQLException("Error reading SQLXML value", e);
+    } catch (NullPointerException e) {
+        throw new SQLException("Null pointer exception", e);
+    } catch (UnsupportedEncodingException e) {
+        throw new SQLException("Unsupported encoding exception", e);
+    } catch (SQLException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error processing SQLXML value", e);
+    }
+    return xmlString;
+}
+```
+
+This updated method includes the following error checking:
+
+- It checks if the SQLXML instance is null and throws a SQLException if it is.
+- It checks if the SQLXML state is readable and throws a SQLException if it is not.
+- It checks if the input stream returned by `getBinaryStream()` is null and throws a SQLException if it is.
+- It checks if the byte array passed to `inputStream.read()` is null and throws a NullPointerException if it is.
+- It checks if the byte array passed to `outputStream.write()` is null and throws a NullPointerException if it is.
+- It catches any UnsupportedEncodingException that may be thrown by `outputStream.toString()` and throws a SQLException with the appropriate message.
+- It catches any SQLException that may be thrown and re-throws it.
+- It catches any other Exception that may be thrown and throws a SQLException with the appropriate message.
+------------------------------------------------------

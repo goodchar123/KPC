@@ -1,0 +1,42 @@
+
+Sure, here's an updated version of the code snippet that includes the requested exception handling:
+
+```java
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
+import java.time.temporal.TemporalQuery;
+import java.time.temporal.UnsupportedTemporalTypeException;
+
+public class TemporalQueryExample {
+
+    public static void main(String[] args) {
+        try {
+            LocalDate date = LocalDate.of(2021, 10, 31);
+            boolean isHalloween = date.query(new IsHalloweenQuery());
+            System.out.println("Is Halloween? " + isHalloween);
+        } catch (DateTimeException | UnsupportedTemporalTypeException | ArithmeticException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    static class IsHalloweenQuery implements TemporalQuery<Boolean> {
+        @Override
+        public Boolean queryFrom(TemporalAccessor temporal) {
+            try {
+                int month = temporal.get(TemporalField.MONTH_OF_YEAR);
+                int day = temporal.get(TemporalField.DAY_OF_MONTH);
+                return month == 10 && day == 31;
+            } catch (DateTimeException | UnsupportedTemporalTypeException | ArithmeticException e) {
+                throw new DateTimeException("Error querying temporal object: " + e.getMessage());
+            }
+        }
+    }
+}
+```
+
+In this updated version, we wrap the `LocalDate.of` call and the `temporal.get` calls in a try-catch block that catches the various exceptions that can be thrown. If an exception is caught, we print an error message to the console.
+
+In the `IsHalloweenQuery` class, we also wrap the `temporal.get` calls in a try-catch block and re-throw any caught exceptions as a `DateTimeException` with a more informative error message.
+------------------------------------------------------

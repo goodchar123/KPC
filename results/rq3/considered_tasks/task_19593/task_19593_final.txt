@@ -1,0 +1,40 @@
+
+Sure, here's an updated version of the `getUnhiddenUnambiguousFields` method that checks if the `add` operation is supported by the returned list and throws an `UnsupportedOperationException` if it is not:
+
+```java
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class FieldUtils {
+    
+    public static List<Field> getUnhiddenUnambiguousFields(Class<?> type) {
+        List<Field> fields = new ArrayList<>();
+        Field[] declaredFields = type.getDeclaredFields();
+        for (Field field : declaredFields) {
+            if (!field.isSynthetic() && !field.isEnumConstant() && !field.isAnnotationPresent(Deprecated.class)) {
+                boolean isHidden = false;
+                for (Field otherField : declaredFields) {
+                    if (otherField != field && otherField.getName().equals(field.getName())) {
+                        isHidden = true;
+                        break;
+                    }
+                }
+                if (!isHidden) {
+                    fields.add(field);
+                }
+            }
+        }
+        return Collections.unmodifiableList(fields) {
+            @Override
+            public boolean add(Field field) {
+                throw new UnsupportedOperationException("add operation is not supported by this list");
+            }
+        };
+    }
+}
+```
+
+This version of the method returns an unmodifiable list using `Collections.unmodifiableList`, and overrides the `add` method of the returned list to throw an `UnsupportedOperationException` if it is called. This ensures that the returned list cannot be modified, and any attempt to do so will result in an exception being thrown.
+------------------------------------------------------

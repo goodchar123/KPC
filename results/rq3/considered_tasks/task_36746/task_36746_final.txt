@@ -1,0 +1,30 @@
+
+Sure, here's an updated version of the `alwaysSelectKey` method that checks if the `KeyValue` can be converted to a `PublicKey` and throws a `KeyException` if it cannot:
+
+```java
+public static KeySelector alwaysSelectKey(final Key key) {
+    return new KeySelector() {
+        public KeySelectorResult select(KeyInfo keyInfo, Purpose purpose, AlgorithmMethod method, XMLCryptoContext context) throws KeySelectorException {
+            if (keyInfo != null && keyInfo.contains(KeyValue.class)) {
+                KeyValue keyValue = keyInfo.item(KeyValue.class);
+                try {
+                    PublicKey publicKey = keyValue.getPublicKey();
+                    if (publicKey != null && publicKey.equals(key)) {
+                        return new KeySelectorResult() {
+                            public Key getKey() {
+                                return key;
+                            }
+                        };
+                    }
+                } catch (KeyException e) {
+                    throw new KeySelectorException("Cannot convert KeyValue to PublicKey", e);
+                }
+            }
+            throw new KeySelectorException("Key not found");
+        }
+    };
+}
+```
+
+This updated method first checks if the `KeyInfo` contains a `KeyValue` element. If it does, it tries to convert the `KeyValue` to a `PublicKey`. If this conversion fails, it throws a `KeyException`. If the conversion succeeds and the resulting `PublicKey` matches the specified key, the method returns a `KeySelectorResult` that always returns the specified key. If the `KeyInfo` does not contain a `KeyValue` element or the specified key does not match the resulting `PublicKey`, the method throws a `KeySelectorException`.
+------------------------------------------------------

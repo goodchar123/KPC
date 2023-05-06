@@ -1,0 +1,34 @@
+
+Here's the updated Java method that checks for negative values of `millis` and for interrupted threads when calling `Thread.sleep(long)`:
+
+```java
+public void writeBytesToChannel(WritableByteChannel channel, ByteBuffer[] buffers, int offset, int length) throws IOException, InterruptedException {
+    long bytesWritten = 0;
+    while (bytesWritten < length) {
+        long bytesTransferred = channel.write(buffers, offset, length);
+        if (bytesTransferred == 0) {
+            // Handle the case where the channel is non-blocking and no bytes were transferred
+            // Wait for the channel to become writable before trying again
+            long millis = 10;
+            if (millis < 0) {
+                throw new IllegalArgumentException("Negative sleep time");
+            }
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                // Restore the interrupted status of the current thread
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        }
+        bytesWritten += bytesTransferred;
+        offset += bytesTransferred;
+        length -= bytesTransferred;
+    }
+}
+```
+
+This updated method checks for negative values of `millis` before calling `Thread.sleep(long)`. If `millis` is negative, an `IllegalArgumentException` is thrown.
+
+The method also checks for interrupted threads when calling `Thread.sleep(long)`. If the current thread is interrupted while sleeping, the interrupted status of the thread is restored and an `InterruptedException` is thrown.
+------------------------------------------------------

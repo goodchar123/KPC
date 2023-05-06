@@ -1,0 +1,19 @@
+
+Here's an updated version of the `invokeBootstrap` method that includes the requested error checking:
+
+```java
+import java.lang.invoke.*;
+
+public class BootstrapInvoker {
+    public static CallSite invokeBootstrap(MethodHandles.Lookup lookup, String methodName, MethodType methodType, Object... args) throws Throwable {
+        MethodHandle bootstrapMethod = lookup.findStatic(BootstrapClass.class, methodName, methodType);
+        MethodType actualType = bootstrapMethod.type();
+        if (!actualType.equals(methodType)) {
+            throw new WrongMethodTypeException("Target method type cannot be adjusted to take the given number of arguments");
+        }
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class<?> expectedType = actualType.parameterType(i);
+            if (!expectedType.isInstance(arg)) {
+                throw new ClassCastException("Argument " +
+------------------------------------------------------

@@ -1,0 +1,55 @@
+
+Here's an updated code snippet that includes the requested checks:
+
+```java
+ClassLoader callerClassLoader = getClass().getClassLoader();
+SecurityManager securityManager = System.getSecurityManager();
+
+if (securityManager != null) {
+    // Check if a security manager is present
+    securityManager.checkPermission(new RuntimePermission("getClassLoader"));
+
+    // Check if the caller's class loader is not null and is not the same as or an ancestor of the system class loader
+    ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+    if (callerClassLoader != null && !isAncestor(systemClassLoader, callerClassLoader)) {
+        throw new SecurityException("Caller's class loader is not allowed to access system class loader");
+    }
+}
+
+// Check if invoked recursively during the construction of the class loader specified by the "java.system.class.loader" property
+String systemClassLoaderName = System.getProperty("java.system.class.loader");
+if (systemClassLoaderName != null && systemClassLoaderName.equals(getClass().getName())) {
+    throw new IllegalStateException("Cannot invoke getSystemClassLoader() recursively during construction of system class loader");
+}
+
+// Check if the system property "java.system.class.loader" is defined and can be loaded
+if (systemClassLoaderName != null) {
+    try {
+        Class<?> systemClassLoaderClass = ClassLoader.getSystemClassLoader().loadClass(systemClassLoaderName);
+        Constructor<?> constructor = systemClassLoaderClass.getConstructor(ClassLoader.class);
+    } catch (ClassNotFoundException e) {
+        throw new Error("Failed to load system class loader", e);
+    } catch (NoSuchMethodException e) {
+        throw new Error("System class loader does not define required constructor", e);
+    } catch (Exception e) {
+        throw new Error("Failed to instantiate system class loader", e);
+    }
+}
+
+// Check if the key is null or empty
+if (key == null) {
+    throw new NullPointerException("Key cannot be null");
+} else if (key.isEmpty()) {
+    throw new IllegalArgumentException("Key cannot be empty");
+}
+
+// Access the system property
+String value = System.getProperty(key);
+```
+
+This code first performs the security checks requested in the first two points. It then checks if `getSystemClassLoader()` is being invoked recursively during the construction of the system class loader by checking the value of the `java.system.class.loader` system property.
+
+Next, it checks if the system property `java.system.class.loader` is defined and can be loaded, throwing an `Error` if it cannot be loaded or does not define the required constructor.
+
+Finally, it checks if the key is null or empty, throwing a `NullPointerException` or `IllegalArgumentException` respectively if it is. It then accesses the system property using `System.getProperty()`.
+------------------------------------------------------

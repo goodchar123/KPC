@@ -1,0 +1,59 @@
+
+Sure, here's the updated code snippet with the additional error handling:
+
+```java
+import java.sql.*;
+import java.util.ArrayList;
+
+public class DatabaseHelper {
+    public static String getStringFunctions(Connection conn) throws SQLException {
+        if (conn == null || conn.isClosed()) {
+            throw new SQLException("Connection is null or closed");
+        }
+        String query = "SELECT routine_name FROM information_schema.routines WHERE routine_type = 'FUNCTION' AND data_type = 'VARCHAR'";
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            int seconds = 10;
+            if (seconds >= 0) {
+                stmt.setQueryTimeout(seconds); // set query timeout to 10 seconds
+            } else {
+                throw new SQLException("Invalid query timeout value");
+            }
+            rs = stmt.executeQuery(query);
+            ArrayList<String> functions = new ArrayList<>();
+            while (rs.next()) {
+                if (rs.isClosed()) {
+                    throw new SQLException("Result set is closed");
+                }
+                functions.add(rs.getString("routine_name"));
+            }
+            if (functions.isEmpty()) {
+                throw new SQLException("No string functions found");
+            }
+            return String.join(",", functions);
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
+        }
+    }
+}
+```
+
+This updated method now checks for additional error conditions. It checks if the connection is closed when calling `conn.isClosed()` and throws a `SQLException` if it is. It also checks for a closed result set when calling `rs.next()` and throws a `SQLException` if the result set is closed.
+------------------------------------------------------

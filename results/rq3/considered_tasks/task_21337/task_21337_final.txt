@@ -1,0 +1,35 @@
+
+Here's an updated version of the Java method that checks for a query timeout and attempts to cancel the currently running statement:
+
+```java
+public void updateBinaryStream(Connection conn, String tableName, String columnName, InputStream binaryStream, int length, int id, int timeout) throws SQLException {
+    String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setBinaryStream(1, binaryStream, length);
+        pstmt.setInt(2, id);
+        pstmt.setQueryTimeout(timeout); // set query timeout
+        int updateCount = 0;
+        try {
+            updateCount = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 0 && e.getSQLState().equals("08003")) {
+                // Timeout occurred, attempt to cancel statement
+                pstmt.cancel();
+                throw new SQLTimeoutException("Query timeout exceeded", e);
+            } else {
+                throw e;
+            }
+        }
+        if (updateCount == 0) {
+            throw new SQLException("No rows updated");
+        }
+    }
+}
+```
+
+This updated method takes an additional parameter `timeout` which specifies the query timeout in seconds. The `setQueryTimeout()` method is called on the `PreparedStatement` object to set the query timeout.
+
+The `executeUpdate()` method is wrapped in a try-catch block to catch any `SQLException` that may occur. If the error code is 0 and the SQL state is "08003", it means that a query timeout has occurred. In this case, the `cancel()` method is called on the `PreparedStatement` object to attempt to cancel the currently running statement, and a `SQLTimeoutException` is thrown.
+
+If the `executeUpdate()` method returns a value of 0, it means that no rows were updated, so a `SQLException` is thrown.
+------------------------------------------------------

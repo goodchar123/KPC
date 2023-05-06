@@ -1,0 +1,30 @@
+
+Here's the updated Java method that checks if there is a security manager and the caller does not have the permission required by `MBeanServerFactory.createMBeanServer()` for `java.lang.management.ManagementFactory.getPlatformMBeanServer()`. If the check fails, it throws a `SecurityException`:
+
+```java
+public static void setVMOption(String name, String value) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        try {
+            sm.checkPermission(new MBeanServerPermission("createMBeanServer"));
+        } catch (SecurityException se) {
+            throw new SecurityException("Caller does not have permission to create MBeanServer", se);
+        }
+    }
+    try {
+        ManagementFactory.getPlatformMBeanServer().invoke(
+            new ObjectName("com.sun.management:type=HotSpotDiagnostic"),
+            "setVMOption",
+            new Object[] { name, value },
+            new String[] { String.class.getName(), String.class.getName() }
+        );
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+This method first checks if there is a security manager by calling `System.getSecurityManager()`. If there is, it checks if the caller has the `createMBeanServer` permission by calling `SecurityManager.checkPermission()`. If the check fails, it throws a `SecurityException` with a message indicating that the caller does not have permission to create an MBeanServer.
+
+If the security check passes, the method proceeds to invoke the `setVMOption` method on the `HotSpotDiagnostic` MBean using the `ManagementFactory.getPlatformMBeanServer()` method, as before. If an exception occurs, it is printed to the console.
+------------------------------------------------------

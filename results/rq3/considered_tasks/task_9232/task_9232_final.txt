@@ -1,0 +1,29 @@
+
+Sure, here's the updated Java method that checks for preconditions and throws the appropriate exceptions:
+
+```java
+import java.net.URI;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.AccessControlException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class PathConverter {
+    public static Path convertURItoPath(URI uri) throws IllegalArgumentException, FileSystemNotFoundException, SecurityException {
+        try {
+            return AccessController.doPrivileged((PrivilegedAction<Path>) () -> Paths.get(uri));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid URI: " + uri, e);
+        } catch (FileSystemNotFoundException e) {
+            throw new FileSystemNotFoundException("File system not found for URI: " + uri);
+        } catch (AccessControlException e) {
+            throw new SecurityException("Access denied for URI: " + uri, e);
+        }
+    }
+}
+```
+
+This updated method uses `AccessController.doPrivileged()` to check for security permissions before calling `Paths.get(uri)`. It also catches the `IllegalArgumentException` and `FileSystemNotFoundException` thrown by `Paths.get(uri)` and rethrows them with more informative error messages.
+------------------------------------------------------

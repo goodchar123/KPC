@@ -1,0 +1,28 @@
+
+Sure, here's the updated Java method that checks for database access errors and closed result sets when calling the `getConcurrency()` and `getMetaData()` methods:
+
+```java
+public void moveToInsertRow(ResultSet resultSet) throws SQLException {
+    try {
+        if (resultSet.isClosed()) {
+            throw new SQLException("Result set is closed");
+        }
+        int concurrency = resultSet.getConcurrency();
+        if (concurrency == ResultSet.CONCUR_READ_ONLY) {
+            throw new SQLException("Result set is read-only");
+        }
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        if (!metaData.supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE)) {
+            throw new SQLFeatureNotSupportedException("moveToInsertRow() is not supported by this JDBC driver");
+        }
+        resultSet.moveToInsertRow();
+    } catch (SQLException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Database access error", e);
+    }
+}
+```
+
+This method first checks if the result set is closed, and throws a `SQLException` if it is. Then, it calls the `getConcurrency()` method to check if the result set is read-only, and throws a `SQLException` if it is. Next, it calls the `getMetaData()` method to get the result set metadata, and checks if the JDBC driver supports the `ResultSet.TYPE_SCROLL_SENSITIVE` result set type. If it does not, it throws a `SQLFeatureNotSupportedException`. Finally, it calls the `moveToInsertRow()` method to move the cursor to the insert row. If a `SQLException` occurs while moving the cursor, it is re-thrown. If any other exception occurs, it is wrapped in a `SQLException` with a message indicating a database access error.
+------------------------------------------------------

@@ -1,0 +1,78 @@
+
+Sure, here's the updated code snippet that checks for these additional security and error conditions:
+
+```java
+public static ModuleLayer createModuleLayer(Configuration config, ModuleLayer parentLayer) throws Exception {
+    ModuleFinder finder = config.moduleFinder();
+    Set<ModuleReference> moduleRefs;
+
+    try {
+        moduleRefs = finder.findAll();
+    } catch (Exception e) {
+        throw new FindException("Error finding all modules", e);
+    }
+
+    List<ModuleLayer> parentLayers = new ArrayList<>();
+    parentLayers.add(parentLayer);
+
+    ModuleLayer.Controller controller;
+
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        ClassLoader callerClassLoader = Thread.currentThread().getContextClassLoader();
+        if (callerClassLoader != null && callerClassLoader != ClassLoader.getSystemClassLoader() &&
+                !callerClassLoader.equals(ClassLoader.getSystemClassLoader()) &&
+                !sm.checkPermission(new RuntimePermission("getClassLoader"))) {
+            throw new SecurityException("Caller does not have permission to get system class loader");
+        }
+        if (callerClassLoader != null && callerClassLoader != Thread.class.getClassLoader() &&
+                !callerClassLoader.equals(Thread.class.getClassLoader()) &&
+                !sm.checkPermission(new RuntimePermission("getClassLoader"))) {
+            throw new SecurityException("Caller does not have permission to get context class loader");
+        }
+        if (!sm.checkPropertyAccess("java.system.class.loader")) {
+            throw new SecurityException("Caller does not have permission to access system property 'java.system.class.loader'");
+        }
+    }
+
+    try {
+        controller = ModuleLayer.defineModulesWithOneLoader(moduleRefs, parentLayers, ClassLoader.getSystemClassLoader());
+    } catch (Exception e) {
+        throw new SecurityException("Denied by the security manager", e);
+    }
+
+    String systemClassLoaderProperty = System.getProperty("java.system.class.loader");
+    if (systemClassLoaderProperty != null &&
+            Thread.currentThread().getStackTrace()[2].getClassName().equals(systemClassLoaderProperty)) {
+        throw new IllegalStateException("Invoked recursively during the construction of the system class loader");
+    }
+
+    String key = "java.system.class.loader";
+    if (key == null) {
+        throw new NullPointerException("System property key is null");
+    }
+    if (key.isEmpty()) {
+        throw new IllegalArgumentException("System property key is empty");
+    }
+
+    ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+    if (systemClassLoader instanceof Error) {
+        throw (Error) systemClassLoader;
+    }
+
+    return controller.layer();
+}
+```
+
+In this updated code, we've added additional checks to handle potential security and error conditions that may occur during the module layer creation process.
+
+First, we check if a security manager is present and if the caller's class loader is not null and is not the same as or an ancestor of the context class loader, and if the caller does not have the `RuntimePermission("getClassLoader")` for `Thread.getContextClassLoader()`. If any of these conditions are true, we throw a `SecurityException` with a message indicating that the caller does not have permission to get the context class loader.
+
+Next, we check if a security manager is present and if the caller's class loader is not null and is not the same as or an ancestor of the system class loader, and if the caller does not have the `RuntimePermission("getClassLoader")` for `ClassLoader.getSystemClassLoader()`. If any of these conditions are true, we throw a `SecurityException` with a message indicating that the caller does not have permission to get the system class loader.
+
+Then, we check if a security manager exists and its `checkPropertyAccess` method doesn't allow access to the specified system property. If this condition is true, we throw a `SecurityException` with a message indicating that the caller does not have permission to access the system property.
+
+We also check if the system property key is null or empty, and throw a `NullPointerException` or `IllegalArgumentException` respectively if either of these conditions are true.
+
+If no errors or security violations occur, the method returns the new module layer created by the controller.
+------------------------------------------------------

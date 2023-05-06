@@ -1,0 +1,42 @@
+
+Sure, here's the updated code snippet that checks if the IP address is of illegal length for `java.net.InetAddress.getByAddress(byte[])` and throws `UnknownHostException` if it is:
+
+```java
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.security.auth.x500.X500Principal;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.EDIPartyName;
+
+public static Collection<String> getSubjectAlternativeNames(X509Certificate cert) throws UnknownHostException {
+    try {
+        byte[] extensionValue = cert.getExtensionValue("2.5.29.17");
+        if (extensionValue == null) {
+            return Collections.emptyList();
+        }
+        // The extension value is a DER-encoded octet string, so we need to decode it
+        // to get the SubjectAltName extension.
+        byte[] extensionData = ASN1OctetString.getInstance(extensionValue).getOctets();
+        GeneralNames subjectAltNames = GeneralNames.getInstance(extensionData);
+        List<String> names = new ArrayList<>();
+        for (GeneralName name : subjectAltNames.getNames()) {
+            if (name.getTagNo() == GeneralName.dNSName) {
+                names.add(DERIA5String.getInstance(name.getName()).getString());
+            } else if (name.getTagNo() == GeneralName.iPAddress) {
+                byte[] ipAddress = name.getName();
+                if (ipAddress.length == 4 || ipAddress.length == 16) {
+                    names.add(InetAddress.getByAddress(ipAddress).getHostAddress());
+                } else {
+                    throw new UnknownHostException("Invalid IP address length: " + ipAddress.length);
+                }
+            } else if (name.getTagNo
+------------------------------------------------------

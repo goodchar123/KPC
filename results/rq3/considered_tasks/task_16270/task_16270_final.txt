@@ -1,0 +1,52 @@
+
+Sure, here's an updated version of the Java method that checks if the provided key is inappropriate for initializing the cipher or if its key size exceeds the maximum allowable key size, and if the provided algorithm parameters are inappropriate or imply a cryptographic strength that exceeds legal limits:
+
+```java
+import java.security.*;
+import javax.crypto.*;
+
+public class CipherInitializer {
+    public static void initializeCipher(SecretKey key, AlgorithmParameterSpec params, SecureRandom random, String algorithm, int opmode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedOperationException {
+        Cipher cipher = Cipher.getInstance(algorithm);
+        if (opmode == Cipher.WRAP_MODE || opmode == Cipher.UNWRAP_MODE) {
+            try {
+                cipher.init(opmode, key, params, random);
+            } catch (UnsupportedOperationException e) {
+                throw new UnsupportedOperationException("Cipher does not support the specified mode: " + e.getMessage());
+            }
+        } else {
+            checkKey(key, cipher);
+            checkParams(params, cipher);
+            cipher.init(opmode, key, params, random);
+        }
+    }
+    
+    private static void checkKey(SecretKey key, Cipher cipher) throws InvalidKeyException {
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+        } catch (InvalidKeyException e) {
+            throw new InvalidKeyException("Provided key is inappropriate for initializing this cipher or its keysize exceeds the maximum allowable keysize: " + e.getMessage());
+        }
+    }
+    
+    private static void checkParams(AlgorithmParameterSpec params, Cipher cipher) throws InvalidAlgorithmParameterException {
+        if (params == null && cipher.getAlgorithm().contains("GCM")) {
+            throw new InvalidAlgorithmParameterException("This cipher requires algorithm parameters and params is null");
+        }
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, cipher.getParameters(), params);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new InvalidAlgorithmParameterException("Provided algorithm parameters are inappropriate or imply a cryptographic strength that would exceed the legal limits: " + e.getMessage());
+        }
+    }
+}
+```
+
+This updated method includes two new private helper methods, `checkKey` and `checkParams`, which are called before initializing the cipher with the provided key and algorithm parameters, respectively.
+
+The `checkKey` method attempts to initialize the cipher with the provided key using the `Cipher.ENCRYPT_MODE` and throws an `InvalidKeyException` if the key is inappropriate for initializing the cipher or if its key size exceeds the maximum allowable key size.
+
+The `checkParams` method checks if the provided algorithm parameters are inappropriate or imply a cryptographic strength that exceeds legal limits. If the cipher algorithm is a GCM mode, it throws an `InvalidAlgorithmParameterException` if the provided parameters are null. Otherwise, it attempts to initialize the cipher with the current parameters and the provided parameters using the `Cipher.ENCRYPT_MODE` and throws an `InvalidAlgorithmParameterException` if the provided parameters are inappropriate or imply a cryptographic strength that exceeds legal limits.
+
+If both the key and algorithm parameters are valid, the method initializes the cipher with the provided key, algorithm parameters, and random source using the `init` method as before.
+------------------------------------------------------

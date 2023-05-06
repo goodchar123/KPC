@@ -1,0 +1,44 @@
+
+Sure, here's an updated implementation of the `getTranscoders` method that checks for errors when reading the stream metadata and throws an `IOException` if necessary:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.ImageTranscoder;
+import javax.imageio.ImageWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class ImageTranscoderHelper {
+
+    public static Iterator<ImageTranscoder> getTranscoders(ImageReader reader, ImageWriter writer) throws IOException {
+        List<ImageTranscoder> transcoders = new ArrayList<>();
+        String[] readerFormats = reader.getOriginatingProvider().getFormatNames();
+        String[] writerFormats = writer.getOriginatingProvider().getFormatNames();
+        for (String readerFormat : readerFormats) {
+            for (String writerFormat : writerFormats) {
+                if (ImageIO.getImageTranscodersByMIMEType(readerFormat + "->" + writerFormat) != null) {
+                    Iterator<ImageTranscoder> it = ImageIO.getImageTranscodersByMIMEType(readerFormat + "->" + writerFormat);
+                    while (it.hasNext()) {
+                        ImageTranscoder transcoder = it.next();
+                        try {
+                            if (transcoder.canTranscode(reader.getStreamMetadata(), writer.getDefaultStreamMetadata(null))) {
+                                transcoders.add(transcoder);
+                            }
+                        } catch (IOException e) {
+                            // Error occurred while reading stream metadata
+                            throw new IOException("Error reading stream metadata: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        return transcoders.iterator();
+    }
+}
+```
+
+This updated implementation adds a try-catch block around the call to `transcoder.canTranscode`, and catches any `IOException` that may occur when reading the stream metadata. If an error occurs, the method throws a new `IOException` with a message indicating the cause of the error.
+------------------------------------------------------

@@ -1,0 +1,37 @@
+
+Sure, here's an updated version of the method that checks for a query timeout and attempts to cancel the statement if it has exceeded the timeout value:
+
+```java
+public void updateBooleanColumn(Connection conn, String tableName, String columnName, boolean value, int id, int timeoutSeconds) throws SQLException {
+    String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setBoolean(1, value);
+        pstmt.setInt(2, id);
+        pstmt.setQueryTimeout(timeoutSeconds);
+        int rowsUpdated = pstmt.executeUpdate();
+        if (rowsUpdated == 0) {
+            throw new SQLException("No rows were updated");
+        }
+    } catch (SQLTimeoutException e) {
+        // Attempt to cancel the statement if it has exceeded the timeout value
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement("KILL QUERY ?");
+            pstmt.setLong(1, ((JDBC4PreparedStatement) pstmt).getQueryTimeoutKiller().getThreadId());
+            pstmt.executeUpdate();
+        } catch (SQLException ex) {
+            // Log or handle the exception as needed
+        } finally {
+            if (pstmt != null) {
+                pstmt.close();
+            }
+        }
+        throw e;
+    }
+}
+```
+
+This updated method takes an additional parameter `timeoutSeconds` which specifies the maximum number of seconds to wait for the update to complete before timing out. It sets the query timeout on the prepared statement using the `setQueryTimeout()` method.
+
+If the update completes successfully within the timeout period, the method returns normally. If the update takes longer than the specified timeout, a `SQLTimeoutException` is thrown. In this case, the method attempts to cancel the statement by executing a `KILL QUERY` command on the database. If the cancellation is successful, the exception is re-thrown. If the cancellation fails, the exception is still thrown but the original statement may continue to run on the database.
+------------------------------------------------------

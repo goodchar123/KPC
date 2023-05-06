@@ -1,0 +1,31 @@
+
+Here's the updated Java method that checks for security manager and Java virtual machine support before calling `ThreadMXBean.findDeadlockedThreads()`:
+
+```java
+public static void findDeadlock() throws SecurityException, UnsupportedOperationException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new ManagementPermission("monitor"));
+    }
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    if (!threadMXBean.isSynchronizerUsageSupported()) {
+        throw new UnsupportedOperationException("Java virtual machine does not support monitoring of ownable synchronizer usage");
+    }
+    long[] threadIds = threadMXBean.findDeadlockedThreads();
+    if (threadIds != null) {
+        ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadIds);
+        System.out.println("Deadlock detected:");
+        for (ThreadInfo threadInfo : threadInfos) {
+            System.out.println(threadInfo.getThreadName() + " is waiting on " + threadInfo.getLockInfo().toString());
+            System.out.println("    which is held by " + threadInfo.getLockOwnerName());
+            for (ThreadInfo blockedThreadInfo : threadMXBean.getThreadInfo(threadInfo.getBlockedThreadIds())) {
+                System.out.println("    " + blockedThreadInfo.getThreadName() + " is blocked on " + blockedThreadInfo.getLockInfo().toString());
+                System.out.println("        which is held by " + blockedThreadInfo.getLockOwnerName());
+            }
+        }
+    }
+}
+```
+
+This updated method first checks if a security manager exists and if the caller has the `ManagementPermission("monitor")`. If not, it throws a `SecurityException`. It also checks if the Java virtual machine supports monitoring of ownable synchronizer usage. If not, it throws an `UnsupportedOperationException`.
+------------------------------------------------------

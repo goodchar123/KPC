@@ -1,0 +1,43 @@
+
+Here's the updated Java method that includes the requested exception handling:
+
+```
+public void restrictEventsToThisObject(Object obj) throws InterruptedException, EmptyStackException, AWTError {
+    EventQueue eventQueue = null;
+    try {
+        eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+    } catch (AWTError e) {
+        throw new AWTError("Error loading assistive technologies.");
+    }
+    AWTEvent event = null;
+    try {
+        event = eventQueue.peekEvent();
+    } catch (InterruptedException e) {
+        throw new InterruptedException("Thread interrupted while waiting for event.");
+    }
+    while (event != null) {
+        if (event.getSource() != obj) {
+            try {
+                eventQueue.pop();
+            } catch (EmptyStackException e) {
+                throw new EmptyStackException("No previous push was made on this EventQueue.");
+            }
+        } else {
+            try {
+                event = eventQueue.getNextEvent();
+            } catch (InterruptedException e) {
+                throw new InterruptedException("Thread interrupted while waiting for event.");
+            }
+        }
+    }
+}
+```
+
+This updated method includes exception handling for the three scenarios you requested:
+
+1. If the `getDefaultToolkit()` method throws an `AWTError`, the method throws a new `AWTError` with a custom error message.
+2. If the `peekEvent()` method throws an `InterruptedException`, the method throws a new `InterruptedException` with a custom error message.
+3. If the `pop()` method throws an `EmptyStackException`, the method throws a new `EmptyStackException` with a custom error message.
+
+In each case, the custom error message provides more information about what went wrong and why the exception was thrown.
+------------------------------------------------------

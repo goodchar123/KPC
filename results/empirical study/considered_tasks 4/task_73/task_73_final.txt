@@ -1,0 +1,59 @@
+
+Sure, here's the updated code snippet that checks for security manager and system property access:
+
+```java
+import java.io.File;
+import java.security.AccessControlException;
+
+public class FileSearcher {
+    public static void searchFile(String directoryPath, String fileName) {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager != null) {
+            try {
+                securityManager.checkRead(directoryPath);
+            } catch (AccessControlException e) {
+                throw new SecurityException("Access denied to directory: " + directoryPath);
+            }
+        }
+        
+        File directory = new File(directoryPath);
+        File[] files = null;
+        try {
+            files = directory.listFiles();
+        } catch (SecurityException e) {
+            throw new SecurityException("Access denied to directory: " + directoryPath);
+        }
+        
+        if (files != null) {
+            for (File file : files) {
+                if (securityManager != null) {
+                    try {
+                        securityManager.checkRead(file.getAbsolutePath());
+                    } catch (AccessControlException e) {
+                        throw new SecurityException("Access denied to file: " + file.getAbsolutePath());
+                    }
+                }
+                
+                if (file.isDirectory()) {
+                    searchFile(file.getAbsolutePath(), fileName);
+                } else {
+                    if (file.getName().equals(fileName)) {
+                        System.out.println("File found: " + file.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        
+        if (securityManager != null) {
+            try {
+                securityManager.checkPropertyAccess("user.dir");
+            } catch (AccessControlException e) {
+                throw new SecurityException("Access denied to system property: user.dir");
+            }
+        }
+    }
+}
+```
+
+This updated code checks for the existence of a security manager and calls its `checkRead` method to check for read access to the directory and file. If access is denied, it throws a `SecurityException`. It also checks for system property access using the `checkPropertyAccess` method and throws a `SecurityException` if access is denied.
+------------------------------------------------------

@@ -1,0 +1,39 @@
+
+Here's the updated Java method that includes the requested check:
+
+```java
+import java.util.concurrent.*;
+
+public class TaskScheduler {
+    private ScheduledExecutorService scheduler;
+
+    public TaskScheduler(int corePoolSize) {
+        if (corePoolSize < 0) {
+            throw new IllegalArgumentException("Core pool size is less than 0");
+        }
+        scheduler = Executors.newScheduledThreadPool(corePoolSize);
+    }
+
+    public void scheduleTask(Runnable task, long delay, TimeUnit unit) {
+        if (task == null || unit == null) {
+            throw new NullPointerException("Command or unit is null");
+        }
+        try {
+            scheduler.schedule(task, delay, unit);
+        } catch (RejectedExecutionException e) {
+            System.err.println("Task cannot be scheduled for execution");
+        }
+    }
+
+    public void shutdown() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("modifyThread"));
+        }
+        scheduler.shutdown();
+    }
+}
+```
+
+Now, if a security manager exists and the caller does not hold the `RuntimePermission("modifyThread")`, a `SecurityException` will be thrown when attempting to shut down the `ExecutorService`.
+------------------------------------------------------

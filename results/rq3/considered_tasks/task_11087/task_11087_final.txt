@@ -1,0 +1,53 @@
+
+Sure, here's the updated `writeToChannel` method that checks for negative values of `millis`:
+
+```java
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
+
+public void writeToChannel(WritableByteChannel channel, ByteBuffer[] buffers) throws Exception {
+    long bytesWritten = 0;
+    while (bytesWritten < buffers.length) {
+        long bytes = channel.write(buffers);
+        if (bytes == 0) {
+            // Handle the case where the channel is not ready to write
+            // and wait until it is ready
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // Restore the interrupted status of the thread
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        }
+        bytesWritten += bytes;
+    }
+}
+
+public void writeToChannelWithChecks(WritableByteChannel channel, ByteBuffer[] buffers, long millis) throws Exception {
+    if (millis < 0) {
+        throw new IllegalArgumentException("millis cannot be negative");
+    }
+    long bytesWritten = 0;
+    while (bytesWritten < buffers.length) {
+        long bytes = channel.write(buffers);
+        if (bytes == 0) {
+            // Handle the case where the channel is not ready to write
+            // and wait until it is ready
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                // Restore the interrupted status of the thread
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        }
+        bytesWritten += bytes;
+    }
+}
+```
+
+The `writeToChannelWithChecks` method is the updated version that checks for negative values of `millis`. If `millis` is negative, the method throws an `IllegalArgumentException`. If the thread is interrupted while sleeping, the method throws an `InterruptedException`. 
+
+Note that this method still throws an exception if there is an error while writing to the channel. You can catch this exception and handle it appropriately in your code.
+------------------------------------------------------

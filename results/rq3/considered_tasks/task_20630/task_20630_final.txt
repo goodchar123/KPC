@@ -1,0 +1,45 @@
+
+Sure, here's an updated version of the Java method that includes the requested checks:
+
+```java
+public boolean getBooleanParameter(PreparedStatement statement, int parameterIndex) throws SQLException {
+    boolean result = false;
+    ResultSet resultSet = null;
+    try {
+        statement.execute();
+        resultSet = statement.getResultSet();
+        if (resultSet.next()) {
+            result = resultSet.getBoolean(parameterIndex);
+        }
+    } catch (SQLException e) {
+        if (e instanceof SQLTimeoutException) {
+            // Timeout exceeded, attempt to cancel the statement
+            statement.cancel();
+        }
+        throw e;
+    } finally {
+        if (resultSet != null) {
+            try {
+                if (resultSet.isClosed()) {
+                    throw new SQLException("Result set is closed");
+                }
+                ResultSetMetaData metaData = resultSet.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                if (parameterIndex < 1 || parameterIndex > columnCount) {
+                    throw new SQLException("Invalid column index");
+                }
+                metaData.getColumnCount(); // Check for database access error
+                resultSet.close();
+            } catch (SQLException e) {
+                throw e;
+            }
+        }
+    }
+    return result;
+}
+```
+
+This updated method includes a `finally` block that checks if the result set is closed or if the column index is invalid. If either of these conditions is true, it throws a `SQLException`. It also checks for database access errors when calling the `isClosed`, `getMetaData`, and `getColumnCount` methods of the `ResultSet` and `ResultSetMetaData` objects.
+
+Finally, the method closes the result set and returns the boolean value.
+------------------------------------------------------

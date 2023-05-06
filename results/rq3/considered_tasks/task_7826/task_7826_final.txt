@@ -1,0 +1,44 @@
+
+Here's the updated Java method that checks for all five security conditions:
+
+```java
+public static Class<?> getNestHost(Class<?> clazz) {
+    NestHost nestHost = clazz.getNestHost();
+    if (nestHost == null) {
+        return null;
+    }
+    Class<?> nestHostClass = nestHost.getType();
+    if (nestHostClass == clazz) {
+        return nestHostClass;
+    }
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        // Check for security condition 1
+        ClassLoader callerClassLoader = clazz.getClassLoader();
+        ClassLoader nestHostClassLoader = nestHostClass.getClassLoader();
+        if (callerClassLoader != nestHostClassLoader && !isAncestorClassLoader(callerClassLoader, nestHostClassLoader)) {
+            String nestHostPackageName = nestHostClass.getPackageName();
+            sm.checkPackageAccess(nestHostPackageName);
+        }
+        // Check for security condition 2
+        ClassLoader callerLoader = ClassLoader.getSystemClassLoader().getParent();
+        if (callerLoader != null && callerClassLoader != callerLoader && !callerLoader.equals(nestHostClassLoader)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        // Check for security condition 3
+        ClassLoader parentLoader = nestHostClassLoader.getParent();
+        if (parentLoader != null && callerClassLoader != parentLoader && !callerClassLoader.equals(parentLoader)) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+        // Check for security condition 4
+        if (callerClassLoader != null && !isAncestorClassLoader(callerClassLoader, ClassLoader.getSystemClassLoader())) {
+            sm.checkPermission(new RuntimePermission("getClassLoader"));
+        }
+    }
+    // Check for security condition 5
+    if (ClassLoader.getSystemClassLoader() instanceof RecursiveClassLoader) {
+        throw new IllegalStateException("Cannot invoke getSystemClassLoader() recursively during the construction of the class loader specified by the \"java.system.class.loader\" property.");
+    }
+    try {
+       
+------------------------------------------------------

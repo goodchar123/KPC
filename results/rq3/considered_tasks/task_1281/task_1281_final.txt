@@ -1,0 +1,33 @@
+
+Sure, here's an updated version of the Java method that checks for the exceptions you mentioned:
+
+```java
+import javax.management.*;
+
+public void addNotificationListener(MBeanServerConnection mbsc, ObjectName mbeanName, NotificationListener listener) throws Exception {
+    try {
+        if (mbeanName == null) {
+            throw new IllegalArgumentException("MBean name cannot be null");
+        }
+        if (!mbsc.isRegistered(mbeanName)) {
+            throw new InstanceNotFoundException("MBean not found: " + mbeanName);
+        }
+        mbsc.addNotificationListener(mbeanName, listener, null, null);
+    } catch (IllegalArgumentException e) {
+        throw new RuntimeOperationsException(e, "Invalid argument");
+    } catch (InstanceNotFoundException e) {
+        throw e;
+    } catch (IOException e) {
+        throw new CommunicationException("Communication problem occurred when talking to the MBean server", e);
+    }
+}
+```
+
+This updated method first checks if the `mbeanName` parameter is null. If it is, it throws an `IllegalArgumentException` with a message indicating that the MBean name cannot be null.
+
+Next, it checks if the MBean with the given `mbeanName` is registered with the MBean server by calling the `isRegistered` method on the `mbsc` object. If the MBean is not registered, it throws an `InstanceNotFoundException` with a message indicating that the MBean was not found.
+
+If any of these exceptions are caught, the method throws a `RuntimeOperationsException` or `CommunicationException` with an appropriate message and the original exception as the cause.
+
+If the MBean is registered and no exceptions are thrown, the method proceeds to call the `addNotificationListener` method on the `mbsc` object, passing in the `mbeanName`, `listener`, and two `null` values for the `filter` and `handback` parameters. This registers the listener with the MBean, so that any notifications emitted by the MBean will be forwarded to the listener.
+------------------------------------------------------

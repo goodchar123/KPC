@@ -1,0 +1,43 @@
+
+Sure, here's the updated code snippet that checks if the reference to the RMI registry could not be created and throws a `RemoteException` in that case:
+
+```
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
+public class ClientConnection {
+    
+    public static void main(String[] args) throws RemoteException {
+        try {
+            // Create a new instance of the client object
+            ClientImpl client = new ClientImpl();
+            
+            // Export the client object as an RMI object using JRMP
+            Client stub = (Client) UnicastRemoteObject.exportObject(client, 0);
+            
+            // Register the RMI object with the RMI registry
+            Registry registry = null;
+            try {
+                registry = LocateRegistry.getRegistry();
+            } catch (RemoteException e) {
+                throw new RemoteException("Could not obtain reference to RMI registry", e);
+            }
+            registry.rebind("Client", stub);
+            
+            System.out.println("Client connection created and registered with RMI registry.");
+        } catch (RemoteException e) {
+            System.err.println("Error creating client connection: " + e.getMessage());
+            throw e;
+        }
+    }
+}
+```
+
+In this updated code snippet, we first declare a `Registry` variable and initialize it to `null`. We then use a `try-catch` block to attempt to obtain a reference to the RMI registry using the `LocateRegistry.getRegistry()` method. If this method call throws a `RemoteException`, we catch it and throw a new `RemoteException` with a more informative error message.
+
+After obtaining a reference to the RMI registry (or throwing an exception if we couldn't), we proceed with exporting the `ClientImpl` object as an RMI object and registering it with the registry as before.
+
+If an exception occurs during any of these steps, we catch it, print an error message to the console, and re-throw the exception so that the calling code can handle it appropriately.
+------------------------------------------------------

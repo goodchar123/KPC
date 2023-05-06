@@ -1,0 +1,47 @@
+
+Sure, here's an updated version of the code snippet that checks for security manager permissions:
+
+```java
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+public class CreateDirectoryExample {
+    public static void main(String[] args) {
+        String directoryName = "new_directory";
+        File directory = new File(directoryName);
+
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            // Check read access
+            security.checkRead(directoryName);
+
+            // Check write access
+            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                if (!directory.exists()) {
+                    security.checkWrite(directory.getParent());
+                }
+                return null;
+            });
+        }
+
+        if (!directory.exists()) {
+            boolean success = directory.mkdir();
+            if (success) {
+                System.out.println("Directory created successfully!");
+            } else {
+                System.out.println("Failed to create directory!");
+            }
+        } else {
+            System.out.println("Directory already exists!");
+        }
+    }
+}
+```
+
+This updated version first checks if a security manager is present using `System.getSecurityManager()`. If a security manager is present, it checks for read access using `SecurityManager.checkRead()` and write access using `SecurityManager.checkWrite()`. 
+
+For the `mkdir()` method, we use `AccessController.doPrivileged()` to execute the `checkWrite()` method with elevated privileges, since the `mkdir()` method requires write access to the parent directory. 
+
+If either of the security checks fail, a `SecurityException` is thrown.
+------------------------------------------------------

@@ -1,0 +1,36 @@
+
+Sure, here's an updated version of the Java method that checks for all the possible exceptions related to character encoding:
+
+```
+public void writeUnicodeStream(SQLOutputImpl output, String unicodeString, String charsetName) throws SQLException, UnsupportedEncodingException {
+    // Check if the charset name is null
+    if (charsetName == null) {
+        throw new IllegalArgumentException("Charset name cannot be null");
+    }
+    
+    // Check if the charset name is illegal
+    try {
+        Charset.forName(charsetName);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalCharsetNameException("Illegal charset name: " + charsetName);
+    }
+    
+    // Check if the named charset is supported
+    if (!Charset.isSupported(charsetName)) {
+        throw new UnsupportedEncodingException("Charset " + charsetName + " is not supported");
+    }
+    
+    // Convert the Unicode string to a byte array using the specified encoding
+    byte[] encodedBytes = unicodeString.getBytes(charsetName);
+    
+    // Write the byte array to the SQLOutputImpl object
+    output.writeBytes(encodedBytes);
+}
+```
+
+This updated method first checks if the given charset name is null. If it is, it throws an `IllegalArgumentException`. Then it checks if the charset name is illegal by attempting to retrieve the `Charset` object for the given name using `Charset.forName`. If an `IllegalArgumentException` is thrown, it means the charset name is illegal, so it throws an `IllegalCharsetNameException`.
+
+Next, it checks if the named charset is supported using the `Charset.isSupported` method. If it's not supported, it throws an `UnsupportedEncodingException`. Finally, it converts the Unicode string to a byte array using the specified encoding and writes it to the `SQLOutputImpl` object using the `writeBytes` method.
+
+Note that this updated method may also throw a `SQLException` if there is an error writing to the `SQLOutputImpl` object.
+------------------------------------------------------

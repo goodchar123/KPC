@@ -1,0 +1,75 @@
+
+Here is the updated Java method that includes the requested error handling:
+
+```java
+import java.util.Scanner;
+import java.util.Locale;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.InputMismatchException;
+import java.util.NoSuchElementException;
+
+public class TextParser {
+    
+    public static void main(String[] args) {
+        String text = "John, 25, 01/01/1995";
+        String pattern = "EEE, dd/MM/yyyy";
+        Locale locale = Locale.ENGLISH;
+        int namePos = 0;
+        int agePos = 6;
+        int datePos = 9;
+        
+        try {
+            Date date = parseText(text, pattern, locale, namePos, agePos, datePos);
+            System.out.println(date);
+        } catch (ParseException | InputMismatchException | NoSuchElementException | IllegalStateException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static Date parseText(String text, String pattern, Locale locale, int namePos, int agePos, int datePos) throws ParseException, InputMismatchException, NoSuchElementException, IllegalStateException {
+        Scanner scanner = new Scanner(text);
+        scanner.useDelimiter(", ");
+        scanner.skip(namePos);
+        if (!scanner.hasNext()) {
+            scanner.close();
+            throw new NoSuchElementException();
+        }
+        String name = scanner.next();
+        scanner.skip(agePos - namePos - name.length());
+        if (!scanner.hasNextInt()) {
+            scanner.close();
+            throw new InputMismatchException();
+        }
+        int age = scanner.nextInt();
+        scanner.skip(datePos - agePos - String.valueOf(age).length());
+        if (!scanner.hasNext()) {
+            scanner.close();
+            throw new NoSuchElementException();
+        }
+        String dateString = scanner.next();
+        if (scanner.hasNext()) {
+            scanner.close();
+            throw new IllegalStateException();
+        }
+        scanner.close();
+        
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern, locale);
+        Date date = formatter.parse(dateString);
+        
+        return date;
+    }
+}
+```
+
+This updated method includes error handling for the following scenarios:
+
+- If no more tokens are available for `Scanner.next()`, a `NoSuchElementException` is thrown.
+- If the scanner is closed for `Scanner.next()`, an `IllegalStateException` is thrown.
+- If the next token does not match the integer regular expression, or is out of range for `Scanner.nextInt()`, an `InputMismatchException` is thrown.
+- If the input is exhausted for `Scanner.nextInt()`, a `NoSuchElementException` is thrown.
+- If the scanner is closed for `Scanner.nextInt()`, an `IllegalStateException` is thrown.
+
+These exceptions are caught in the `main()` method and printed to the console using `e.printStackTrace()`.
+------------------------------------------------------

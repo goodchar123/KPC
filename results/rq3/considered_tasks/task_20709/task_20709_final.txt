@@ -1,0 +1,31 @@
+
+Sure, here's the updated code snippet that checks for database access errors and unsupported methods:
+
+```java
+public Object getStructuredType(Ref ref) throws SQLException {
+    Connection conn = ref.getBase().getConnection();
+    Struct struct = ref.getStruct();
+    String typeName;
+    try {
+        typeName = struct.getSQLTypeName();
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while retrieving SQL type name", e);
+    }
+    StructDescriptor desc;
+    try {
+        desc = StructDescriptor.createDescriptor(typeName, conn);
+    } catch (SQLException e) {
+        throw new SQLException("Database access error occurred while creating StructDescriptor", e);
+    }
+    try {
+        return new OracleStruct(desc, conn, struct.getAttributes());
+    } catch (SQLFeatureNotSupportedException e) {
+        throw new SQLFeatureNotSupportedException("JDBC driver does not support creating OracleStruct", e);
+    }
+}
+```
+
+This updated method first tries to retrieve the SQL type name from the Struct object, and if a SQLException occurs, it throws a new SQLException with a more descriptive error message. Similarly, if a SQLException occurs while creating the StructDescriptor, it throws a new SQLException with a more descriptive error message.
+
+Finally, if a SQLFeatureNotSupportedException occurs while creating the OracleStruct object, it throws a new SQLFeatureNotSupportedException with a more descriptive error message.
+------------------------------------------------------

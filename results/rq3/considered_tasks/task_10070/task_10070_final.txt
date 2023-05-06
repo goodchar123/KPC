@@ -1,0 +1,36 @@
+
+You are correct, it is important to handle the cases where the end of file is reached, the stream has been closed, or other I/O errors occur when calling `readByte()` and `available()` in the `readStreamHeader()` method. Here is an updated version of the method that includes these checks:
+
+```java
+protected void readStreamHeader() throws IOException, StreamCorruptedException {
+    // Check if the stream header has already been read
+    if (bin.readByte() != STREAM_MAGIC || bin.readByte() != STREAM_VERSION) {
+        throw new StreamCorruptedException("Invalid stream header");
+    }
+    // Reset the handle table
+    handles.clear();
+    // Reset the depth counter
+    depth = 0;
+    
+    // Check if end of file is reached
+    if (bin instanceof DataInputStream && ((DataInputStream) bin).readByte() == -1) {
+        throw new EOFException();
+    }
+    
+    // Check if the stream has been closed or another I/O error occurs
+    if (bin instanceof FileInputStream && ((FileInputStream) bin).getChannel().isOpen() == false) {
+        throw new IOException("Stream has been closed");
+    }
+    
+    // Check for other I/O errors
+    int available = bin.available();
+    if (available == 0) {
+        throw new IOException("End of stream reached unexpectedly");
+    } else if (available < 0) {
+        throw new IOException("Stream is closed");
+    }
+}
+```
+
+In this updated version, we first check if the end of file is reached by calling `readByte()` on a `DataInputStream` instance. If the result is -1, we throw an `EOFException`. We also check if the stream has been closed or another I/O error occurs by checking if the input stream is a `FileInputStream` instance and its channel is closed. If the channel is closed, we throw an `IOException` with the message "Stream has been closed". Finally, we check for other I/O errors by calling `available()` on the input stream. If the result is 0, we throw an `IOException` with the message "End of stream reached unexpectedly". If the result is negative, we throw an `IOException` with the message "Stream is closed".
+------------------------------------------------------

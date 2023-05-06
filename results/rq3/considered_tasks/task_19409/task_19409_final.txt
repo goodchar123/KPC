@@ -1,0 +1,25 @@
+
+Here's the updated Java method that checks for a `SecurityManager` and whether the `Card` object has been disposed of:
+
+```
+import javax.smartcardio.*;
+
+public static CardChannel getBasicChannel(Card card) throws CardException {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        sm.checkPermission(new javax.smartcardio.CardPermission(card.getTerminal().getName(), "getBasicChannel"));
+    }
+    if (card.isValid()) {
+        return card.getBasicChannel();
+    } else {
+        throw new IllegalStateException("Card object has been disposed of");
+    }
+}
+```
+
+This method first checks if a `SecurityManager` exists and if so, checks if the caller has the required permission for `javax.smartcardio.Card.getBasicChannel()`. If the caller does not have the required permission, a `SecurityException` is thrown.
+
+Next, the method checks if the `Card` object is still valid using the `isValid()` method. If the `Card` object has been disposed of via the `disconnect()` method, an `IllegalStateException` is thrown.
+
+If both checks pass, the method returns the basic logical channel's `CardChannel` object using the `getBasicChannel()` method of the `Card` class. If there is an error in obtaining the channel, a `CardException` is thrown.
+------------------------------------------------------

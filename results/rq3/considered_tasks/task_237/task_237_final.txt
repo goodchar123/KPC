@@ -1,0 +1,39 @@
+
+Here is the updated Java method that includes the requested security and input validations:
+
+```
+public static int getMaxMessageSize() throws SecurityException, NullPointerException, IllegalArgumentException {
+    int maxMessageSize = 0;
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        // Check if a security manager exists and its checkPropertyAccess method doesn't allow access to the specified system property
+        try {
+            securityManager.checkPropertyAccess("mail.mime.maxsize");
+        } catch (SecurityException e) {
+            throw new SecurityException("Access to system property 'mail.mime.maxsize' is not allowed", e);
+        }
+    }
+    String key = "mail.mime.maxsize";
+    if (key == null) {
+        // Check if key is null
+        throw new NullPointerException("System property key cannot be null");
+    }
+    if (key.isEmpty()) {
+        // Check if key is empty
+        throw new IllegalArgumentException("System property key cannot be empty");
+    }
+    try {
+        // Get the maximum message size from the system properties
+        maxMessageSize = Integer.parseInt(System.getProperty(key));
+    } catch (NumberFormatException e) {
+        // If the system property is not set or is not a valid integer, use a default value
+        maxMessageSize = 1024 * 1024; // 1 MB
+    }
+    return maxMessageSize;
+}
+```
+
+This method first checks if a security manager exists and if its `checkPropertyAccess` method allows access to the specified system property. If not, it throws a `SecurityException`. It then checks if the `key` parameter is null or empty, and throws a `NullPointerException` or `IllegalArgumentException` respectively if either condition is true.
+
+If all the validations pass, the method gets the maximum message size from the `mail.mime.maxsize` system property. If this property is not set or is not a valid integer, it uses a default value of 1 MB. The method returns the maximum message size as an integer value.
+------------------------------------------------------

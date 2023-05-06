@@ -1,0 +1,54 @@
+
+Here's an updated version of the Java method that includes the security checks you requested:
+
+```java
+public int getWaitingThreadsCount(Condition condition) throws SecurityException, InaccessibleObjectException {
+    SecurityManager s = System.getSecurityManager();
+    if (s != null) {
+        Class<?> callerClass = Reflection.getCallerClass();
+        ClassLoader callerClassLoader = callerClass.getClassLoader();
+        ClassLoader thisClassLoader = this.getClass().getClassLoader();
+
+        // Check if caller's class loader is not the same as this class's class loader
+        if (callerClassLoader != thisClassLoader) {
+            // Check if access to declared fields is denied
+            s.checkPermission(new RuntimePermission("accessDeclaredMembers"), this.getClass());
+
+            // Check if caller's class loader is not an ancestor of this class's class loader
+            if (!thisClassLoader.isAncestorOf(callerClassLoader)) {
+                // Check if access to package is denied
+                s.checkPackageAccess(this.getClass().getPackage().getName());
+            }
+        }
+    }
+
+    // Get the lock associated with the condition
+    Lock lock = condition.newCondition().getClass().getDeclaredFields()[0];
+    lock.setAccessible(true);
+
+    // Check if access to setAccessible method is denied
+    try {
+        Field setAccessibleField = AccessibleObject.class.getDeclaredField("override");
+        setAccessibleField.setAccessible(true);
+        setAccessibleField.setBoolean(lock, true);
+    } catch (NoSuchFieldException e) {
+        throw new InaccessibleObjectException("Cannot access setAccessible method");
+    } catch (IllegalAccessException e) {
+        throw new SecurityException("Access to setAccessible method denied by security manager");
+    }
+
+    // Get the number of waiting threads from the lock's queue
+    int waitingThreadsCount = ((AbstractQueuedSynchronizer) lock.get(condition.newCondition())).getQueueLength();
+
+    return waitingThreadsCount;
+}
+```
+
+This updated method includes the following security checks:
+
+1. If a security manager is present, check if the caller's class loader is not the same as this class's class loader. If it is not, check if access to declared fields is denied by invoking `s.checkPermission` with `RuntimePermission("accessDeclaredMembers")`. If the caller's class loader is not an ancestor of this class's class loader, check if access to the package is denied by invoking `s.checkPackageAccess()` with the name of this class's package.
+
+2. Check if access to the `setAccessible` method is denied by invoking it with reflection and catching any `NoSuchFieldException` or `IllegalAccessException` exceptions. If access is denied, throw a `SecurityException`. If the `override` field cannot be accessed, throw an `InaccessibleObjectException`.
+
+If any of these security checks fail, the method will throw the appropriate exception. Otherwise, it will return the estimated number of waiting threads.
+------------------------------------------------------

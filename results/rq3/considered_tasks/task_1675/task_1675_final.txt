@@ -1,0 +1,57 @@
+
+Sure, here's an updated implementation that includes the requested error checking:
+
+```java
+public Descriptor[] getDescriptorsByType(ModelMBeanInfo mbeanInfo, String descriptorType) {
+    List<Descriptor> matchingDescriptors = new ArrayList<>();
+    for (ModelMBeanAttributeInfo attributeInfo : mbeanInfo.getAttributes()) {
+        Descriptor descriptor = attributeInfo.getDescriptor();
+        if (descriptor != null) {
+            try {
+                String fieldValue = (String) descriptor.getFieldValue(descriptorType);
+                if (fieldValue != null) {
+                    matchingDescriptors.add(descriptor);
+                }
+            } catch (IllegalArgumentException | NullPointerException e) {
+                throw new RuntimeOperationsException(new IllegalArgumentException("Illegal field name"), "Error getting descriptor field value", e);
+            }
+        }
+    }
+    for (ModelMBeanOperationInfo operationInfo : mbeanInfo.getOperations()) {
+        Descriptor descriptor = operationInfo.getDescriptor();
+        if (descriptor != null) {
+            try {
+                String fieldValue = (String) descriptor.getFieldValue(descriptorType);
+                if (fieldValue != null) {
+                    matchingDescriptors.add(descriptor);
+                }
+            } catch (IllegalArgumentException | NullPointerException e) {
+                throw new RuntimeOperationsException(new IllegalArgumentException("Illegal field name"), "Error getting descriptor field value", e);
+            }
+        }
+    }
+    for (ModelMBeanNotificationInfo notificationInfo : mbeanInfo.getNotifications()) {
+        Descriptor descriptor = notificationInfo.getDescriptor();
+        if (descriptor != null) {
+            try {
+                String fieldValue = (String) descriptor.getFieldValue(descriptorType);
+                if (fieldValue != null) {
+                    matchingDescriptors.add(descriptor);
+                }
+            } catch (IllegalArgumentException | NullPointerException e) {
+                throw new RuntimeOperationsException(new IllegalArgumentException("Illegal field name"), "Error getting descriptor field value", e);
+            }
+        }
+    }
+    Descriptor[] descriptorsArray = new Descriptor[matchingDescriptors.size()];
+    try {
+        descriptorsArray = matchingDescriptors.toArray(descriptorsArray);
+    } catch (ArrayStoreException e) {
+        throw new ArrayStoreException("Array store exception: runtime type of specified array is not a supertype of the runtime type of every element in the list");
+    }
+    return descriptorsArray;
+}
+```
+
+This implementation includes a try-catch block around the call to `toArray()` to catch `ArrayStoreException` exceptions that may be thrown if the runtime type of the specified array is not a supertype of the runtime type of every element in the list. If such an exception is caught, a new `ArrayStoreException` is thrown with an appropriate error message.
+------------------------------------------------------

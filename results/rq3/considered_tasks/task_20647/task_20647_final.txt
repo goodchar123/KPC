@@ -1,0 +1,29 @@
+
+Sure, here's an updated version of the Java method that checks for errors and throws appropriate exceptions:
+
+```java
+public static Object[] getArray(Connection conn, String sql, String paramName) throws SQLException {
+    CallableStatement stmt = conn.prepareCall(sql);
+    stmt.registerOutParameter(paramName, Types.ARRAY);
+    stmt.execute();
+    Array array = stmt.getArray(paramName);
+    if (array == null) {
+        throw new SQLException("Error accessing ARRAY parameter");
+    }
+    Object[] result;
+    try {
+        result = (Object[]) array.getArray();
+    } catch (SQLException e) {
+        throw new SQLFeatureNotSupportedException("JDBC driver does not support getArray() method", e);
+    }
+    stmt.close();
+    return result;
+}
+```
+
+This updated method first checks if the `getArray()` method returns a null value, indicating an error in accessing the ARRAY parameter. If so, it throws a `SQLException` with an appropriate error message.
+
+Next, it attempts to convert the ARRAY object to a Java array using the `getArray()` method. If the JDBC driver does not support this method, it catches the `SQLException` and throws a `SQLFeatureNotSupportedException` with an appropriate error message and the original exception as the cause.
+
+Otherwise, if the conversion is successful, it closes the statement and returns the resulting Java array.
+------------------------------------------------------

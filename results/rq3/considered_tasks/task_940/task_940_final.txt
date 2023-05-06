@@ -1,0 +1,53 @@
+
+Sure, here's the updated Java method that checks for the exceptions you mentioned:
+
+```java
+import javax.management.*;
+import javax.management.relation.*;
+
+public class MBeanRelationRetriever {
+    
+    public static void getReferencingRelations(MBeanServerConnection mbsc, ObjectName mbeanName) throws Exception {
+        
+        // Get the MBeanInfo for the given MBean
+        MBeanInfo mbeanInfo;
+        try {
+            mbeanInfo = mbsc.getMBeanInfo(mbeanName);
+        } catch (IntrospectionException e) {
+            throw new IntrospectionException("An exception occurred during introspection.");
+        } catch (InstanceNotFoundException e) {
+            throw new InstanceNotFoundException("The MBean specified was not found.");
+        } catch (ReflectionException e) {
+            throw new ReflectionException("An exception occurred when trying to invoke the getMBeanInfo of a Dynamic MBean.");
+        }
+        
+        // Get the ObjectInstance for the given MBean
+        ObjectInstance mbeanInstance;
+        try {
+            mbeanInstance = mbsc.getObjectInstance(mbeanName);
+        } catch (InstanceNotFoundException e) {
+            throw new InstanceNotFoundException("The MBean specified is not registered in the MBean server.");
+        }
+        
+        // Get the RelationService MBean
+        ObjectName relationServiceName = new ObjectName("JMImplementation:type=RelationService");
+        RelationServiceMBean relationService = JMX.newMBeanProxy(mbsc, relationServiceName, RelationServiceMBean.class);
+        
+        // Get the list of relation ids for the given MBean
+        String[] relationIds = relationService.findReferencingRelations(mbeanInstance.getObjectName().toString());
+        
+        // For each relation id, get the corresponding RelationSupport object and print its details
+        for (String relationId : relationIds) {
+            RelationSupport relation = (RelationSupport) relationService.getRelation(relationId);
+            System.out.println("Relation Id: " + relation.getRelationId());
+            System.out.println("Relation Type: " + relation.getRelationTypeName());
+            System.out.println("MBeans in Relation: " + relation.getRole("referring").getTargetObjectNames());
+        }
+    }
+}
+```
+
+In this updated method, we use try-catch blocks to catch the exceptions that may occur when calling `getMBeanInfo` and `getObjectInstance` methods. If any of these exceptions occur, we throw a new exception with a more descriptive message.
+
+Note that this method still throws the generic `Exception` class, which may not be the best practice. You may want to consider throwing more specific exceptions based on the type of error that occurred.
+------------------------------------------------------

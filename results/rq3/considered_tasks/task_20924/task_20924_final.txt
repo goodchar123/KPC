@@ -1,0 +1,39 @@
+
+Sure, here's the updated code snippet that checks for database access errors and closed connections/result sets, and also validates the column label:
+
+```java
+public boolean areNullsSortedLow(Connection conn, String tableName, String columnName) throws SQLException {
+    boolean nullsSortedLow = false;
+    DatabaseMetaData metaData = null;
+    ResultSet rs = null;
+    try {
+        metaData = conn.getMetaData();
+        rs = metaData.getIndexInfo(null, null, tableName, false, false);
+        while (rs.next()) {
+            String indexColumnName = rs.getString("COLUMN_NAME");
+            boolean nonUnique = rs.getBoolean("NON_UNIQUE");
+            if (columnName.equals(indexColumnName) && !nonUnique) {
+                nullsSortedLow = rs.getBoolean("NULLS_FIRST");
+                break;
+            }
+        }
+    } catch (SQLException e) {
+        throw new SQLException("Database access error or closed connection/result set", e);
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+    if (!nullsSortedLow) {
+        throw new SQLException("Column label is not valid or NULL values are not sorted low");
+    }
+    return nullsSortedLow;
+}
+```
+
+In this updated code, we have added additional checks to validate the column label and throw a `SQLException` if it is not valid. We have also added try-catch blocks to catch any `SQLException` that may occur while calling `getString()` or `getBoolean()` methods on the `ResultSet`. If an exception is caught, we throw a new `SQLException` with a message indicating that a database access error or closed connection/result set has occurred.
+------------------------------------------------------

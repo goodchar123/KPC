@@ -1,0 +1,36 @@
+
+Sure, here's an updated version of the `compress` method that checks for an `IOException` when writing to the output stream:
+
+```java
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.Deflater;
+
+public class Compressor {
+    
+    private Deflater deflater;
+    private byte[] buffer;
+    
+    public Compressor() {
+        deflater = new Deflater();
+        buffer = new byte[1024];
+    }
+    
+    public void compress(byte[] data, OutputStream out) throws IOException {
+        deflater.setInput(data);
+        deflater.finish();
+        while (!deflater.finished()) {
+            int count = deflater.deflate(buffer);
+            try {
+                out.write(buffer, 0, count);
+            } catch (IOException e) {
+                throw new IOException("Error writing compressed data to output stream", e);
+            }
+        }
+        deflater.reset();
+    }
+}
+```
+
+In this updated version, the `write` method call is wrapped in a try-catch block that catches any `IOException` that may occur. If an `IOException` is caught, a new `IOException` is thrown with a more descriptive error message that includes the original exception as the cause. This way, the caller of the `compress` method can handle the exception appropriately.
+------------------------------------------------------

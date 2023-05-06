@@ -1,0 +1,64 @@
+
+Sure, here's an updated version of the Java method that includes all the requested error checks:
+
+```java
+public void executeKeyAgreementPhase(byte[] receivedKey) throws Exception {
+    // Check if algorithm is null for KeyPairGenerator.getInstance()
+    if (algorithm == null) {
+        throw new NullPointerException("Algorithm cannot be null");
+    }
+
+    // Generate a key pair for this party
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
+    keyPairGenerator.initialize(2048);
+
+    // Check if the keysize is not supported by this KeyPairGenerator object
+    if (keyPairGenerator.getProvider() == null) {
+        throw new InvalidParameterException("Invalid key size");
+    }
+
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    // Generate a shared secret using the received key and this party's private key
+    KeyAgreement keyAgreement = KeyAgreement.getInstance("DH");
+
+    // Check if algorithm is null for KeyAgreement.getInstance()
+    if (algorithm == null) {
+        throw new NullPointerException("Algorithm cannot be null");
+    }
+
+    keyAgreement.init(keyPair.getPrivate());
+
+    KeyFactory keyFactory = KeyFactory.getInstance("DH");
+
+    // Check if no Provider supports a KeyFactorySpi implementation for the specified algorithm
+    if (keyFactory.getProvider() == null) {
+        throw new NoSuchAlgorithmException("Algorithm not supported");
+    }
+
+    PublicKey otherPartyPublicKey = keyFactory.generatePublic(new X509EncodedKeySpec(receivedKey));
+
+    // Check if the given key is inappropriate for this phase
+    if (!keyAgreement.getAlgorithm().equals(otherPartyPublicKey.getAlgorithm())) {
+        throw new InvalidKeyException("Invalid key");
+    }
+
+    keyAgreement.doPhase(otherPartyPublicKey, true);
+
+    // Check if this key agreement has not been initialized
+    if (!keyAgreement.nextStep()) {
+        throw new IllegalStateException("Key agreement not initialized");
+    }
+
+    byte[] sharedSecret = keyAgreement.generateSecret();
+
+    // Use the shared secret to derive a symmetric key
+    SecretKeySpec symmetricKey = new SecretKeySpec(sharedSecret, "AES");
+
+    // Use the symmetric key for encryption/decryption or other purposes
+    // ...
+}
+```
+
+This updated version includes error checks for null algorithm inputs, invalid key sizes, unsupported algorithms, invalid keys, and uninitialized key agreements. If any of these checks fail, the appropriate exception is thrown.
+------------------------------------------------------

@@ -1,0 +1,51 @@
+
+Sure, here's an updated version of the `connect()` method that checks for database access errors and closed connections when calling `createStatement()` and `close()`:
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DatabaseConnection {
+    
+    public static Connection connect(String url, String username, String password) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url, username, password);
+            System.out.println("Database connection successful.");
+        } catch (SQLException e) {
+            System.out.println("Database connection failed.");
+            throw e;
+        }
+        return conn;
+    }
+    
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/mydatabase";
+        String username = "root";
+        String password = "mypassword";
+        Connection conn = null;
+        try {
+            conn = connect(url, username, password);
+            Statement stmt = conn.createStatement();
+            // use the statement object to execute SQL queries
+            stmt.close();
+        } catch (SQLException e) {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
+            throw e;
+        } finally {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
+        }
+    }
+}
+```
+
+In this updated version, we add a `throws SQLException` clause to the `connect()` method signature to indicate that it may throw an exception. We also add a `try-catch` block around the `createStatement()` call to catch any `SQLException` that may occur due to a closed connection or database access error. If an exception is caught, we check if the connection is still open and close it if necessary. We then re-throw the exception to propagate it up the call stack.
+
+Similarly, we add a `try-finally` block around the `close()` call to ensure that the connection is always closed, even if an exception occurs. We also check if the connection is still open before attempting to close it, to avoid throwing another exception.
+------------------------------------------------------

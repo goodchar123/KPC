@@ -1,0 +1,70 @@
+
+Sure, here's an updated version of the Java method that checks for a query timeout and throws an `SQLTimeoutException` if the timeout is exceeded:
+
+```java
+public void insertRowIntoSection(String sectionName, String[] rowData, int queryTimeout) throws SQLException {
+    // Connect to database
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    try {
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+        
+        // Get section ID
+        int sectionId = getSectionId(sectionName, conn);
+        
+        // Insert row into section
+        String sql = "INSERT INTO section_data (section_id, column1, column2, column3) VALUES (?, ?, ?, ?)";
+        stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, sectionId);
+        stmt.setString(2, rowData[0]);
+        stmt.setString(3, rowData[1]);
+        stmt.setString(4, rowData[2]);
+        
+        // Set query timeout
+        stmt.setQueryTimeout(queryTimeout);
+        
+        // Execute update and check for timeout
+        long startTime = System.currentTimeMillis();
+        int rowsAffected = stmt.executeUpdate();
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+        if (elapsedTime >= queryTimeout * 1000 && !stmt.isClosed()) {
+            stmt.cancel();
+            throw new SQLTimeoutException("Query timeout exceeded.");
+        }
+        
+        System.out.println(rowsAffected + " row(s) inserted successfully.");
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        // Close resources
+        try {
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+private int getSectionId(String sectionName, Connection conn) throws SQLException {
+    int sectionId = -1;
+    String sql = "SELECT id FROM sections WHERE name = ?";
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setString(1, sectionName);
+    ResultSet rs = stmt.executeQuery();
+    if (rs.next()) {
+        sectionId = rs.getInt("id");
+    }
+    rs.close();
+    stmt.close();
+    return sectionId;
+}
+```
+
+This updated method takes an additional parameter `queryTimeout` which specifies the maximum number of seconds that the query should be allowed to run before timing out. It sets the query timeout on the prepared statement using the `setQueryTimeout` method. It then executes the update and checks the elapsed time against the query timeout. If the elapsed time exceeds the timeout and the statement is still open, it cancels the statement and throws an `SQLTimeoutException`. The same approach can be used for `executeQuery` method as well.
+------------------------------------------------------

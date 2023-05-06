@@ -1,0 +1,59 @@
+
+Sure, here's the updated code snippet that includes the additional error checking:
+
+```
+public static TrustManager[] getTrustManagers(KeyStore trustStore, TrustManagerFactory trustManagerFactory) throws NoSuchAlgorithmException, KeyStoreException {
+    if (trustManagerFactory == null || trustStore == null) {
+        throw new IllegalArgumentException("Trust store and trust manager factory cannot be null");
+    }
+    if (!trustManagerFactory.isInitialized()) {
+        throw new IllegalStateException("Trust manager factory is not initialized");
+    }
+    TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+    List<TrustManager> result = new ArrayList<>();
+    for (TrustManager trustManager : trustManagers) {
+        if (trustManager instanceof X509TrustManager) {
+            result.add(trustManager);
+        }
+    }
+    TrustManager[] trustManagerArray = result.toArray(new TrustManager[result.size()]);
+    if (trustManagerArray == null) {
+        throw new NullPointerException("Trust manager array is null");
+    }
+    return trustManagerArray;
+}
+
+public static KeyStore getKeyStore(String type, InputStream inputStream, char[] password) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+    if (type == null) {
+        throw new NullPointerException("Key store type is null");
+    }
+    KeyStore keyStore = KeyStore.getInstance(type);
+    if (inputStream == null) {
+        throw new IllegalArgumentException("Input stream cannot be null");
+    }
+    keyStore.load(inputStream, password);
+    return keyStore;
+}
+
+public static <T> T[] toArray(List<T> list, T[] array) throws ArrayStoreException {
+    if (array == null) {
+        throw new NullPointerException("Array is null");
+    }
+    if (!array.getClass().getComponentType().isAssignableFrom(list.get(0).getClass())) {
+        throw new ArrayStoreException("Array type is not compatible with list type");
+    }
+    return list.toArray(array);
+}
+
+public static <T> T get(List<T> list, int index) throws IndexOutOfBoundsException {
+    if (index < 0 || index >= list.size()) {
+        throw new IndexOutOfBoundsException("Index is out of range");
+    }
+    return list.get(index);
+}
+```
+
+The `toArray()` method now checks if the runtime type of the specified array is not a supertype of the runtime type of every element in the list and throws an `ArrayStoreException` if that is the case.
+
+The `get()` method now checks if the index is out of range (index < 0 || index >= size()) and throws an `IndexOutOfBoundsException` if that is the case.
+------------------------------------------------------

@@ -1,0 +1,29 @@
+
+Here's the updated Java method that checks for `HeadlessException` and `SecurityException`:
+
+```java
+public Point getMousePositionInComponent(Component component) throws HeadlessException, SecurityException {
+    if (GraphicsEnvironment.isHeadless()) {
+        throw new HeadlessException();
+    }
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null) {
+        securityManager.checkPermission(new AWTPermission("watchMousePointer"));
+    }
+    Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+    SwingUtilities.convertPointFromScreen(mousePosition, component);
+    Rectangle componentBounds = component.getBounds();
+    if (componentBounds.contains(mousePosition)) {
+        return mousePosition;
+    } else {
+        return null;
+    }
+}
+```
+
+This updated method first checks if the system is running in a headless environment using the `GraphicsEnvironment.isHeadless()` method. If it is, a `HeadlessException` is thrown.
+
+Next, it checks if a security manager exists and if its `checkPermission()` method allows the operation for `java.awt.MouseInfo.getPointerInfo()`. If not, a `SecurityException` is thrown.
+
+If both checks pass, the method proceeds to get the current mouse position and convert it to the component's coordinate space as before.
+------------------------------------------------------

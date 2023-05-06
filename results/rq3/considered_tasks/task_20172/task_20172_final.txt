@@ -1,0 +1,38 @@
+
+Sure, here's an updated version of the code snippet that checks if the current thread is allowed to create or start a thread before calling `Cleaner.create()`. If the current thread is not allowed, a `SecurityException` is thrown:
+
+```
+import java.lang.ref.Cleaner;
+
+public class SharedScope {
+    private static final Cleaner cleaner;
+
+    static {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("modifyThreadGroup"));
+        }
+        cleaner = Cleaner.create();
+    }
+
+    private final Object resource;
+    private final Cleaner.Cleanable cleanable;
+
+    public SharedScope(Object resource) {
+        this.resource = resource;
+        this.cleanable = cleaner.register(this, () -> {
+            // Clean up the resource when the scope is closed
+            // For example, release any locks or close any streams
+            System.out.println("Cleaning up shared resource");
+        });
+    }
+
+    public void close() {
+        // Close the scope and trigger the cleaner
+        cleanable.clean();
+    }
+}
+```
+
+In this version, we first check if there is a `SecurityManager` present, and if so, we call `checkPermission()` to check if the current thread is allowed to modify the thread group (which is required to create or start
+------------------------------------------------------

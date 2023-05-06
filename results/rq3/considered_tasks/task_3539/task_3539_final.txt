@@ -1,0 +1,65 @@
+
+Sure, here's an updated version of the code snippet that includes the requested error handling:
+
+```java
+import javax.xml.validation.ValidatorHandler;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
+
+public class ValidatorHandlerExample {
+    public static void setFeature(ValidatorHandler handler, String featureName, boolean value)
+            throws SAXNotRecognizedException, SAXNotSupportedException, NullPointerException {
+        if (featureName == null) {
+            throw new NullPointerException("Feature name cannot be null");
+        }
+        try {
+            handler.setFeature(featureName, value);
+        } catch (SAXNotRecognizedException e) {
+            throw new SAXNotRecognizedException("Feature not recognized: " + e.getMessage());
+        } catch (SAXNotSupportedException e) {
+            throw new SAXNotSupportedException("Feature not supported: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        // create a ValidatorHandler from a schema file
+        ValidatorHandler handler = null;
+        try {
+            handler = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+                    .newSchema(new StreamSource("schema.xsd")).newValidatorHandler();
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error creating ValidatorHandler: " + e.getMessage());
+            return;
+        } catch (NullPointerException e) {
+            System.err.println("Error creating ValidatorHandler: " + e.getMessage());
+            return;
+        } catch (SchemaFactoryConfigurationError e) {
+            System.err.println("Error creating ValidatorHandler: " + e.getMessage());
+            return;
+        } catch (SAXException e) {
+            System.err.println("Error creating ValidatorHandler: " + e.getMessage());
+            return;
+        }
+
+        // set a feature for the ValidatorHandler
+        try {
+            setFeature(handler, "http://apache.org/xml/features/validation/schema/ignore-xsi-type-until-elemdecl",
+                    true);
+        } catch (SAXNotRecognizedException e) {
+            System.err.println("Error setting feature: " + e.getMessage());
+        } catch (SAXNotSupportedException e) {
+            System.err.println("Error setting feature: " + e.getMessage());
+        } catch (NullPointerException e) {
+            System.err.println("Error setting feature: " + e.getMessage());
+        }
+    }
+}
+```
+
+In this updated version, the `setFeature` method now throws `SAXNotRecognizedException`, `SAXNotSupportedException`, and `NullPointerException` as appropriate. The method checks for a null feature name and throws a `NullPointerException` if necessary.
+
+In the `main` method, we now catch several additional exceptions that may be thrown when creating a `ValidatorHandler` from a schema file. We also catch the new exceptions that may be thrown by the `setFeature` method and print an error message if necessary.
+------------------------------------------------------

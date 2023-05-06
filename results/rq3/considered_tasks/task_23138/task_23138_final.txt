@@ -1,0 +1,42 @@
+
+Sure, here's an updated version of the code snippet that includes the requested error checking and exception handling:
+
+```
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.spi.ImageWriterSpi;
+import java.io.IOException;
+
+public class ImageWriterProvider {
+
+    public static ImageWriter getImageWriter(ImageWriterSpi spi) throws IOException {
+        if (spi == null) {
+            throw new IllegalArgumentException("Image format name cannot be null");
+        }
+        ImageWriter writer = null;
+        try {
+            writer = spi.createWriterInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new IOException("Error loading or initializing writer class", e);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Error initializing writer object", e);
+        }
+        return writer;
+    }
+
+    public static void main(String[] args) {
+        ImageWriterSpi spi = ImageIO.getImageWritersByFormatName("JPEG").next();
+        try {
+            ImageWriter writer = getImageWriter(spi);
+            System.out.println("ImageWriter implementation: " + writer.getClass().getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+In this updated version, the `getImageWriter` method now checks if the `spi` parameter is null and throws an `IllegalArgumentException` if it is. Additionally, the `createWriterInstance` method is now wrapped in a try-catch block that catches any `ClassNotFoundException`, `InstantiationException`, `IllegalAccessException`, or `IllegalArgumentException` that may occur during loading, initialization, instantiation, or initialization of the writer object. If any of these exceptions occur, an `IOException` is thrown with an appropriate error message and the original exception as the cause.
+
+In the `main` method, the `getImageWriter` method is now called within a try-catch block that catches any `IOException` that may be thrown. If an `IOException` is caught, the stack trace is printed to the console.
+------------------------------------------------------

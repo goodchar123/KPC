@@ -1,0 +1,42 @@
+
+Sure, here's the updated code snippet that checks for `IOException` and `SecurityException`:
+
+```java
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
+public static void setCreationTime(Path path, FileTime time) throws IOException {
+    try {
+        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+            public Void run() throws IOException {
+                BasicFileAttributeView attributes = Files.getFileAttributeView(path, BasicFileAttributeView.class);
+                BasicFileAttributes basicAttributes = attributes.readAttributes();
+                FileTime currentCreationTime = basicAttributes.creationTime();
+                attributes.setTimes(time, currentCreationTime, basicAttributes.lastModifiedTime());
+                return null;
+            }
+        });
+    } catch (PrivilegedActionException e) {
+        Exception cause = e.getCause();
+        if (cause instanceof IOException) {
+            throw (IOException) cause;
+        } else {
+            throw new SecurityException("Access denied", cause);
+        }
+    }
+}
+```
+
+This updated method uses `AccessController.doPrivileged()` to execute the code that accesses the file attributes with elevated privileges. 
+
+Inside the `run()` method of the `PrivilegedExceptionAction`, the method performs the same operations as before to set the creation time of the file. 
+
+If an `IOException` occurs, the `PrivilegedActionException` is caught and the `IOException` is re-thrown. If a `SecurityException` occurs, the `PrivilegedActionException` is caught and a new `SecurityException` is thrown with a message indicating that access was denied.
+------------------------------------------------------

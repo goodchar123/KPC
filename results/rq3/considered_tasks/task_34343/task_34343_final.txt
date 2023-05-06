@@ -1,0 +1,37 @@
+
+Sure, here's the updated code snippet that checks if the status byte or data bytes do not specify a valid MIDI message for `javax.sound.midi.ShortMessage.setMessage(int,int,int)`. If the parameters are invalid, it throws an `InvalidMidiDataException`:
+
+```java
+public static void setMidiMessageParameters(MidiMessage message, int status, int data1, int data2) throws InvalidMidiDataException {
+    if (message instanceof ShortMessage) {
+        ShortMessage shortMessage = (ShortMessage) message;
+        if (!ShortMessage.allStatusBytes[status]) {
+            throw new InvalidMidiDataException("Invalid MIDI status byte");
+        }
+        if (data1 < 0 || data1 > 127) {
+            throw new InvalidMidiDataException("Invalid MIDI data byte 1");
+        }
+        if (data2 < 0 || data2 > 127) {
+            throw new InvalidMidiDataException("Invalid MIDI data byte 2");
+        }
+        try {
+            shortMessage.setMessage(status, data1, data2);
+        } catch (InvalidMidiDataException e) {
+            e.printStackTrace();
+        }
+    } else if (message instanceof SysexMessage) {
+        SysexMessage sysexMessage = (SysexMessage) message;
+        byte[] data = new byte[3];
+        data[0] = (byte) status;
+        data[1] = (byte) data1;
+        data[2] = (byte) data2;
+        if (!SysexMessage.isSysexMessage(data, data.length)) {
+            throw new InvalidMidiDataException("Invalid MIDI system exclusive message");
+        }
+        sysexMessage.setMessage(data, data.length);
+    }
+}
+```
+
+This updated method throws an `InvalidMidiDataException` if the status byte or data bytes do not represent a valid MIDI message. The `ShortMessage.allStatusBytes[]` array is used to check if the status byte is valid. The data bytes are checked to ensure that they are within the valid range of 0 to 127.
+------------------------------------------------------

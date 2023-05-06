@@ -1,0 +1,36 @@
+
+Sure, here's the updated code snippet that checks if the reference to the RMI registry could not be created and throws a `RemoteException` in that case:
+
+```java
+import java.rmi.server.*;
+import java.rmi.registry.*;
+import java.rmi.*;
+import java.net.*;
+
+public static void exportObjectWithSocketFactory(Remote obj, int port, SocketFactory factory) throws RemoteException {
+    try {
+        // Create a server socket on the specified port
+        ServerSocket serverSocket = factory.createServerSocket(port);
+
+        // Export the remote object using the custom socket factory
+        UnicastRemoteObject.exportObject(obj, port, factory, factory);
+
+        // Bind the remote object to the RMI registry
+        Registry registry = null;
+        try {
+            registry = LocateRegistry.getRegistry();
+        } catch (RemoteException e) {
+            throw new RemoteException("Could not create reference to RMI registry", e);
+        }
+        registry.bind(obj.getClass().getName(), obj);
+
+        System.out.println("Remote object exported successfully.");
+    } catch (Exception e) {
+        System.err.println("Error exporting remote object: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+```
+
+This code uses a try-catch block to attempt to create a reference to the RMI registry using `LocateRegistry.getRegistry()`. If this call throws a `RemoteException`, it catches the exception and re-throws it as a new `RemoteException` with a more descriptive error message.
+------------------------------------------------------

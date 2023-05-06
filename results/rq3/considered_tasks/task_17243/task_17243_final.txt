@@ -1,0 +1,32 @@
+
+Sure, here's the updated code snippet that checks for all the potential exceptions:
+
+```java
+public void setSearchable(Connection conn, String tableName, String columnName, boolean searchable) throws SQLException {
+    DatabaseMetaData metaData = null;
+    ResultSet columns = null;
+    try {
+        metaData = conn.getMetaData();
+        columns = metaData.getColumns(null, null, tableName, columnName);
+        if (columns.next()) {
+            int columnPosition = columns.getInt("ORDINAL_POSITION");
+            metaData.setColumnSelectable(columnPosition, searchable);
+        } else {
+            throw new SQLException("Invalid column label: " + columnName);
+        }
+    } catch (SQLException e) {
+        throw e;
+    } finally {
+        if (columns != null) {
+            try {
+                columns.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+    }
+}
+```
+
+This updated method uses a try-catch-finally block to handle potential exceptions. If a `SQLException` is thrown by either `getMetaData()` or `getColumns()` or `next()` or `getInt()`, it is re-thrown. If the column label is invalid, a new `SQLException` is thrown. In the `finally` block, the `ResultSet` is closed to prevent resource leaks. If an error occurs while closing the `ResultSet`, it is ignored.
+------------------------------------------------------

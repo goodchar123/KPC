@@ -1,0 +1,65 @@
+
+Sure, here's an updated version of the code snippet that checks for a database access error or a closed connection when calling `Connection.createStatement()`, and throws a `SQLException` if either of these conditions occur:
+
+```java
+import java.sql.*;
+
+public class UpdateColumnWithNullValue {
+   public static void main(String[] args) throws SQLException {
+      Connection conn = null;
+      Statement stmt = null;
+      try {
+         // Register JDBC driver
+         Class.forName("com.mysql.jdbc.Driver");
+
+         // Open a connection
+         System.out.println("Connecting to database...");
+         conn = DriverManager.getConnection("jdbc:mysql://localhost/mydatabase", "username", "password");
+
+         // Check for database access error or closed connection
+         if (conn.isClosed()) {
+            throw new SQLException("Connection is closed");
+         }
+
+         // Execute a query to update the designated column with a null value
+         System.out.println("Updating the designated column with a null value...");
+         stmt = conn.createStatement();
+
+         // Check for database access error or closed connection
+         if (stmt.isClosed()) {
+            throw new SQLException("Statement is closed");
+         }
+
+         String sql = "UPDATE mytable SET mycolumn = NULL WHERE id = 1";
+         stmt.executeUpdate(sql);
+
+         // Clean-up environment
+         stmt.close();
+         conn.close();
+      } catch(SQLException se) {
+         // Handle errors for JDBC
+         se.printStackTrace();
+      } catch(Exception e) {
+         // Handle errors for Class.forName
+         e.printStackTrace();
+      } finally {
+         // Finally block used to close resources
+         try {
+            if(stmt!=null)
+               stmt.close();
+         } catch(SQLException se2) {
+         } // nothing we can do
+         try {
+            if(conn!=null)
+               conn.close();
+         } catch(SQLException se) {
+            se.printStackTrace();
+         } // end finally try
+      } // end try
+      System.out.println("Goodbye!");
+   } // end main
+} // end UpdateColumnWithNullValue
+```
+
+In this updated version, we're using the `isClosed()` method to check for a closed connection or statement before executing the `UPDATE` statement. If either of these conditions occur, we throw a `SQLException`. Note that we've also added a `throws SQLException` clause to the `main()` method signature to indicate that this method may throw a `SQLException`.
+------------------------------------------------------

@@ -1,0 +1,55 @@
+
+Sure, here's the updated Java method that includes the additional exception handling you requested:
+
+```java
+import java.net.MalformedURLException;
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
+public class ConnectorServer {
+    public static void activateServer() throws RemoteException, AccessException, AlreadyBoundException, NullPointerException, MalformedURLException {
+        try {
+            // Create an instance of the ConnectorImpl class that implements the Connector interface
+            ConnectorImpl connector = new ConnectorImpl();
+
+            // Export the ConnectorImpl object as a remote object
+            Connector stub = (Connector) UnicastRemoteObject.exportObject(connector, 0);
+
+            // Get the registry on the default port (1099)
+            Registry registry = LocateRegistry.getRegistry();
+
+            if (registry == null) {
+                throw new RemoteException("Registry could not be located.");
+            }
+
+            // Bind the Connector remote object to the registry with the name "Connector"
+            Naming.bind("rmi://localhost/Connector", stub);
+
+            System.out.println("Connector server is ready to accept client connections.");
+        } catch (RemoteException e) {
+            System.err.println("Connector server exception: " + e.getMessage());
+            throw e;
+        } catch (AccessException e) {
+            System.err.println("Connector server exception: " + e.getMessage());
+            throw e;
+        } catch (AlreadyBoundException e) {
+            System.err.println("Connector server exception: " + e.getMessage());
+            throw e;
+        } catch (NullPointerException e) {
+            System.err.println("Connector server exception: " + e.getMessage());
+            throw e;
+        } catch (MalformedURLException e) {
+            System.err.println("Connector server exception: " + e.getMessage());
+            throw e;
+        }
+    }
+}
+```
+
+This updated method includes additional exception handling for the cases you mentioned. If the name is not an appropriately formatted URL, a `MalformedURLException` is thrown. If the registry cannot be contacted, a `RemoteException` is thrown. If the operation is not permitted (e.g. originating from a non-local host), an `AccessException` is thrown. If any of these exceptions occur, they are caught and re-thrown with an error message.
+------------------------------------------------------

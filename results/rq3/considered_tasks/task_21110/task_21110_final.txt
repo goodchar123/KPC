@@ -1,0 +1,50 @@
+
+Sure, here's the updated Java method that includes error handling for the scenarios you mentioned:
+
+```java
+public static int getJdbcArrayType(Array array) throws SQLException {
+    int jdbcType = 0;
+    try {
+        ResultSet rs = array.getResultSet();
+        if (rs == null) {
+            throw new SQLException("Error accessing array: ResultSet is null");
+        }
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columnType = rsmd.getColumnType(2);
+        switch (columnType) {
+            case Types.ARRAY:
+                jdbcType = rsmd.getColumnType(2);
+                break;
+            case Types.STRUCT:
+                jdbcType = rsmd.getColumnType(3);
+                break;
+            default:
+                throw new SQLException("Invalid JDBC type for array");
+        }
+    } catch (SQLException e) {
+        throw e;
+    } catch (SQLFeatureNotSupportedException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new SQLException("Error accessing array: " + e.getMessage());
+    } finally {
+        try {
+            if (array != null) {
+                array.free();
+            }
+        } catch (SQLException e) {
+            throw e;
+        }
+    }
+    return jdbcType;
+}
+```
+
+This method now includes a try-catch block to handle errors that may occur while accessing the array using the `getResultSet()` method. If the ResultSet object returned by `getResultSet()` is null, it throws a SQLException with an error message.
+
+It also includes a try-catch block to handle the scenario where the JDBC driver does not support the `getResultSet()` method. If this is the case, it throws a SQLFeatureNotSupportedException.
+
+The method also includes error handling for the `getMetaData()` and `getColumnType()` methods. If a database access error occurs or these methods are called on a closed result set, it throws a SQLException with an error message.
+
+Finally, the method includes a `finally` block to free the Array object using the `free()` method, in case it was not already freed.
+------------------------------------------------------

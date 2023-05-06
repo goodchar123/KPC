@@ -1,0 +1,44 @@
+
+Here's an updated version of the Java method that includes the requested exception handling:
+
+```
+public static void decodeBytes(ByteBuffer inputBuffer, ByteBuffer outputBuffer) throws CharacterCodingException {
+    if (inputBuffer == null || outputBuffer == null) {
+        throw new IllegalArgumentException("Input and output buffers cannot be null");
+    }
+
+    String charsetName = "UTF-8";
+    Charset charset;
+    try {
+        charset = Charset.forName(charsetName);
+    } catch (IllegalCharsetNameException e) {
+        throw new IllegalArgumentException("Illegal charset name: " + charsetName, e);
+    } catch (UnsupportedCharsetException e) {
+        throw new IllegalArgumentException("Unsupported charset: " + charsetName, e);
+    }
+
+    CharsetDecoder decoder = charset.newDecoder();
+    decoder.onMalformedInput(CodingErrorAction.REPLACE);
+    decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
+
+    try {
+        CharBuffer charBuffer = decoder.decode(inputBuffer);
+        ByteBuffer byteBuffer = charset.encode(charBuffer);
+        if (outputBuffer.remaining() < byteBuffer.remaining()) {
+            throw new BufferOverflowException();
+        }
+        outputBuffer.put(byteBuffer);
+    } catch (IllegalStateException e) {
+        throw new IllegalStateException("Decoding operation already in progress", e);
+    } catch (MalformedInputException e) {
+        throw new MalformedInputException(inputBuffer.position(), e.getLength());
+    } catch (UnmappableCharacterException e) {
+        throw new UnmappableCharacterException(inputBuffer.position() + e.getInputLength(), e.getMessage());
+    } catch (ReadOnlyBufferException e) {
+        throw new ReadOnlyBufferException();
+    }
+}
+```
+
+This version of the method includes exception handling for all of the potential issues that could arise during the decoding process. It checks for null input and output buffers, illegal and unsupported charset names, insufficient space in the output buffer, and read-only output buffers. It also handles exceptions that could be thrown during the decoding process, such as illegal state exceptions, malformed input exceptions, and unmappable character exceptions.
+------------------------------------------------------

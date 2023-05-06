@@ -1,0 +1,54 @@
+
+Sure, here's the updated code snippet that includes the necessary exception handling:
+
+```java
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.NonReadableChannelException;
+import java.nio.channels.NonWritableChannelException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.channels.FileLockInterruptionException;
+
+public class FileLockExample {
+    public static void lockRegion(FileChannel channel, long position, long size, boolean shared) throws IOException {
+        if (position < 0 || size < 0 || position + size > channel.size()) {
+            throw new IllegalArgumentException();
+        }
+        if (!channel.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        FileLock lock = null;
+        try {
+            lock = channel.lock(position, size, shared);
+        } catch (AsynchronousCloseException e) {
+            throw new AsynchronousCloseException();
+        } catch (FileLockInterruptionException e) {
+            throw new FileLockInterruptionException();
+        } catch (OverlappingFileLockException e) {
+            throw new OverlappingFileLockException();
+        } catch (NonReadableChannelException e) {
+            if (shared) {
+                throw new NonReadableChannelException();
+            }
+        } catch (NonWritableChannelException e) {
+            if (!shared) {
+                throw new NonWritableChannelException();
+            }
+        }
+        if (lock == null) {
+            throw new IOException();
+        }
+        // Do something with the lock...
+        lock.release();
+        if (!channel.isOpen()) {
+            throw new ClosedChannelException();
+        }
+    }
+}
+```
+
+This updated method includes exception handling for all the preconditions you mentioned. It checks for invalid parameters, closed channels, overlapping locks, and incorrect channel modes. It also handles the case where the channel is closed or an I/O error occurs while releasing the lock.
+------------------------------------------------------

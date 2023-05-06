@@ -1,0 +1,153 @@
+
+Sure, here's the updated code snippet that includes the additional checks:
+
+```java
+public static AnnotatedType getEnclosingType(Type type) {
+    if (type instanceof Class) {
+        Class<?> clazz = (Class<?>) type;
+        return clazz.getAnnotatedEnclosingClass();
+    } else if (type instanceof ParameterizedType) {
+        ParameterizedType parameterizedType = (ParameterizedType) type;
+        Type rawType = parameterizedType.getRawType();
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        for (Type typeArgument : typeArguments) {
+            checkTypeArgument(typeArgument);
+        }
+        return getEnclosingType(rawType);
+    } else if (type instanceof GenericArrayType) {
+        GenericArrayType genericArrayType = (GenericArrayType) type;
+        Type componentType = genericArrayType.getGenericComponentType();
+        checkArrayTypeComponentType(componentType);
+        return getEnclosingType(componentType);
+    } else if (type instanceof WildcardType) {
+        WildcardType wildcardType = (WildcardType) type;
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        Type[] lowerBounds = wildcardType.getLowerBounds();
+        for (Type upperBound : upperBounds) {
+            checkWildcardBound(upperBound);
+        }
+        for (Type lowerBound : lowerBounds) {
+            checkWildcardBound(lowerBound);
+        }
+        if (upperBounds.length > 0) {
+            return getEnclosingType(upperBounds[0]);
+        } else if (lowerBounds.length > 0) {
+            return getEnclosingType(lowerBounds[0]);
+        }
+    }
+    return null;
+}
+
+private static void checkTypeArgument(Type typeArgument) {
+    if (typeArgument instanceof Class) {
+        Class<?> clazz = (Class<?>) typeArgument;
+        if (clazz.isPrimitive()) {
+            return;
+        }
+        if (!clazz.isAnnotation() && !clazz.isEnum() && !clazz.isInterface() && !clazz.isLocalClass() && !clazz.isMemberClass()) {
+            throw new TypeNotPresentException(clazz.getName(), null);
+        }
+    } else if (typeArgument instanceof ParameterizedType) {
+        ParameterizedType parameterizedType = (ParameterizedType) typeArgument;
+        Type rawType = parameterizedType.getRawType();
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        for (Type nestedTypeArgument : typeArguments) {
+            checkTypeArgument(nestedTypeArgument);
+        }
+        checkTypeArgument(rawType);
+    } else if (typeArgument instanceof GenericArrayType) {
+        GenericArrayType genericArrayType = (GenericArrayType) typeArgument;
+        Type componentType = genericArrayType.getGenericComponentType();
+        checkArrayTypeComponentType(componentType);
+    } else if (typeArgument instanceof WildcardType) {
+        WildcardType wildcardType = (WildcardType) typeArgument;
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        Type[] lowerBounds = wildcardType.getLowerBounds();
+        for (Type upperBound : upperBounds) {
+            checkWildcardBound(upperBound);
+        }
+        for (Type lowerBound : lowerBounds) {
+            checkWildcardBound(lowerBound);
+        }
+    } else {
+        throw new MalformedParameterizedTypeException();
+    }
+}
+
+private static void checkArrayTypeComponentType(Type componentType) {
+    if (componentType instanceof Class) {
+        Class<?> clazz = (Class<?>) componentType;
+        if (clazz.isPrimitive()) {
+            return;
+        }
+        if (!clazz.isAnnotation() && !clazz.isEnum() && !clazz.isInterface() && !clazz.isLocalClass() && !clazz.isMemberClass()) {
+            throw new TypeNotPresentException(clazz.getName(), null);
+        }
+    } else if (componentType instanceof ParameterizedType) {
+        ParameterizedType parameterizedType = (ParameterizedType) componentType;
+        Type rawType = parameterizedType.getRawType();
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        for (Type nestedTypeArgument : typeArguments) {
+            checkTypeArgument(nestedTypeArgument);
+        }
+        checkArrayTypeComponentType(rawType);
+    } else if (componentType instanceof GenericArrayType) {
+        GenericArrayType genericArrayType = (GenericArrayType) componentType;
+        Type nestedComponentType = genericArrayType.getGenericComponentType();
+        checkArrayTypeComponentType(nestedComponentType);
+    } else if (componentType instanceof WildcardType) {
+        WildcardType wildcardType = (WildcardType) componentType;
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        Type[] lowerBounds = wildcardType.getLowerBounds();
+        for (Type upperBound : upperBounds) {
+            checkWildcardBound(upperBound);
+        }
+        for (Type lowerBound : lowerBounds) {
+            checkWildcardBound(lowerBound);
+        }
+    } else {
+        throw new MalformedParameterizedTypeException();
+    }
+}
+
+private static void checkWildcardBound(Type bound) {
+    if (bound instanceof Class) {
+        Class<?> clazz = (Class<?>) bound;
+        if (clazz.isPrimitive()) {
+            return;
+        }
+        if (!clazz.isAnnotation() && !clazz.isEnum() && !clazz.isInterface() && !clazz.isLocalClass() && !clazz.isMemberClass()) {
+            throw new TypeNotPresentException(clazz.getName(), null);
+        }
+    } else if (bound instanceof ParameterizedType) {
+        ParameterizedType parameterizedType = (ParameterizedType) bound;
+        Type rawType = parameterizedType.getRawType();
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        for (Type nestedTypeArgument : typeArguments) {
+            checkTypeArgument(nestedTypeArgument);
+        }
+        checkWildcardBound(rawType);
+    } else if (bound instanceof GenericArrayType) {
+        GenericArrayType genericArrayType = (GenericArrayType) bound;
+        Type componentType = genericArrayType.getGenericComponentType();
+        checkArrayTypeComponentType(componentType);
+    } else if (bound instanceof WildcardType) {
+        WildcardType wildcardType = (WildcardType) bound;
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        Type[] lowerBounds = wildcardType.getLowerBounds();
+        for (Type upperBound : upperBounds) {
+            checkWildcardBound(upperBound);
+        }
+        for (Type lowerBound : lowerBounds) {
+            checkWildcardBound(lowerBound);
+        }
+    } else {
+        throw new MalformedParameterizedTypeException();
+    }
+}
+```
+
+This updated code includes additional checks in the `checkTypeArgument()`, `checkArrayTypeComponentType()`, and `checkWildcardBound()` methods to ensure that any actual type arguments, actual type parameters, array component types, and wildcard bounds are valid. 
+
+The `check
+------------------------------------------------------

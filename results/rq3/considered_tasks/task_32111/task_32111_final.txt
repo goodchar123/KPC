@@ -1,0 +1,43 @@
+
+Sure, here's the updated code snippet that includes the requested error handling:
+
+```java
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.spi.ImageReaderSpi;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+public static Iterator<ImageReader> getImageReadersByMIMEType(String mimeType) throws IllegalArgumentException, IOException, NoSuchElementException {
+    if (mimeType == null) {
+        throw new IllegalArgumentException("MIME type cannot be null");
+    }
+    ArrayList<ImageReader> readers = new ArrayList<>();
+    Iterator<ImageReaderSpi> readerSpis = ImageIO.getImageReadersByMIMEType(mimeType);
+    while (readerSpis.hasNext()) {
+        ImageReaderSpi readerSpi = readerSpis.next();
+        try {
+            ImageReader reader = readerSpi.createReaderInstance();
+            if (reader == null) {
+                throw new IOException("Failed to create reader instance for " + readerSpi.getDescription());
+            }
+            readers.add(reader);
+        } catch (IOException e) {
+            // Rethrow the exception with more information
+            throw new IOException("Failed to initialize reader class for " + readerSpi.getDescription(), e);
+        } catch (IllegalArgumentException e) {
+            // Rethrow the exception with more information
+            throw new IllegalArgumentException("Failed to initialize reader class for " + readerSpi.getDescription(), e);
+        }
+    }
+    if (readers.isEmpty()) {
+        throw new NoSuchElementException("No ImageReaders found for MIME type " + mimeType);
+    }
+    return readers.iterator();
+}
+```
+
+This updated method now checks for null MIME type and throws an `IllegalArgumentException` if it is null. It also checks for errors during loading, initialization, instantiation, and initialization of the reader object and throws an `IOException` if any of these errors occur. Additionally, it checks if the iteration has no more elements and throws a `NoSuchElementException` if there are no `ImageReader` objects found for the given MIME type.
+------------------------------------------------------

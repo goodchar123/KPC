@@ -1,0 +1,43 @@
+
+Sure, here's an updated version of the code snippet that includes all the error checking you requested:
+
+```java
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+
+public class TaskExecutor {
+
+    public static <T> List<Future<T>> executeTasks(List<Callable<T>> tasks) throws InterruptedException {
+        if (tasks == null || tasks.isEmpty()) {
+            throw new IllegalArgumentException("Task list cannot be null or empty");
+        }
+
+        int nThreads = tasks.size();
+        if (nThreads <= 0) {
+            throw new IllegalArgumentException("Number of threads must be greater than 0");
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+        List<Future<T>> futures = new ArrayList<>();
+
+        try {
+            for (Callable<T> task : tasks) {
+                Future<T> future = executor.submit(task);
+                futures.add(future);
+            }
+
+            // Wait for all tasks to complete
+            executor.shutdown();
+            try {
+                AccessController.checkPermission(new RuntimePermission("modifyThread"));
+            } catch (SecurityException e) {
+                executor.shutdownNow();
+                throw e;
+            }
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } finally {
+            if (!executor.isTer
+------------------------------------------------------

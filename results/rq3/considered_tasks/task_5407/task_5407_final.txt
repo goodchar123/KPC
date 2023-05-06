@@ -1,0 +1,20 @@
+
+Sure, here's an updated implementation of the `getDouble` method that checks for a security manager and throws a `SecurityException` if the `Preferences.userRoot()` method is denied:
+
+```
+public double getDouble(String key, double defaultValue) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        try {
+            sm.checkPermission(new RuntimePermission("preferences"));
+        } catch (SecurityException se) {
+            throw new SecurityException("Access to preferences is denied", se);
+        }
+    }
+    Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+    return prefs.getDouble(key, defaultValue);
+}
+```
+
+This implementation first checks if a security manager is present using `System.getSecurityManager()`. If one is present, it then checks if the `RuntimePermission("preferences")` is allowed using `sm.checkPermission()`. If the permission is denied, it throws a `SecurityException` with a message indicating that access to preferences is denied. If the permission is allowed, it proceeds to retrieve the `Preferences` object and call the `getDouble` method as before.
+------------------------------------------------------

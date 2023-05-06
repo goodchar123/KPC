@@ -1,0 +1,39 @@
+
+Sure, here's an updated version of the code snippet that checks for errors loading assistive technologies and for a headless environment:
+
+```java
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.Transferable;
+
+public class ClipboardHelper {
+    public static Transferable getClipboardContents() {
+        try {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
+            }
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if (!toolkit.areExtraMouseButtonsEnabled()) {
+                throw new AWTError("Assistive technologies not loaded");
+            }
+            Clipboard clipboard = toolkit.getSystemClipboard();
+            return clipboard.getContents(null);
+        } catch (HeadlessException e) {
+            throw new HeadlessException("Headless environment detected");
+        } catch (Exception e) {
+            throw new AWTError("Error getting clipboard contents: " + e.getMessage());
+        }
+    }
+}
+```
+
+This version of the method first checks if the environment is headless using `GraphicsEnvironment.isHeadless()`. If it is, it throws a `HeadlessException`.
+
+Next, it checks if extra mouse buttons are enabled using `Toolkit.areExtraMouseButtonsEnabled()`. If they are not enabled, it throws an `AWTError` with a message indicating that assistive technologies are not loaded.
+
+Finally, it gets the system clipboard using `Toolkit.getSystemClipboard()`. If the environment is headless, it throws a `HeadlessException`.
+
+If any other exception occurs while trying to get the clipboard contents, the method throws an `AWTError` with a message indicating the error.
+------------------------------------------------------

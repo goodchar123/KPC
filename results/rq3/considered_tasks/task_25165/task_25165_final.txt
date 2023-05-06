@@ -1,0 +1,38 @@
+
+You're right, it's a good practice to check for I/O errors when calling `available()` and `close()` on an `InputStream`. Here's an updated version of the code that checks for errors and throws an `IOException` if necessary:
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.swing.ProgressMonitor;
+
+public class Example {
+    public static void main(String[] args) throws IOException {
+        InputStream in = new FileInputStream("example.txt");
+        int available = in.available();
+        if (available < 0) {
+            throw new IOException("Error getting available bytes");
+        }
+        ProgressMonitor monitor = new ProgressMonitor(null, "Reading file", "", 0, available / 1024);
+        InputStream monitoredIn = new MonitoredInputStream(in, monitor);
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        try {
+            while ((bytesRead = monitoredIn.read(buffer)) != -1) {
+                // do something with the data
+            }
+        } finally {
+            try {
+                monitoredIn.close();
+            } catch (IOException e) {
+                // log or handle the error
+                throw new IOException("Error closing input stream", e);
+            }
+        }
+    }
+}
+```
+
+In this updated version, the `available()` method is called on the `FileInputStream` and the result is checked for errors. If `available()` returns a negative value, an `IOException` is thrown with an error message. Otherwise, the `ProgressMonitor` is created with the maximum value set to the size of the file in kilobytes, and the `read` method is called in a loop to read data from the input stream. The `finally` block ensures that the input stream is closed even if an exception is thrown. The `close()` method is called on the `MonitoredInputStream`, and any `IOException` that occurs is caught and re-thrown with an error message.
+------------------------------------------------------
